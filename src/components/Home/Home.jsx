@@ -280,6 +280,11 @@ export default function Home() {
         return cartItems.includes(productId);
     };
 
+    // Handle category click to navigate to products with filter
+    const handleCategoryClick = (categoryId) => {
+        navigate(`/products?category=${categoryId}`);
+    };
+
     // Get cart items count
     const cartItemsCount = cartItems.length;
 
@@ -470,6 +475,7 @@ export default function Home() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 whileHover={{ scale: 1.02 }}
+                                onClick={() => handleCategoryClick(category.id)}
                                 className='group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 cursor-pointer border border-gray-100'
                             >
                                 {/* Background gradient overlay */}
@@ -500,6 +506,14 @@ export default function Home() {
                                     <p className='text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 line-clamp-2'>
                                         {category.description || 'Explore collection'}
                                     </p>
+
+                                    {/* Click hint */}
+                                    <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                                            <i className="fas fa-arrow-right text-xs"></i>
+                                            Click to explore
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Bottom border accent */}
