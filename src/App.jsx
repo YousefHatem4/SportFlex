@@ -22,6 +22,8 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import AdminProtectedRoute from './components/AdminProtectedRoute/AdminProtectedRoute'
 import Admin from './components/Admin/Admin'
 import OrderDetails from './components/OrderDetails/OrderDetails'
+import ProductDetailsAdmin from './components/ProductdetailsAdmin/ProductdetailsAdmin'
+import ProductEditAdmin from './components/ProductEditAdmin/ProductEditAdmin'
 
 const routers = createBrowserRouter([
   {
@@ -44,6 +46,8 @@ const routers = createBrowserRouter([
       { path: 'admin', element: <AdminProtectedRoute><Admin /></AdminProtectedRoute> },
       { path: 'order/:orderId', element: <AdminProtectedRoute><OrderDetails /></AdminProtectedRoute> },
       { path: 'productdetails/:id', element: <ProductDetails /> },
+      { path: 'productdetailsadmin/:id', element: <ProductDetailsAdmin /> },
+      { path: 'editproductdetailsadmin/:id', element: <ProductEditAdmin /> },
       { path: '*', element: <NotFound /> },
     ]
   }

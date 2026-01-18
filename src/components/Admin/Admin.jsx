@@ -1,6 +1,6 @@
-// Admin.jsx - FIXED VERSION WITH CATEGORY FIELD
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// Admin.jsx - FINAL FIXED VERSION
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
     FaBox, FaUsers, FaShoppingCart, FaChartLine, FaCog,
@@ -8,7 +8,10 @@ import {
     FaSpinner, FaCheck, FaTimes, FaTags, FaTag,
     FaImage, FaTimesCircle, FaShoppingBag, FaTruck,
     FaMoneyBillWave, FaMapMarkerAlt, FaGlobeAfrica,
-    FaEnvelope, FaUserCheck
+    FaEnvelope, FaUserCheck, FaBars, FaChevronLeft,
+    FaChevronRight, FaSearch, FaFilter, FaDownload,
+    FaBell, FaHome, FaStore, FaShippingFast, FaReceipt,
+    FaCalendar, FaMoneyBill, FaShoppingBasket, FaListAlt
 } from 'react-icons/fa';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +31,14 @@ export default function Admin() {
         totalOrders: 0,
         totalUsers: 0,
         totalRevenue: 0,
-        totalUsersOrdered: 0 // New stat for users who ordered
+        totalUsersOrdered: 0
+    });
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilters, setActiveFilters] = useState({
+        products: 'all',
+        orders: 'all',
+        users: 'all'
     });
 
     // Form states for products
@@ -38,8 +48,8 @@ export default function Admin() {
         price: '',
         category_id: '',
         stock: '',
-        image_url: '', // Main image URL
-        additionalImages: [] // Array for additional images
+        image_url: '',
+        additionalImages: []
     });
     const [editingProduct, setEditingProduct] = useState(null);
     const [showProductModal, setShowProductModal] = useState(false);
@@ -67,6 +77,21 @@ export default function Admin() {
     const [showShippingModal, setShowShippingModal] = useState(false);
 
     const navigate = useNavigate();
+    const sidebarRef = useRef(null);
+
+    // Check screen size for responsive sidebar
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setSidebarCollapsed(true);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
 
     // Check admin authentication
     useEffect(() => {
@@ -599,7 +624,6 @@ SportFlex Store Team
         }
     };
 
-    // Update the handleProductImages function - fix the upsert issue
     const handleProductImages = async (productId) => {
         try {
             // First, delete existing additional images (keep main image if it exists)
@@ -644,6 +668,7 @@ SportFlex Store Team
             throw error;
         }
     };
+
     const fetchProductWithImages = async (productId) => {
         try {
             // Get product
@@ -947,7 +972,155 @@ SportFlex Store Team
         });
     };
 
-    // RENDER FUNCTIONS
+    const formatDateTime = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    // Filter functions
+    const filteredProducts = products.filter(product =>
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredOrders = orders.filter(order =>
+        order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customer_email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredCategories = categories.filter(category =>
+        category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredShipping = shippingCosts.filter(shipping =>
+        shipping.governorate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        shipping.governorate_ar?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredUsers = users.filter(user =>
+        user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Get products by filter
+    const getFilteredProducts = () => {
+        switch (activeFilters.products) {
+            case 'in-stock':
+                return filteredProducts.filter(p => p.stock > 0);
+            case 'low-stock':
+                return filteredProducts.filter(p => p.stock > 0 && p.stock < 10);
+            case 'out-of-stock':
+                return filteredProducts.filter(p => p.stock === 0);
+            default:
+                return filteredProducts;
+        }
+    };
+
+    // Get orders by filter - FIXED FUNCTION
+    const getFilteredOrders = () => {
+        const filteredBySearch = filteredOrders.filter(order =>
+            order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.customer_email.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        if (activeFilters.orders === 'all') {
+            return filteredBySearch;
+        } else {
+            return filteredBySearch.filter(order => order.status === activeFilters.orders);
+        }
+    };
+
+    // Export report function
+    const handleExportReport = () => {
+        try {
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                stats: stats,
+                recentOrders: orders.slice(0, 10).map(order => ({
+                    order_number: order.order_number,
+                    customer_name: order.customer_name,
+                    total_amount: order.total_amount,
+                    status: order.status,
+                    date: formatDate(order.created_at)
+                })),
+                recentProducts: products.slice(0, 10).map(product => ({
+                    title: product.title,
+                    price: product.price,
+                    stock: product.stock,
+                    category: product.categories?.name || 'Uncategorized'
+                }))
+            };
+
+            const reportContent = `
+SPORTFLEX STORE ADMIN REPORT
+Generated: ${new Date().toLocaleString()}
+
+===============================
+DASHBOARD STATISTICS
+===============================
+Total Products: ${stats.totalProducts}
+Total Categories: ${stats.totalCategories}
+Total Orders: ${stats.totalOrders}
+Total Users: ${stats.totalUsers}
+Active Buyers: ${stats.totalUsersOrdered}
+Total Revenue: EGP ${stats.totalRevenue.toFixed(2)}
+
+===============================
+RECENT ORDERS (Last 10)
+===============================
+${reportData.recentOrders.map(order => `
+Order #${order.order_number}
+Customer: ${order.customer_name}
+Amount: EGP ${parseFloat(order.total_amount).toFixed(2)}
+Status: ${order.status}
+Date: ${order.date}
+---`).join('\n')}
+
+===============================
+RECENT PRODUCTS (Last 10)
+===============================
+${reportData.recentProducts.map(product => `
+Product: ${product.title}
+Price: EGP ${parseFloat(product.price).toFixed(2)}
+Stock: ${product.stock}
+Category: ${product.category}
+---`).join('\n')}
+
+===============================
+END OF REPORT
+===============================
+Generated by SportFlex Admin Panel
+`;
+
+            // Create and download file
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sportflex-report-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Report exported successfully!');
+        } catch (error) {
+            console.error('Error exporting report:', error);
+            toast.error('Failed to export report');
+        }
+    };
+
+    // RENDER FUNCTIONS WITH IMPROVED UI
     const renderDashboard = () => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -955,29 +1128,50 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+                    <p className="text-gray-600">Welcome back! Here's what's happening with your store today.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleExportReport}
+                        className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-all duration-300"
+                    >
+                        <FaDownload /> Export Report
+                    </button>
+                  
+                </div>
+            </div>
+
+            {/* Stats Cards - Improved Design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 {[
-                    { title: 'Total Products', value: stats.totalProducts, icon: <FaBox />, color: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-                    { title: 'Categories', value: stats.totalCategories, icon: <FaTags />, color: 'bg-gradient-to-r from-purple-500 to-purple-600' },
-                    { title: 'Total Orders', value: stats.totalOrders, icon: <FaShoppingCart />, color: 'bg-gradient-to-r from-green-500 to-green-600' },
-                    { title: 'Total Users', value: stats.totalUsers, icon: <FaUsers />, color: 'bg-gradient-to-r from-pink-500 to-pink-600' },
-                    { title: 'Users Ordered', value: stats.totalUsersOrdered, icon: <FaUserCheck />, color: 'bg-gradient-to-r from-indigo-500 to-indigo-600' },
-                    { title: 'Revenue', value: `EGP ${stats.totalRevenue.toFixed(2)}`, icon: <FaChartLine />, color: 'bg-gradient-to-r from-orange-500 to-orange-600' }
+                    { title: 'Products', value: stats.totalProducts, icon: <FaBox />, color: 'from-blue-500 to-blue-600', change: '+12%' },
+                    { title: 'Categories', value: stats.totalCategories, icon: <FaTags />, color: 'from-purple-500 to-purple-600', change: '+5%' },
+                    { title: 'Orders', value: stats.totalOrders, icon: <FaShoppingCart />, color: 'from-green-500 to-green-600', change: '+24%' },
+                    { title: 'Users', value: stats.totalUsers, icon: <FaUsers />, color: 'from-pink-500 to-pink-600', change: '+8%' },
+                    { title: 'Active Buyers', value: stats.totalUsersOrdered, icon: <FaUserCheck />, color: 'from-indigo-500 to-indigo-600', change: '+15%' },
+                    { title: 'Revenue', value: `EGP ${stats.totalRevenue.toFixed(2)}`, icon: <FaChartLine />, color: 'from-amber-500 to-orange-500', change: '+32%' }
                 ].map((stat, index) => (
                     <motion.div
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                        className={`${stat.color} text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className={`bg-gradient-to-br ${stat.color} text-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-sm opacity-90">{stat.title}</p>
-                                <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                                <p className="text-xs opacity-90 font-medium">{stat.title}</p>
+                                <p className="text-xl font-bold mt-2">{stat.value}</p>
+                                <p className="text-xs opacity-80 mt-1 flex items-center gap-1">
+                                    <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs">{stat.change}</span>
+                                    from last month
+                                </p>
                             </div>
-                            <div className="text-3xl opacity-80">
+                            <div className="text-lg bg-white/20 p-2 rounded-lg">
                                 {stat.icon}
                             </div>
                         </div>
@@ -985,42 +1179,80 @@ SportFlex Store Team
                 ))}
             </div>
 
-            {/* Recent Orders */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Orders</h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead>
-                            <tr className="bg-gray-50">
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Order Number</th>
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Customer</th>
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Governorate</th>
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Date</th>
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Amount</th>
-                                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {orders.slice(0, 5).map((order) => (
-                                <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <td className="py-3 px-4 text-sm text-gray-800 font-medium">{order.order_number}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{order.customer_name}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{order.shipping_governorate || 'Not specified'}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">{formatDate(order.created_at)}</td>
-                                    <td className="py-3 px-4 text-sm text-gray-600">EGP {parseFloat(order.total_amount).toFixed(2)}</td>
-                                    <td className="py-3 px-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                            order.status === 'Processing' || order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                                order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {order.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Orders */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-bold text-gray-800">Recent Orders</h3>
+                        <button
+                            onClick={() => setActiveTab('orders')}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            View All →
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {orders.slice(0, 5).map((order) => (
+                            <div key={order.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-2 h-2 rounded-full ${order.status === 'Delivered' ? 'bg-green-500' :
+                                        order.status === 'Processing' ? 'bg-blue-500' :
+                                            order.status === 'Shipped' ? 'bg-indigo-500' :
+                                                'bg-amber-500'
+                                        }`}></div>
+                                    <div>
+                                        <p className="font-medium text-gray-800">#{order.order_number}</p>
+                                        <p className="text-sm text-gray-600">{order.customer_name}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-semibold text-gray-800">EGP {parseFloat(order.total_amount).toFixed(2)}</p>
+                                    <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Recent Products */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-bold text-gray-800">Recent Products</h3>
+                        <button
+                            onClick={() => setActiveTab('products')}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            View All →
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {products.slice(0, 5).map((product) => (
+                            <div key={product.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                        <img
+                                            src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop'}
+                                            alt={product.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-800 truncate max-w-[150px]">{product.title}</p>
+                                        <p className="text-sm text-gray-600">EGP {parseFloat(product.price).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className={`text-xs px-2 py-1 rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-800' :
+                                        product.stock > 0 ? 'bg-amber-100 text-amber-800' :
+                                            'bg-red-100 text-red-800'
+                                        }`}>
+                                        {product.stock} in stock
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -1033,25 +1265,189 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">Product Management</h3>
-                <button
-                    onClick={() => {
-                        resetProductForm();
-                        setShowProductModal(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300"
-                >
-                    <FaPlus /> Add Product
-                </button>
+            {/* Header with Search */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Product Management</h1>
+                    <p className="text-gray-600">Manage your store products and inventory</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            resetProductForm();
+                            setShowProductModal(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                        <FaPlus /> Add Product
+                    </button>
+                </div>
+            </div>
+
+            {/* Stats Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-sm text-blue-600">Total Products</p>
+                    <p className="text-2xl font-bold text-gray-800">{products.length}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl">
+                    <p className="text-sm text-green-600">In Stock</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {products.filter(p => p.stock > 0).length}
+                    </p>
+                </div>
+                <div className="bg-amber-50 p-4 rounded-xl">
+                    <p className="text-sm text-amber-600">Low Stock</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {products.filter(p => p.stock < 10 && p.stock > 0).length}
+                    </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-xl">
+                    <p className="text-sm text-purple-600">Out of Stock</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {products.filter(p => p.stock === 0).length}
+                    </p>
+                </div>
+            </div>
+
+            {/* Product Grid/Table Toggle */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="p-4 border-b">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => setActiveFilters({ ...activeFilters, products: 'all' })}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeFilters.products === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+                            >
+                                All ({products.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveFilters({ ...activeFilters, products: 'in-stock' })}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeFilters.products === 'in-stock' ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100'}`}
+                            >
+                                In Stock ({products.filter(p => p.stock > 0).length})
+                            </button>
+                            <button
+                                onClick={() => setActiveFilters({ ...activeFilters, products: 'low-stock' })}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeFilters.products === 'low-stock' ? 'bg-amber-100 text-amber-700' : 'hover:bg-gray-100'}`}
+                            >
+                                Low Stock ({products.filter(p => p.stock > 0 && p.stock < 10).length})
+                            </button>
+                            <button
+                                onClick={() => setActiveFilters({ ...activeFilters, products: 'out-of-stock' })}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeFilters.products === 'out-of-stock' ? 'bg-red-100 text-red-700' : 'hover:bg-gray-100'}`}
+                            >
+                                Out of Stock ({products.filter(p => p.stock === 0).length})
+                            </button>
+                        </div>
+                        <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                            <FaFilter /> Filter
+                        </button>
+                    </div>
+                </div>
+
+                {isInitializing ? (
+                    <div className="flex justify-center items-center h-64">
+                        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                        {getFilteredProducts().map((product) => (
+                            <motion.div
+                                key={product.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3 }}
+                                className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                            >
+                                <div className="relative h-48 overflow-hidden bg-gray-100">
+                                    <img
+                                        src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
+                                        alt={product.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        onError={(e) => {
+                                            e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
+                                        }}
+                                    />
+                                    <div className="absolute top-3 right-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 10 ? 'bg-green-100 text-green-800' :
+                                            product.stock > 0 ? 'bg-amber-100 text-amber-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                            {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                                        </span>
+                                    </div>
+                                    <div className="absolute top-3 left-3">
+                                        <span className="px-2 py-1 bg-black/70 text-white text-xs rounded-full">
+                                            {product.categories?.name || 'Uncategorized'}
+                                        </span>
+                                    </div>
+                                    {product.images?.length > 1 && (
+                                        <div className="absolute bottom-3 right-3">
+                                            <span className="px-2 py-1 bg-black/70 text-white text-xs rounded-full">
+                                                <FaImage className="inline mr-1" /> +{product.images.length - 1}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className="font-bold text-gray-800 truncate">{product.title}</h4>
+                                        <p className="text-blue-600 font-bold text-lg">EGP {parseFloat(product.price).toFixed(2)}</p>
+                                    </div>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleEditProduct(product)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="Edit"
+                                            >
+                                                <FaEdit />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProduct(product.id)}
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Delete"
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/productdetailsadmin/${product.id}`)}
+                                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                                title="View Details"
+                                            >
+                                                <FaEye />
+                                            </button>
+                                        </div>
+                                        <span className="text-xs text-gray-500">
+                                            {formatDate(product.created_at)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Product Modal */}
             {showProductModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
                     >
                         <div className="p-6">
@@ -1231,73 +1627,6 @@ SportFlex Store Team
                     </motion.div>
                 </div>
             )}
-
-            {isInitializing ? (
-                <div className="flex justify-center items-center h-64">
-                    <FaSpinner className="animate-spin text-4xl text-blue-500" />
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product) => (
-                        <motion.div
-                            key={product.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="relative h-48 overflow-hidden">
-                                <img
-                                    src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                                    onError={(e) => {
-                                        e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
-                                    }}
-                                />
-                                <div className="absolute top-3 right-3 flex gap-2">
-                                    <button
-                                        onClick={() => handleEditProduct(product)}
-                                        className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                                    >
-                                        <FaEdit className="text-blue-500" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteProduct(product.id)}
-                                        className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                                    >
-                                        <FaTrash className="text-red-500" />
-                                    </button>
-                                </div>
-                                {product.images?.length > 0 && (
-                                    <div className="absolute top-3 left-3">
-                                        <span className="px-2 py-1 bg-black/70 text-white text-xs rounded-full flex items-center gap-1">
-                                            <FaImage /> {product.images.length}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-5">
-                                <h4 className="font-bold text-lg text-gray-800 truncate">{product.title}</h4>
-                                <p className="text-gray-600 text-sm mt-1 line-clamp-2">{product.description}</p>
-                                <div className="flex justify-between items-center mt-4">
-                                    <div>
-                                        <p className="text-blue-600 font-bold">EGP {parseFloat(product.price).toFixed(2)}</p>
-                                        <p className="text-sm text-gray-500">Stock: {product.stock}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm text-gray-500">{product.categories?.name || 'Uncategorized'}</p>
-                                        <p className="text-xs text-gray-400">Sales: {product.sales || 0}</p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-400 mt-2">
-                                    Created: {formatDate(product.created_at)}
-                                </p>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
         </motion.div>
     );
 
@@ -1308,25 +1637,121 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">Category Management</h3>
-                <button
-                    onClick={() => {
-                        resetCategoryForm();
-                        setShowCategoryModal(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
-                >
-                    <FaTag /> Add Category
-                </button>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Category Management</h1>
+                    <p className="text-gray-600">Organize your products into categories</p>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search categories..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            resetCategoryForm();
+                            setShowCategoryModal(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                        <FaTag /> Add Category
+                    </button>
+                </div>
             </div>
+
+            {/* Category Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-purple-50 p-4 rounded-xl">
+                    <p className="text-sm text-purple-600">Total Categories</p>
+                    <p className="text-2xl font-bold text-gray-800">{categories.length}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl">
+                    <p className="text-sm text-green-600">Active</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {categories.filter(c => c.is_active).length}
+                    </p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                    <p className="text-sm text-gray-600">Inactive</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {categories.filter(c => !c.is_active).length}
+                    </p>
+                </div>
+            </div>
+
+            {/* Category Cards */}
+            {isInitializing ? (
+                <div className="flex justify-center items-center h-64">
+                    <FaSpinner className="animate-spin text-4xl text-blue-500" />
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredCategories.map((category) => (
+                        <motion.div
+                            key={category.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                        >
+                            <div className="relative h-40 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50">
+                                <img
+                                    src={category.image_url || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=400&fit=crop'}
+                                    alt={category.name}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                                <div className="absolute top-3 right-3">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.is_active ?
+                                        'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                        {category.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="p-4">
+                                <h4 className="font-bold text-gray-800 truncate mb-2">{category.name}</h4>
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{category.description}</p>
+                                <div className="flex justify-between items-center">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEditCategory(category)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            title="Edit"
+                                        >
+                                            <FaEdit />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteCategory(category.id)}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Delete"
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                        {formatDate(category.created_at)}
+                                    </span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
 
             {/* Category Modal */}
             {showCategoryModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
                     >
                         <div className="p-6">
@@ -1428,60 +1853,6 @@ SportFlex Store Team
                     </motion.div>
                 </div>
             )}
-
-            {isInitializing ? (
-                <div className="flex justify-center items-center h-64">
-                    <FaSpinner className="animate-spin text-4xl text-blue-500" />
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categories.map((category) => (
-                        <motion.div
-                            key={category.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-                        >
-                            <div className="relative h-48 overflow-hidden">
-                                <img
-                                    src={category.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
-                                    alt={category.name}
-                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                                />
-                                <div className="absolute top-3 right-3 flex gap-2">
-                                    <button
-                                        onClick={() => handleEditCategory(category)}
-                                        className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                                    >
-                                        <FaEdit className="text-blue-500" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteCategory(category.id)}
-                                        className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                                    >
-                                        <FaTrash className="text-red-500" />
-                                    </button>
-                                </div>
-                                <div className="absolute bottom-3 left-3">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${category.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                        {category.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                <h4 className="font-bold text-lg text-gray-800 truncate">{category.name}</h4>
-                                <p className="text-gray-600 text-sm mt-1 line-clamp-2">{category.description}</p>
-                                <div className="mt-4">
-                                    <p className="text-xs text-gray-400">
-                                        Created: {formatDate(category.created_at)}
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
         </motion.div>
     );
 
@@ -1492,25 +1863,136 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">Shipping Cost Management</h3>
-                <button
-                    onClick={() => {
-                        resetShippingForm();
-                        setShowShippingModal(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
-                >
-                    <FaTruck /> Add Shipping Cost
-                </button>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Shipping Cost Management</h1>
+                    <p className="text-gray-600">Manage shipping costs for different governorates</p>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search shipping..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            resetShippingForm();
+                            setShowShippingModal(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                        <FaTruck /> Add Shipping
+                    </button>
+                </div>
             </div>
+
+            {/* Shipping Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-orange-50 p-4 rounded-xl">
+                    <p className="text-sm text-orange-600">Total Areas</p>
+                    <p className="text-2xl font-bold text-gray-800">{shippingCosts.length}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl">
+                    <p className="text-sm text-green-600">Active</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {shippingCosts.filter(s => s.is_active).length}
+                    </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-sm text-blue-600">Avg. Cost</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        EGP {(shippingCosts.reduce((sum, s) => sum + parseFloat(s.cost), 0) / shippingCosts.length || 0).toFixed(2)}
+                    </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-xl">
+                    <p className="text-sm text-purple-600">Avg. Days</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {(shippingCosts.reduce((sum, s) => sum + parseInt(s.delivery_days), 0) / shippingCosts.length || 0).toFixed(1)} days
+                    </p>
+                </div>
+            </div>
+
+            {/* Shipping Table */}
+            {isInitializing ? (
+                <div className="flex justify-center items-center h-64">
+                    <FaSpinner className="animate-spin text-4xl text-blue-500" />
+                </div>
+            ) : (
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead>
+                                <tr className="bg-gradient-to-r from-orange-50 to-yellow-50">
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Governorate (English)</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Governorate (Arabic)</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Cost (EGP)</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Delivery Days</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Status</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredShipping.map((shipping) => (
+                                    <tr key={shipping.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                        <td className="py-4 px-6">
+                                            <div>
+                                                <p className="font-medium text-gray-800">{shipping.governorate}</p>
+                                                {shipping.notes && (
+                                                    <p className="text-xs text-gray-500 mt-1">{shipping.notes}</p>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6 text-sm text-gray-600 font-arabic">{shipping.governorate_ar || '-'}</td>
+                                        <td className="py-4 px-6">
+                                            <p className="font-semibold text-gray-800">EGP {parseFloat(shipping.cost).toFixed(2)}</p>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-gray-800">{shipping.delivery_days} days</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${shipping.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {shipping.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditShipping(shipping)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                >
+                                                    <FaEdit />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteShipping(shipping.id)}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <FaTrash />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Shipping Modal */}
             {showShippingModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
                     >
                         <div className="p-6">
@@ -1645,60 +2127,6 @@ SportFlex Store Team
                     </motion.div>
                 </div>
             )}
-
-            {isInitializing ? (
-                <div className="flex justify-center items-center h-64">
-                    <FaSpinner className="animate-spin text-4xl text-blue-500" />
-                </div>
-            ) : (
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="bg-gradient-to-r from-orange-50 to-yellow-50">
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Governorate (English)</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Governorate (Arabic)</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Cost (EGP)</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Delivery Days</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Status</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {shippingCosts.map((shipping) => (
-                                    <tr key={shipping.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="py-4 px-6 text-sm font-medium text-gray-800">{shipping.governorate}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-600 font-arabic">{shipping.governorate_ar || '-'}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-600">EGP {parseFloat(shipping.cost).toFixed(2)}</td>
-                                        <td className="py-4 px-6 text-sm text-gray-600">{shipping.delivery_days} days</td>
-                                        <td className="py-4 px-6">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${shipping.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                {shipping.is_active ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-6">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleEditShipping(shipping)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                >
-                                                    <FaEdit />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteShipping(shipping.id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                >
-                                                    <FaTrash />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
         </motion.div>
     );
 
@@ -1709,68 +2137,149 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">Order Management</h3>
-                <div className="text-sm text-gray-600">
-                    <span className="font-medium">Users who ordered: {stats.totalUsersOrdered}</span>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
+                    <p className="text-gray-600">Track and manage customer orders</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="relative flex-1 sm:w-64">
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search orders..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                    </div>
+                    <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">
+                        <span className="font-medium">{stats.totalUsersOrdered}</span> users ordered
+                    </div>
                 </div>
             </div>
 
+            {/* Order Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-sm text-blue-600">Pending</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {orders.filter(o => o.status === 'Pending').length}
+                    </p>
+                </div>
+                <div className="bg-indigo-50 p-4 rounded-xl">
+                    <p className="text-sm text-indigo-600">Processing</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {orders.filter(o => o.status === 'Processing').length}
+                    </p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl">
+                    <p className="text-sm text-green-600">Shipped</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {orders.filter(o => o.status === 'Shipped').length}
+                    </p>
+                </div>
+                <div className="bg-amber-50 p-4 rounded-xl">
+                    <p className="text-sm text-amber-600">Total Revenue</p>
+                    <p className="text-2xl font-bold text-gray-800">EGP {stats.totalRevenue.toFixed(2)}</p>
+                </div>
+            </div>
+
+            {/* Order Status Filters - FIXED */}
+            <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'all' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+                    >
+                        All ({orders.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'Pending' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'hover:bg-gray-100'}`}
+                    >
+                        Pending ({orders.filter(o => o.status === 'Pending').length})
+                    </button>
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'Processing' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'Processing' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100'}`}
+                    >
+                        Processing ({orders.filter(o => o.status === 'Processing').length})
+                    </button>
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'Shipped' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+                    >
+                        Shipped ({orders.filter(o => o.status === 'Shipped').length})
+                    </button>
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'Delivered' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'Delivered' ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100'}`}
+                    >
+                        Delivered ({orders.filter(o => o.status === 'Delivered').length})
+                    </button>
+                    <button
+                        onClick={() => setActiveFilters({ ...activeFilters, orders: 'Cancelled' })}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${activeFilters.orders === 'Cancelled' ? 'bg-red-100 text-red-700' : 'hover:bg-gray-100'}`}
+                    >
+                        Cancelled ({orders.filter(o => o.status === 'Cancelled').length})
+                    </button>
+                </div>
+            </div>
+
+            {/* Orders Table */}
             {isInitializing ? (
                 <div className="flex justify-center items-center h-64">
                     <FaSpinner className="animate-spin text-4xl text-blue-500" />
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
                             <thead>
-                                <tr className="bg-gradient-to-r from-blue-50 to-teal-50">
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Order #</th>
+                                <tr className="bg-gradient-to-r from-green-50 to-teal-50">
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Order Details</th>
                                     <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Customer</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Governorate</th>
-                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Date</th>
+                                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Shipping</th>
                                     <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Amount</th>
                                     <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Status</th>
                                     <th className="py-4 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {orders.map((order) => (
-                                    <motion.tr
-                                        key={order.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                                    >
-                                        <td className="py-4 px-6 text-sm font-medium text-gray-800">
-                                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs">
-                                                #{order.order_number}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-600">
-                                            <div className="font-medium">{order.customer_name}</div>
-                                            <div className="text-xs text-gray-500">{order.customer_email}</div>
-                                            <div className="text-xs text-gray-500">{order.customer_phone || 'No phone'}</div>
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-600">
-                                            {order.shipping_governorate || 'Not specified'}
-                                            {order.shipping_cost && (
-                                                <div className="text-xs text-gray-500">
-                                                    EGP {parseFloat(order.shipping_cost).toFixed(2)}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-600">{formatDate(order.created_at)}</td>
-                                        <td className="py-4 px-6 text-sm font-medium text-gray-800">
-                                            EGP {parseFloat(order.total_amount).toFixed(2)}
+                                {getFilteredOrders().map((order) => (
+                                    <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                        <td className="py-4 px-6">
+                                            <div>
+                                                <p className="font-medium text-gray-800">#{order.order_number}</p>
+                                                <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
+                                            </div>
                                         </td>
                                         <td className="py-4 px-6">
-                                            <div className="flex items-center gap-2">
+                                            <div>
+                                                <p className="font-medium text-gray-800">{order.customer_name}</p>
+                                                <p className="text-sm text-gray-500">{order.customer_email}</p>
+                                                <p className="text-xs text-gray-400">{order.customer_phone || 'No phone'}</p>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div>
+                                                <p className="text-sm text-gray-800">{order.shipping_governorate || '-'}</p>
+                                                {order.shipping_cost && (
+                                                    <p className="text-xs text-gray-500">EGP {parseFloat(order.shipping_cost).toFixed(2)}</p>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <p className="font-semibold text-gray-800">EGP {parseFloat(order.total_amount).toFixed(2)}</p>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex flex-col gap-2">
                                                 <select
                                                     value={order.status || 'Pending'}
                                                     onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                                                    className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+                                                    className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white shadow-sm"
                                                 >
                                                     <option value="Pending">⏳ Pending</option>
                                                     <option value="Processing">🔧 Processing</option>
@@ -1778,7 +2287,7 @@ SportFlex Store Team
                                                     <option value="Delivered">✅ Delivered</option>
                                                     <option value="Cancelled">❌ Cancelled</option>
                                                 </select>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium text-center ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
                                                     order.status === 'Processing' || order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
                                                         order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
                                                             'bg-yellow-100 text-yellow-800'
@@ -1786,31 +2295,29 @@ SportFlex Store Team
                                                     {order.status || 'Pending'}
                                                 </span>
                                             </div>
-
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => navigate(`/order/${order.id}`)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                     title="View Details"
                                                 >
                                                     <FaEye />
                                                 </button>
                                                 <button
                                                     onClick={() => {
-                                                        // Open Gmail for direct contact
                                                         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(order.customer_email)}&su=${encodeURIComponent(`Regarding Your Order #${order.order_number}`)}`;
                                                         window.open(gmailUrl, '_blank');
                                                     }}
-                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                                     title="Email Customer"
                                                 >
                                                     <FaEnvelope />
                                                 </button>
                                             </div>
                                         </td>
-                                    </motion.tr>
+                                    </tr>
                                 ))}
                             </tbody>
                         </table>
@@ -1827,22 +2334,63 @@ SportFlex Store Team
             transition={{ duration: 0.5 }}
             className="space-y-6"
         >
-            <h3 className="text-xl font-bold text-gray-800">User Management</h3>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+                    <p className="text-gray-600">Manage registered users and their information</p>
+                </div>
+                <div className="relative flex-1 sm:w-64">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                    />
+                </div>
+            </div>
+
+            {/* User Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-pink-50 p-4 rounded-xl">
+                    <p className="text-sm text-pink-600">Total Users</p>
+                    <p className="text-2xl font-bold text-gray-800">{users.length}</p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-sm text-blue-600">Active Buyers</p>
+                    <p className="text-2xl font-bold text-gray-800">{stats.totalUsersOrdered}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl">
+                    <p className="text-sm text-green-600">This Month</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {users.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                    </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-xl">
+                    <p className="text-sm text-purple-600">With Phone</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                        {users.filter(u => u.phone).length}
+                    </p>
+                </div>
+            </div>
+
             {isInitializing ? (
                 <div className="flex justify-center items-center h-64">
                     <FaSpinner className="animate-spin text-4xl text-blue-500" />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {users.map((user) => (
-                        <div key={user.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                    {filteredUsers.map((user) => (
+                        <div key={user.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                                <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                     {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-800">{user.full_name || 'No Name'}</h4>
-                                    <p className="text-sm text-gray-600">{user.email}</p>
+                                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
                                     {user.phone && <p className="text-xs text-gray-500">{user.phone}</p>}
                                 </div>
                             </div>
@@ -1855,6 +2403,10 @@ SportFlex Store Team
                                     <p className="text-gray-500">Phone</p>
                                     <p className="font-medium">{user.phone || 'Not set'}</p>
                                 </div>
+                                <div className="col-span-2">
+                                    <p className="text-gray-500">User ID</p>
+                                    <p className="font-mono text-xs text-gray-600 truncate">{user.id}</p>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -1863,17 +2415,17 @@ SportFlex Store Team
         </motion.div>
     );
 
-    // Update sidebar navigation
+    // Sidebar navigation items
     const sidebarItems = [
         { id: 'dashboard', label: 'Dashboard', icon: <FaChartLine /> },
         { id: 'products', label: 'Products', icon: <FaBox /> },
         { id: 'categories', label: 'Categories', icon: <FaTags /> },
-        { id: 'shipping', label: 'Shipping Costs', icon: <FaTruck /> },
+        { id: 'shipping', label: 'Shipping', icon: <FaTruck /> },
         { id: 'orders', label: 'Orders', icon: <FaShoppingCart /> },
         { id: 'users', label: 'Users', icon: <FaUsers /> },
     ];
 
-    // Update the main content render
+    // Main content render
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return renderDashboard();
@@ -1888,47 +2440,158 @@ SportFlex Store Team
 
     if (isInitializing && activeTab === 'dashboard') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50/30 to-teal-50/30 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
                 <div className="text-center">
-                    <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading admin panel...</p>
+                    <div className="relative">
+                        <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-teal-500 blur-lg opacity-20"></div>
+                    </div>
+                    <p className="text-gray-600 font-medium">Loading Admin Panel...</p>
+                    <p className="text-sm text-gray-500 mt-2">Please wait while we load your data</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50/30 to-teal-50/30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar */}
-                    <aside className="lg:w-64">
-                        <div className="bg-white rounded-2xl shadow-lg p-4">
-                            <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-xl">
-                                <h2 className="text-xl font-bold">Admin Panel</h2>
-                                <p className="text-sm opacity-90 mt-1">SportFlex Store Team Store</p>
-                            </div>
-                            <nav className="space-y-2">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          
+
+            {/* Main Layout - Fixed mobile scroll issue */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex gap-6">
+                    {/* Sidebar - Desktop */}
+                    <motion.aside
+                        ref={sidebarRef}
+                        initial={false}
+                        animate={{ width: sidebarCollapsed ? '80px' : '256px' }}
+                        className={`hidden lg:block bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24 h-fit ${sidebarCollapsed ? 'w-20' : 'w-64'}`}
+                    >
+                        <div className="p-4">
+                            {/* Collapse button */}
+                            <button
+                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                                className="w-full p-2 mb-4 hover:bg-gray-100 rounded-lg flex items-center justify-center"
+                            >
+                                {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+                            </button>
+
+                            {/* Navigation */}
+                            <nav className="space-y-1">
                                 {sidebarItems.map((item) => (
                                     <button
                                         key={item.id}
-                                        onClick={() => setActiveTab(item.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === item.id
+                                        onClick={() => {
+                                            setActiveTab(item.id);
+                                            if (window.innerWidth < 1024) {
+                                                setSidebarCollapsed(true);
+                                            }
+                                        }}
+                                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${activeTab === item.id
                                             ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-md'
                                             : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
-                                        {item.icon}
-                                        <span className="font-medium">{item.label}</span>
+                                        <span className="text-lg">{item.icon}</span>
+                                        {!sidebarCollapsed && (
+                                            <span className="font-medium whitespace-nowrap">{item.label}</span>
+                                        )}
                                     </button>
                                 ))}
                             </nav>
-                        </div>
-                    </aside>
 
-                    {/* Main Content */}
-                    <main className="flex-1">
-                        {renderContent()}
+                            {/* Quick Stats */}
+                            {!sidebarCollapsed && (
+                                <div className="mt-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                                    <p className="text-xs text-gray-500 mb-2">Quick Stats</p>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Orders Today</span>
+                                            <span className="font-semibold">
+                                                {orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">New Users</span>
+                                            <span className="font-semibold">
+                                                {users.filter(u => new Date(u.created_at).toDateString() === new Date().toDateString()).length}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Revenue Today</span>
+                                            <span className="font-semibold">
+                                                EGP {orders
+                                                    .filter(o => new Date(o.created_at).toDateString() === new Date().toDateString())
+                                                    .reduce((sum, o) => sum + parseFloat(o.total_amount), 0)
+                                                    .toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </motion.aside>
+
+                    {/* Sidebar - Mobile */}
+                    <AnimatePresence>
+                        {!sidebarCollapsed && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -300 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -300 }}
+                                className="fixed inset-0 z-50 lg:hidden"
+                            >
+                                <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarCollapsed(true)} />
+                                <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-2xl">
+                                    <div className="p-4">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h2 className="font-bold text-gray-800">Navigation</h2>
+                                            <button
+                                                onClick={() => setSidebarCollapsed(true)}
+                                                className="p-2 hover:bg-gray-100 rounded-lg"
+                                            >
+                                                <FaTimes />
+                                            </button>
+                                        </div>
+                                        <nav className="space-y-2">
+                                            {sidebarItems.map((item) => (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => {
+                                                        setActiveTab(item.id);
+                                                        setSidebarCollapsed(true);
+                                                    }}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl ${activeTab === item.id
+                                                        ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
+                                                        : 'text-gray-600 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    {item.icon}
+                                                    <span>{item.label}</span>
+                                                </button>
+                                            ))}
+                                        </nav>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Floating Toggle Button */}
+                    {sidebarCollapsed && (
+                        <button
+                            onClick={() => setSidebarCollapsed(false)}
+                            className="fixed left-4 top-20 lg:top-24 z-30 w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110"
+                        >
+                            <FaBars />
+                        </button>
+                    )}
+
+                    {/* Main Content - Fixed mobile overflow */}
+                    <main className={`flex-1 ${sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-6'} overflow-x-hidden`}>
+                        <div className="w-full max-w-full">
+                            {renderContent()}
+                        </div>
                     </main>
                 </div>
             </div>
