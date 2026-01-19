@@ -575,52 +575,99 @@ export default function Products() {
                     }}
                     className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
                 >
-                    {products.map((product) => (
+                    {products.map((product, index) => (
                         <motion.div
                             key={product.id}
                             variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-                            whileHover={{ scale: 1.03 }}
-                            transition={{ duration: 0.3 }}
+                            transition={{ delay: index * 0.1 }}
+                            className='group'
                         >
-                            {/* Product Card */}
-                            <div className='cursor-pointer product bg-white p-3 sm:p-4 rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-100 hover:-translate-y-2'>
-                                {/* Product Image */}
-                                <Link to={`/productdetails/${product.id}`}>
-                                    <div className="overflow-hidden rounded-lg lg:rounded-xl relative">
-                                        <img
-                                            src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
-                                            alt={product.title}
-                                            className="w-full h-40 sm:h-48 lg:h-52 object-cover hover:scale-110 transition-transform duration-500 ease-in-out"
-                                            onError={(e) => {
-                                                e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
+                            {/* Enhanced Product Card matching home.jsx design */}
+                            <div className='cursor-pointer product bg-white rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-100 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
+                                {/* Product Image Container */}
+                                <Link to={`/productdetails/${product.id}`} className='block relative'>
+                                    <div className="relative overflow-hidden rounded-t-xl lg:rounded-t-2xl">
+                                        <div className="aspect-square w-full relative">
+                                            <img
+                                                src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
+                                                alt={product.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
+                                                }}
+                                            />
+
+                                            {/* Stock Badge */}
+                                            <div className="absolute top-2 left-2">
+                                                {product.stock <= 10 && product.stock > 0 ? (
+                                                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        <span className="hidden sm:inline">Only </span>{product.stock} left
+                                                    </div>
+                                                ) : product.stock === 0 ? (
+                                                    <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        Sold Out
+                                                    </div>
+                                                ) : null}
+                                            </div>
+
+                                            {/* Mobile-only Quick Action Overlay */}
+                                            <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+                                                <span className="text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                    Quick View
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Mobile-only Floating Wishlist Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleWishlistAction(product.id);
                                             }}
-                                        />
-                                        {/* Stock Badge */}
-                                        {product.stock <= 10 && product.stock > 0 && (
-                                            <div className="absolute top-2 left-2 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                                Only {product.stock} left
-                                            </div>
-                                        )}
-                                        {product.stock === 0 && (
-                                            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                                Out of Stock
-                                            </div>
-                                        )}
+                                            className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
+                                        >
+                                            <i className={`fa-solid fa-heart text-sm ${isInWishlist(product.id) ? 'text-rose-500' : 'text-gray-400'}`}></i>
+                                        </button>
                                     </div>
 
-                                    {/* Product Info */}
-                                    <div className="mt-3 sm:mt-4 space-y-1">
-                                        <span className="inline-block text-xs font-medium text-gray-400 uppercase tracking-widest">
-                                            {product.categories?.name || product.category_name || 'Uncategorized'}
-                                        </span>
-                                        <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-snug line-clamp-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                    {/* Product Info - Enhanced for Mobile */}
+                                    <div className="p-3 sm:p-4 space-y-2">
+                                        {/* Category Badge - Mobile Optimized */}
+                                        <div className="flex items-center justify-between">
+                                            <span className="inline-block text-xs font-medium text-gray-400 uppercase tracking-wide truncate max-w-[70%]">
+                                                {product.categories?.name || product.category_name || 'Uncategorized'}
+                                            </span>
+
+                                            {/* Mobile-only Rating */}
+                                            <div className="lg:hidden flex items-center text-amber-500 text-xs">
+                                                {renderStars(product.ratingsAverage || 4.5)}
+                                                <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Product Title - Better Mobile Typography */}
+                                        <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-blue-600 transition-colors duration-300">
                                             {product.title}
                                         </h3>
 
-                                        <div className="flex justify-between items-center mt-2">
-                                            <span className="text-blue-600 font-bold text-xs sm:text-sm">EGP {parseFloat(product.price).toFixed(2)}</span>
-                                            <div className="flex items-center">
-                                                <div className="flex items-center text-amber-500 text-xs sm:text-sm">
+                                        {/* Price & Rating - Enhanced Layout */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                                                    EGP {parseFloat(product.price).toFixed(2)}
+                                                </span>
+                                                {/* Original Price if on sale */}
+                                                {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
+                                                    <span className="text-xs text-gray-400 line-through">
+                                                        EGP {parseFloat(product.originalPrice).toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Desktop-only Rating with feedback count */}
+                                            <div className="hidden lg:flex items-center">
+                                                <div className="flex items-center text-amber-500 text-sm">
                                                     {renderStars(product.ratingsAverage || 4.5)}
                                                     <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
                                                 </div>
@@ -629,45 +676,87 @@ export default function Products() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            Stock: {product.stock}
+
+                                        {/* Mobile-only Stock Indicator */}
+                                        <div className="lg:hidden">
+                                            {product.stock > 0 ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                                        <div
+                                                            className="bg-green-500 h-1.5 rounded-full"
+                                                            style={{ width: `${Math.min((product.stock / 100) * 100, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">{product.stock} in stock</span>
+                                                </div>
+                                            ) : null}
                                         </div>
                                     </div>
                                 </Link>
 
-                                {/* Action Buttons */}
-                                <div className="mt-3 sm:mt-5 flex justify-between items-center gap-2 sm:gap-3">
-                                    <motion.button
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => handleAddToCart(product.id)}
-                                        disabled={isInCart(product.id) || product.stock <= 0}
-                                        className={`cursor-pointer flex-1 py-2 rounded-lg lg:rounded-xl transition-all duration-300 text-xs sm:text-sm font-semibold shadow 
-                                            ${isInCart(product.id)
-                                                ? "bg-gray-400 text-white cursor-not-allowed shadow-none"
-                                                : product.stock <= 0
-                                                    ? "bg-red-100 text-red-600 cursor-not-allowed"
-                                                    : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-md"}`}
-                                    >
-                                        {isInCart(product.id)
-                                            ? "Added"
-                                            : product.stock <= 0
-                                                ? "Out of Stock"
-                                                : "Add to Cart"}
-                                    </motion.button>
+                                {/* Enhanced Action Buttons for Mobile/Tablet */}
+                                <div className="px-3 pb-3 sm:px-4 sm:pb-4 pt-0">
+                                    <div className="flex items-center gap-2">
+                                        {/* Mobile: Full width button, Tablet+: Flex layout */}
+                                        <motion.button
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => handleAddToCart(product.id)}
+                                            disabled={isInCart(product.id) || product.stock <= 0}
+                                            className={`cursor-pointer flex-1 py-3 sm:py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-sm font-medium 
+                                                ${isInCart(product.id)
+                                                    ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed shadow-md"
+                                                    : product.stock <= 0
+                                                        ? "bg-gradient-to-r from-red-100 to-rose-100 text-red-600 cursor-not-allowed"
+                                                        : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-lg active:scale-95"}`}
+                                        >
+                                            <div className="flex items-center justify-center gap-2">
+                                                {isInCart(product.id) ? (
+                                                    <>
+                                                        <i className="fas fa-check text-sm"></i>
+                                                        <span className="hidden sm:inline">Added</span>
+                                                        <span className="sm:hidden">In Cart</span>
+                                                    </>
+                                                ) : product.stock <= 0 ? (
+                                                    <>
+                                                        <i className="fas fa-times text-sm"></i>
+                                                        <span className="hidden sm:inline">Out of Stock</span>
+                                                        <span className="sm:hidden">Sold Out</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <i className="fas fa-cart-plus text-sm"></i>
+                                                        <span className="hidden sm:inline">Add to Cart</span>
+                                                        <span className="sm:hidden">Add</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </motion.button>
 
-                                    <motion.button
-                                        whileTap={{ scale: 0.85 }}
-                                        onClick={() => handleWishlistAction(product.id)}
-                                        className={`cursor-pointer p-2 rounded-full border transition-all duration-300 hover:scale-110
-                                            ${isInWishlist(product.id)
-                                                ? "bg-gradient-to-r from-rose-50 to-pink-50 border-rose-400 text-rose-500"
-                                                : "border-gray-300 text-gray-500 hover:text-rose-500 hover:border-rose-400 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50"
-                                            }`}
-                                        title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                                    >
-                                        <i className="fa-solid fa-heart text-sm sm:text-lg"></i>
-                                    </motion.button>
+                                        {/* Desktop-only Wishlist Button */}
+                                        <motion.button
+                                            whileTap={{ scale: 0.85 }}
+                                            onClick={() => handleWishlistAction(product.id)}
+                                            className="hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                                            style={{
+                                                background: isInWishlist(product.id)
+                                                    ? 'linear-gradient(135deg, rgba(255, 228, 230, 1), rgba(251, 207, 232, 1))'
+                                                    : 'white',
+                                                borderColor: isInWishlist(product.id) ? '#fb7185' : '#e5e7eb'
+                                            }}
+                                            title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                                        >
+                                            <i className={`fa-solid fa-heart text-lg transition-all duration-300 ${isInWishlist(product.id)
+                                                ? "text-rose-500 animate-pulse"
+                                                : "text-gray-500 hover:text-rose-500"
+                                                }`}></i>
+                                        </motion.button>
+                                    </div>
+
+                                 
                                 </div>
+
+                                {/* Decorative Bottom Accent - Mobile Only */}
+                                <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
                             </div>
                         </motion.div>
                     ))}

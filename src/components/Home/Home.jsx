@@ -783,13 +783,7 @@ export default function Home() {
                                             </button>
                                         </div>
 
-                                        {/* Mobile-only Express Delivery Badge */}
-                                        {product.stock > 0 && (
-                                            <div className="lg:hidden mt-2 flex items-center justify-center gap-1 text-xs text-blue-600 bg-blue-50 rounded-lg py-1.5 px-2">
-                                                <i className="fas fa-bolt text-xs"></i>
-                                                <span>Express Delivery Available</span>
-                                            </div>
-                                        )}
+                                      
                                     </div>
 
                                     {/* Decorative Bottom Accent - Mobile Only */}
