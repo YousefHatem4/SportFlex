@@ -61,11 +61,75 @@ export default function Products() {
         }
     };
 
-    // Fetch products from database with optional filters
+    // Helper function to render star ratings
+    const renderStars = (rating) => {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+
+        return (
+            <div className="flex items-center">
+                {[...Array(5)].map((_, i) => {
+                    if (i < fullStars) {
+                        return <i key={i} className="fas fa-star text-amber-500 text-xs"></i>;
+                    } else if (i === fullStars && hasHalfStar) {
+                        return <i key={i} className="fas fa-star-half-alt text-amber-500 text-xs"></i>;
+                    } else {
+                        return <i key={i} className="far fa-star text-amber-500 text-xs"></i>;
+                    }
+                })}
+            </div>
+        );
+    };
+
+    // Fetch products from database with optional filters and feedback counts
     const fetchProducts = async (categoryId = 'all', search = '') => {
         try {
             setLoading(true);
 
+            // Try to fetch from the view first
+            const { data: viewData, error: viewError } = await supabase
+                .from('products_with_feedback')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!viewError && viewData) {
+                let filteredData = viewData;
+
+                // Filter by category if selected
+                if (categoryId !== 'all' && categoryId !== '') {
+                    filteredData = filteredData.filter(product =>
+                        product.category_id === categoryId
+                    );
+                }
+
+                // Filter by search query
+                if (search) {
+                    const searchLower = search.toLowerCase();
+                    filteredData = filteredData.filter(product =>
+                        product.title?.toLowerCase().includes(searchLower) ||
+                        product.description?.toLowerCase().includes(searchLower)
+                    );
+                }
+
+                console.log('Products with feedback fetched from view:', filteredData?.length);
+
+                // Transform the data to include proper ratings and feedback counts
+                const transformedData = filteredData.map(product => ({
+                    ...product,
+                    ratingsAverage: parseFloat(product.actual_rating) || 4.5,
+                    feedbackCount: product.feedback_count || 0,
+                    categories: product.category_id ? {
+                        id: product.category_id,
+                        name: product.category_name
+                    } : null
+                }));
+
+                setProducts(transformedData);
+                return;
+            }
+
+            // Fallback to original query if view doesn't exist
+            console.log('View not found, using original query:', viewError);
             let query = supabase
                 .from('products')
                 .select(`
@@ -91,8 +155,47 @@ export default function Products() {
 
             if (error) throw error;
 
-            console.log('Products fetched:', data?.length);
-            setProducts(data || []);
+            // Fetch feedback counts separately
+            const productIds = data?.map(p => p.id) || [];
+            let feedbackCounts = {};
+
+            if (productIds.length > 0) {
+                const { data: feedbackData, error: feedbackError } = await supabase
+                    .from('product_feedback')
+                    .select('product_id, rating')
+                    .in('product_id', productIds);
+
+                if (!feedbackError && feedbackData) {
+                    // Calculate counts and averages
+                    feedbackData.forEach(fb => {
+                        if (!feedbackCounts[fb.product_id]) {
+                            feedbackCounts[fb.product_id] = {
+                                count: 0,
+                                totalRating: 0
+                            };
+                        }
+                        feedbackCounts[fb.product_id].count++;
+                        feedbackCounts[fb.product_id].totalRating += fb.rating;
+                    });
+                }
+            }
+
+            // Transform products with feedback data
+            const transformedProducts = (data || []).map(product => {
+                const feedback = feedbackCounts[product.id] || { count: 0, totalRating: 0 };
+                const avgRating = feedback.count > 0
+                    ? feedback.totalRating / feedback.count
+                    : 4.5;
+
+                return {
+                    ...product,
+                    ratingsAverage: parseFloat(avgRating.toFixed(1)),
+                    feedbackCount: feedback.count
+                };
+            });
+
+            console.log('Products fetched with feedback:', transformedProducts.length);
+            setProducts(transformedProducts);
 
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -508,7 +611,7 @@ export default function Products() {
                                     {/* Product Info */}
                                     <div className="mt-3 sm:mt-4 space-y-1">
                                         <span className="inline-block text-xs font-medium text-gray-400 uppercase tracking-widest">
-                                            {product.categories?.name || 'Uncategorized'}
+                                            {product.categories?.name || product.category_name || 'Uncategorized'}
                                         </span>
                                         <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-snug line-clamp-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent transition-all duration-300">
                                             {product.title}
@@ -516,9 +619,14 @@ export default function Products() {
 
                                         <div className="flex justify-between items-center mt-2">
                                             <span className="text-blue-600 font-bold text-xs sm:text-sm">EGP {parseFloat(product.price).toFixed(2)}</span>
-                                            <div className="flex items-center text-amber-500 text-xs sm:text-sm">
-                                                <i className="fas fa-star mr-1"></i>
-                                                {product.ratingsAverage || 4.5}
+                                            <div className="flex items-center">
+                                                <div className="flex items-center text-amber-500 text-xs sm:text-sm">
+                                                    {renderStars(product.ratingsAverage || 4.5)}
+                                                    <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
+                                                </div>
+                                                <span className="text-gray-400 text-xs ml-1">
+                                                    ({product.feedbackCount || 0})
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="text-xs text-gray-500 mt-1">
