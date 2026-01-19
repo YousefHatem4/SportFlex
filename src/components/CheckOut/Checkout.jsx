@@ -12,9 +12,13 @@ export default function Checkout() {
   const [user, setUser] = useState(null)
   const [subtotal, setSubtotal] = useState(0)
   const [shipping, setShipping] = useState(0)
+  const [discount, setDiscount] = useState(0)
   const [total, setTotal] = useState(0)
   const [shippingCosts, setShippingCosts] = useState([])
   const [selectedGovernorate, setSelectedGovernorate] = useState('')
+  const [promoCode, setPromoCode] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState(null)
+  const [promoLoading, setPromoLoading] = useState(false)
 
   const navigate = useNavigate();
 
@@ -28,9 +32,9 @@ export default function Checkout() {
 
   useEffect(() => {
     if (selectedGovernorate && shippingCosts.length > 0) {
-      calculateTotalsWithShipping()
+      calculateTotals()
     }
-  }, [selectedGovernorate, shippingCosts])
+  }, [selectedGovernorate, shippingCosts, discount])
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -76,6 +80,7 @@ export default function Checkout() {
             total + (item.price * item.count), 0)
 
           setSubtotal(calculatedSubtotal)
+          calculateTotals(calculatedSubtotal)
         } else {
           navigate('/cart')
         }
@@ -88,18 +93,83 @@ export default function Checkout() {
     }
   }
 
-  const calculateTotalsWithShipping = () => {
+  const calculateTotals = (customSubtotal = null) => {
+    const calculatedSubtotal = customSubtotal !== null ? customSubtotal : subtotal;
+
     if (!selectedGovernorate) return
 
     const selectedShipping = shippingCosts.find(g => g.governorate === selectedGovernorate)
     const shippingCost = selectedShipping ? selectedShipping.cost : 50.00 // Default cost
 
     // Calculate total (no tax)
-    const calculatedTotal = subtotal + shippingCost
+    const calculatedTotal = Math.max(0, calculatedSubtotal + shippingCost - discount)
 
     setShipping(shippingCost)
     setTotal(calculatedTotal)
   }
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast.error('Please enter a promo code');
+      return;
+    }
+
+    if (!user) {
+      toast.error('Please login to apply promo code');
+      return;
+    }
+
+    setPromoLoading(true);
+    try {
+      // Call the stored procedure
+      const { data, error } = await supabase.rpc('validate_promo_code', {
+        p_promo_code: promoCode.toUpperCase(),
+        p_user_id: user.id,
+        p_order_amount: subtotal
+      });
+
+      if (error) {
+        console.error('Supabase RPC error:', error);
+        throw error;
+      }
+
+      console.log('Promo validation response:', data);
+
+      // Handle the array response properly
+      if (data && data.length > 0) {
+        const promoData = data[0];
+
+        if (promoData.is_valid) {
+          setDiscount(promoData.discount_amount);
+          setAppliedPromo({
+            code: promoCode.toUpperCase(),
+            discount_type: promoData.discount_type,
+            discount_value: promoData.discount_value,
+            discount_amount: promoData.discount_amount
+          });
+          toast.success(promoData.message || 'Promo code applied successfully!');
+          calculateTotals();
+        } else {
+          toast.error(promoData.message || 'Invalid promo code');
+        }
+      } else {
+        toast.error('Invalid promo code');
+      }
+    } catch (error) {
+      console.error('Error applying promo code:', error);
+      toast.error(error.message || 'Failed to apply promo code');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const handleRemovePromoCode = () => {
+    setPromoCode('');
+    setAppliedPromo(null);
+    setDiscount(0);
+    calculateTotals();
+    toast.success('Promo code removed');
+  };
 
   const validationSchema = Yup.object({
     details: Yup.string()
@@ -137,6 +207,20 @@ export default function Checkout() {
       // Generate order number
       const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
+      // Get promo code ID if applied
+      let promoCodeId = null;
+      if (appliedPromo) {
+        const { data: promoData } = await supabase
+          .from('promo_codes')
+          .select('id')
+          .eq('code', appliedPromo.code)
+          .single();
+
+        if (promoData) {
+          promoCodeId = promoData.id;
+        }
+      }
+
       // Prepare order data
       const orderData = {
         customer_name: `${formik.values.firstName} ${formik.values.lastName}`,
@@ -155,7 +239,8 @@ export default function Checkout() {
         order_number: orderNumber,
         total_amount: total,
         subtotal: subtotal,
-        shipping_cost: shippingCost
+        shipping_cost: shippingCost,
+        discount_amount: discount
       }
 
       // 1. Create order in database
@@ -173,6 +258,7 @@ export default function Checkout() {
           shipping_phone: orderData.shipping_phone,
           payment_method: orderData.payment_method,
           shipping_cost: shippingCost,
+          discount_amount: discount,
           status: 'Pending'
         }])
         .select()
@@ -195,7 +281,17 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError
 
-      // 3. Update product sales count
+      // 3. Mark promo code as used if applied
+      if (promoCodeId) {
+        await supabase.rpc('mark_promo_code_used', {
+          p_promo_code_id: promoCodeId,
+          p_user_id: user.id,
+          p_order_id: order.id,
+          p_discount_amount: discount
+        });
+      }
+
+      // 4. Update product sales count
       for (const item of cartItems) {
         try {
           // First get current sales count
@@ -219,7 +315,7 @@ export default function Checkout() {
         }
       }
 
-      // 4. Clear cart items for this user
+      // 5. Clear cart items for this user
       const { error: clearCartError } = await supabase
         .from('cart_items')
         .delete()
@@ -227,7 +323,7 @@ export default function Checkout() {
 
       if (clearCartError) console.error('Error clearing cart:', clearCartError)
 
-      // 5. Clear localStorage cart
+      // 6. Clear localStorage cart
       localStorage.removeItem('checkout_cart')
 
       toast.success('Order placed successfully! You will receive a confirmation email shortly.')
@@ -438,7 +534,9 @@ export default function Checkout() {
                       id="details"
                       name="details"
                       value={formik.values.details}
-                      onChange={formik.handleChange}
+                      onChange={(e) => {
+                        formik.handleChange(e);
+                      }}
                       onBlur={formik.handleBlur}
                       className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.details && formik.errors.details
                         ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
@@ -566,19 +664,19 @@ export default function Checkout() {
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-100">
                       <i className="fas fa-money-bill-wave text-2xl text-green-600"></i>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-lg">Cash on Delivery</h3>
-                      <p className="text-sm text-gray-600 mt-1">Pay when you receive your order</p>
-                      <div className="flex items-center gap-3 mt-3">
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-lg mb-1">Cash on Delivery</h3>
+                      <p className="text-sm text-gray-600 mb-3">Pay when you receive your order</p>
+                      <div className="flex flex-wrap gap-2">
+                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
                           <i className="fas fa-check-circle"></i>
                           No additional fees
                         </p>
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
                           <i className="fas fa-check-circle"></i>
                           Safe and convenient
                         </p>
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
                           <i className="fas fa-check-circle"></i>
                           Available everywhere in Egypt
                         </p>
@@ -649,7 +747,71 @@ export default function Checkout() {
                 ))}
               </div>
 
-              {/* Price Breakdown (TAX REMOVED) */}
+              {/* Promo Code Section - Fixed overflow issue */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <i className="fas fa-tag text-purple-500"></i>
+                  <h3 className="font-semibold text-gray-800">Promo Code</h3>
+                </div>
+
+                {appliedPromo ? (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
+                        <i className="fas fa-check-circle text-green-500"></i>
+                        <span className="font-mono font-bold text-green-800">{appliedPromo.code}</span>
+                      </div>
+                      <button
+                        onClick={handleRemovePromoCode}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <p className="text-sm text-green-700 mb-1">
+                      {appliedPromo.discount_type === 'percentage'
+                        ? `${appliedPromo.discount_value}% discount applied`
+                        : `EGP ${appliedPromo.discount_value} discount applied`
+                      }
+                    </p>
+                    <p className="text-lg font-bold text-green-800">
+                      - EGP {appliedPromo.discount_amount.toFixed(2)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Enter promo code"
+                        className="flex-1 min-w-0 px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 focus:outline-none font-mono"
+                        disabled={promoLoading}
+                      />
+                      <button
+                        onClick={handleApplyPromoCode}
+                        disabled={promoLoading || !promoCode.trim()}
+                        className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-300 whitespace-nowrap ${promoLoading || !promoCode.trim()
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 hover:scale-105 active:scale-95'
+                          }`}
+                      >
+                        {promoLoading ? (
+                          <i className="fas fa-spinner fa-spin"></i>
+                        ) : (
+                          'Apply'
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 text-center md:text-left">
+                      Enter your promo code and click apply to get discounts
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Price Breakdown */}
               <div className="space-y-4 mb-8 pb-6 border-b border-gray-200">
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-2">
@@ -658,6 +820,17 @@ export default function Checkout() {
                   </span>
                   <span className="font-medium">EGP {subtotal.toFixed(2)}</span>
                 </div>
+
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="flex items-center gap-2">
+                      <i className="fas fa-tag text-sm"></i>
+                      Discount
+                    </span>
+                    <span className="font-medium">- EGP {discount.toFixed(2)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-2">
                     <i className="fas fa-truck text-sm"></i>
@@ -665,21 +838,21 @@ export default function Checkout() {
                   </span>
                   <span className="font-medium">EGP {shipping.toFixed(2)}</span>
                 </div>
-                {/* TAX LINE REMOVED */}
+
                 <div className="flex justify-between text-xl font-bold text-gray-900 pt-4 border-t border-gray-200">
                   <span>Total</span>
                   <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">EGP {total.toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* Place Order Button - Added type="button" */}
+              {/* Place Order Button */}
               <button
                 type="button"
                 onClick={formik.handleSubmit}
                 disabled={loading || !formik.isValid || !selectedGovernorate}
                 className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-500/20 shadow-lg ${loading || !formik.isValid || !selectedGovernorate
                   ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 hover:scale-105 hover:shadow-xl'
+                  : 'bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 hover:scale-105 hover:shadow-xl active:scale-95'
                   }`}
               >
                 {loading ? (
@@ -690,7 +863,8 @@ export default function Checkout() {
                 ) : (
                   <span className="flex items-center justify-center gap-3">
                     <i className="fas fa-money-bill-wave"></i>
-                    Place Order (Cash on Delivery)
+                    <span className="hidden sm:inline">Place Order (Cash on Delivery)</span>
+                    <span className="sm:hidden">Place Order (COD)</span>
                     <i className="fas fa-arrow-right ml-2"></i>
                   </span>
                 )}
@@ -755,6 +929,189 @@ export default function Checkout() {
           .font-arabic {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             direction: rtl;
+          }
+          
+          /* Mobile & Tablet Optimizations */
+          @media (max-width: 767px) {
+            .px-5 {
+              padding-left: 1rem !important;
+              padding-right: 1rem !important;
+            }
+            
+            .py-10 {
+              padding-top: 2rem !important;
+              padding-bottom: 2rem !important;
+            }
+            
+            .p-8 {
+              padding: 1.5rem !important;
+            }
+            
+            .text-2xl {
+              font-size: 1.5rem !important;
+              line-height: 2rem !important;
+            }
+            
+            .text-3xl {
+              font-size: 1.875rem !important;
+              line-height: 2.25rem !important;
+            }
+            
+            .py-4 {
+              padding-top: 0.875rem !important;
+              padding-bottom: 0.875rem !important;
+            }
+            
+            .gap-10 {
+              gap: 2rem !important;
+            }
+            
+            .gap-6 {
+              gap: 1rem !important;
+            }
+            
+            .space-y-8 > * + * {
+              margin-top: 1.5rem !important;
+            }
+            
+            .w-12 {
+              width: 2.5rem !important;
+            }
+            
+            .h-12 {
+              height: 2.5rem !important;
+            }
+            
+            .mb-8 {
+              margin-bottom: 1.5rem !important;
+            }
+            
+            .text-lg {
+              font-size: 1rem !important;
+            }
+            
+            /* Fix for Cash on Delivery box text overflow */
+            .flex.flex-wrap.gap-2 {
+              gap: 0.5rem !important;
+            }
+            
+            .whitespace-nowrap {
+              white-space: normal !important;
+              font-size: 0.7rem !important;
+              padding: 0.25rem 0.5rem;
+              background: rgba(34, 197, 94, 0.1);
+              border-radius: 0.5rem;
+            }
+            
+            .w-14 {
+              width: 3rem !important;
+            }
+            
+            .h-14 {
+              height: 3rem !important;
+            }
+            
+            .text-2xl {
+              font-size: 1.25rem !important;
+            }
+            
+            .p-6 {
+              padding: 1rem !important;
+            }
+            
+            .gap-4 {
+              gap: 1rem !important;
+            }
+            
+            .text-lg {
+              font-size: 1rem !important;
+            }
+          }
+          
+          @media (min-width: 768px) and (max-width: 1023px) {
+            .max-w-6xl {
+              max-width: 100% !important;
+              padding-left: 1.5rem !important;
+              padding-right: 1.5rem !important;
+            }
+            
+            .lg\\:px-30 {
+              padding-left: 2rem !important;
+              padding-right: 2rem !important;
+            }
+            
+            .gap-10 {
+              gap: 3rem !important;
+            }
+            
+            .p-10 {
+              padding: 2rem !important;
+            }
+            
+            .grid-cols-1 {
+              grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+            }
+            
+            .lg\\:col-span-3, .lg\\:col-span-2 {
+              grid-column: span 1 / span 1 !important;
+            }
+            
+            .space-y-8 > * + * {
+              margin-top: 2rem !important;
+            }
+            
+            .py-5 {
+              padding-top: 1.25rem !important;
+              padding-bottom: 1.25rem !important;
+            }
+            
+            .text-xl {
+              font-size: 1.25rem !important;
+            }
+            
+            .sticky {
+              position: relative !important;
+              top: 0 !important;
+            }
+            
+            /* Tablet fix for Cash on Delivery box */
+            .flex.flex-wrap.gap-2 {
+              flex-wrap: wrap !important;
+            }
+            
+            .whitespace-nowrap {
+              white-space: nowrap !important;
+            }
+          }
+          
+          /* Large screen fix only - Prevent button overflow */
+          @media (min-width: 1024px) {
+            .flex-1.min-w-0 {
+              min-width: 0 !important;
+            }
+            
+            /* Fixed promo code section to prevent button overflow */
+            .space-y-3 > .flex.gap-2 {
+              flex-wrap: nowrap !important;
+            }
+            
+            .flex-1.min-w-0 {
+              flex: 1 1 0% !important;
+              min-width: 0 !important;
+            }
+            
+            .flex-shrink-0 {
+              flex-shrink: 0 !important;
+            }
+            
+            .whitespace-nowrap {
+              white-space: nowrap !important;
+            }
+            
+            /* Fixed Cash on Delivery section */
+            .flex.flex-wrap.gap-2 {
+              gap: 0.75rem !important;
+            }
           }
         `}
       </style>

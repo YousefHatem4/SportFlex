@@ -1,3 +1,4 @@
+// orderdetails.jsx - UPDATED WITH COMPLETE STOCK MANAGEMENT
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
@@ -23,10 +24,11 @@ import {
     FaCheck,
     FaUser,
     FaSave,
-    FaSpinner
+    FaSpinner,
+    FaTags,
+    FaPercent,
+    FaExclamationCircle
 } from 'react-icons/fa'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 
 export default function OrderDetails() {
     const { orderId } = useParams()
@@ -36,7 +38,6 @@ export default function OrderDetails() {
     const [customer, setCustomer] = useState(null)
     const [loading, setLoading] = useState(true)
     const [updatingStatus, setUpdatingStatus] = useState(false)
-    const [exportingPDF, setExportingPDF] = useState(false)
     const [savingNotes, setSavingNotes] = useState(false)
     const [notes, setNotes] = useState('')
     const printRef = useRef()
@@ -82,7 +83,8 @@ export default function OrderDetails() {
             id,
             title,
             image_url,
-            category
+            category,
+            stock
           )
         `)
                 .eq('order_id', orderId)
@@ -107,119 +109,128 @@ export default function OrderDetails() {
         }
     }
 
-    // GMAIL INTEGRATION FOR ORDER STATUS UPDATES
-    const sendStatusUpdateEmail = (order, newStatus) => {
-        // Create formatted email content
-        const emailBody = `
-Dear ${order.customer_name},
+    // =========== COMPLETE STOCK MANAGEMENT FUNCTIONS ===========
 
-Your order status has been updated!
+    // Decrease product stock when status changes to Shipped
+    const decreaseProductStock = async (orderItems) => {
+        try {
+            console.log('Decreasing stock for shipped order items:', orderItems);
 
-===========================================
-ORDER DETAILS
-===========================================
-📦 Order Number: ${order.order_number}
-📋 Status: ${getStatusWithEmoji(newStatus)}
-📅 Order Date: ${formatDate(order.created_at)}
-💰 Total Amount: EGP ${parseFloat(order.total_amount).toFixed(2)}
-📍 Governorate: ${order.shipping_governorate || 'Not specified'}
-📦 Shipping Cost: EGP ${parseFloat(order.shipping_cost || 0).toFixed(2)}
+            for (const item of orderItems) {
+                if (item.product_id) {
+                    const { data: product, error: productError } = await supabase
+                        .from('products')
+                        .select('stock')
+                        .eq('id', item.product_id)
+                        .single()
 
-===========================================
-STATUS UPDATE DETAILS
-===========================================
-🔄 Previous Status: ${order.status || 'Pending'}
-✅ New Status: ${newStatus}
-⏰ Updated: ${new Date().toLocaleString()}
+                    if (productError) {
+                        console.error(`Error fetching product ${item.product_id}:`, productError);
+                        continue;
+                    }
 
-${getStatusMessage(newStatus)}
+                    const newStock = Math.max(0, product.stock - item.quantity);
 
-===========================================
-ORDER ITEMS
-===========================================
-${orderItems.map(item => `• ${item.product_title} (Qty: ${item.quantity}) - EGP ${(item.price * item.quantity).toFixed(2)}`).join('\n')}
+                    const { error: updateError } = await supabase
+                        .from('products')
+                        .update({
+                            stock: newStock,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', item.product_id)
 
-===========================================
-SHIPPING INFORMATION
-===========================================
-📦 Shipping Address: ${order.shipping_address}
-📍 Governorate: ${order.shipping_governorate || 'Not specified'}
-📱 Shipping Phone: ${order.shipping_phone || 'Not provided'}
-🏢 Shipping City: ${order.shipping_city || 'Not specified'}
+                    if (updateError) {
+                        console.error(`Error updating stock for product ${item.product_id}:`, updateError);
+                    } else {
+                        console.log(`Updated stock for product ${item.product_title}: ${product.stock} → ${newStock}`);
+                        toast.success(`Stock updated for ${item.product_title}: ${newStock} remaining`);
+                    }
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('Error decreasing product stock:', error);
+            return false;
+        }
+    }
 
-===========================================
-NEXT STEPS
-===========================================
-${getNextSteps(newStatus)}
+    // Return products to stock when status changes to Pending, Processing, or Cancelled
+    const returnProductStock = async (orderItems) => {
+        try {
+            console.log('Returning stock for order items:', orderItems);
 
-===========================================
-CONTACT INFORMATION
-===========================================
-📧 Customer Email: ${order.customer_email}
-📱 Customer Phone: ${order.shipping_phone || 'Not provided'}
-🏢 Shipping Address: ${order.shipping_address || 'Not specified'}
+            for (const item of orderItems) {
+                if (item.product_id) {
+                    const { data: product, error: productError } = await supabase
+                        .from('products')
+                        .select('stock')
+                        .eq('id', item.product_id)
+                        .single()
 
-===========================================
-IMPORTANT NOTES
-===========================================
-• Please keep this order number for reference
-• Contact us if you have any questions
-• Thank you for shopping with us!
+                    if (productError) {
+                        console.error(`Error fetching product ${item.product_id}:`, productError);
+                        continue;
+                    }
 
-Best regards,
-SportFlex Store Team
-📞 Contact: +021 14082 1819
-📧 Email: yousef.hatem.developer@gmail.com
-        `.trim();
+                    const newStock = product.stock + item.quantity;
 
-        // Encode the email content
-        const encodedSubject = encodeURIComponent(`📦 Order #${order.order_number} - Status Updated to ${newStatus}`);
-        const encodedBody = encodeURIComponent(emailBody);
+                    const { error: updateError } = await supabase
+                        .from('products')
+                        .update({
+                            stock: newStock,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', item.product_id)
 
-        // Create Gmail compose URL
-        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(order.customer_email)}&su=${encodedSubject}&body=${encodedBody}`;
+                    if (updateError) {
+                        console.error(`Error updating stock for product ${item.product_id}:`, updateError);
+                    } else {
+                        console.log(`Returned stock for product ${item.product_title}: ${product.stock} → ${newStock}`);
+                        toast.success(`Stock returned for ${item.product_title}: ${newStock} available`);
+                    }
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('Error returning product stock:', error);
+            return false;
+        }
+    }
 
-        // Open Gmail in new tab
-        window.open(gmailUrl, '_blank');
-    };
-
-    // Helper functions for email content
-    const getStatusWithEmoji = (status) => {
-        const statusMap = {
-            'Pending': '⏳ Pending',
-            'Processing': '🔧 Processing',
-            'Shipped': '🚚 Shipped',
-            'Delivered': '✅ Delivered',
-            'Cancelled': '❌ Cancelled'
-        };
-        return statusMap[status] || status;
-    };
-
-    const getStatusMessage = (status) => {
-        const messages = {
-            'Pending': 'Your order has been received and is awaiting processing.',
-            'Processing': 'Your order is currently being processed. We\'re preparing your items for shipment.',
-            'Shipped': 'Great news! Your order has been shipped and is on its way to you.',
-            'Delivered': 'Your order has been successfully delivered. Thank you for shopping with us!',
-            'Cancelled': 'Your order has been cancelled. Please contact us if you have any questions.'
-        };
-        return messages[status] || 'Your order status has been updated.';
-    };
-
-    const getNextSteps = (status) => {
-        const steps = {
-            'Pending': '• We will notify you when your order starts processing\n• Estimated processing time: 24-48 hours',
-            'Processing': '• Your items are being prepared\n• You will receive shipping details soon\n• Estimated shipping time: 3-7 business days',
-            'Shipped': '• Track your shipment using the provided tracking number\n• Estimated delivery: Within 3-7 business days\n• Please ensure someone is available to receive the package',
-            'Delivered': '• Please inspect your items upon delivery\n• Contact us within 7 days for any issues\n• We hope you enjoy your purchase!',
-            'Cancelled': '• Any payments will be refunded within 5-7 business days\n• Contact us for more information\n• We hope to serve you better next time'
-        };
-        return steps[status] || '• We will contact you if any action is required';
-    };
-
+    // Dynamic stock management based on status changes
     const updateOrderStatus = async (newStatus) => {
         try {
             setUpdatingStatus(true)
+
+            // Get current order status
+            const { data: currentOrder } = await supabase
+                .from('orders')
+                .select('status')
+                .eq('id', orderId)
+                .single()
+
+            const oldStatus = currentOrder?.status || 'Pending'
+
+            // Define status categories
+            const shippedStatuses = ['Shipped', 'Delivered'];
+            const returnStatuses = ['Pending', 'Processing', 'Cancelled'];
+
+            // If changing from shipped to non-shipped status, return stock
+            if (shippedStatuses.includes(oldStatus) && returnStatuses.includes(newStatus)) {
+                const stockReturned = await returnProductStock(orderItems);
+                if (!stockReturned) {
+                    toast.error('Failed to return product stock');
+                }
+            }
+            // If changing from non-shipped to shipped status, decrease stock
+            else if (returnStatuses.includes(oldStatus) && shippedStatuses.includes(newStatus)) {
+                const stockDecreased = await decreaseProductStock(orderItems);
+                if (!stockDecreased) {
+                    toast.error('Failed to update product stock');
+                }
+            }
+            // If changing between shipped statuses (Shipped ↔ Delivered), no stock change needed
+            // If changing between return statuses (Pending ↔ Processing ↔ Cancelled), no stock change needed
 
             const { error } = await supabase
                 .from('orders')
@@ -234,8 +245,9 @@ SportFlex Store Team
             setOrder({ ...order, status: newStatus })
             toast.success(`Order status updated to ${newStatus}`)
 
-            // Open Gmail with status update email
+            // Send email notification
             sendStatusUpdateEmail(order, newStatus)
+
         } catch (error) {
             console.error('Error updating order status:', error)
             toast.error('Failed to update order status')
@@ -243,6 +255,96 @@ SportFlex Store Team
             setUpdatingStatus(false)
         }
     }
+
+    // Email notification function
+    const sendStatusUpdateEmail = (order, newStatus) => {
+        try {
+            // Get status message
+            const statusMessage = getStatusMessage(newStatus);
+
+            // Create detailed email content
+            const emailBody = `
+📦 ORDER STATUS UPDATE - SportFlex Store
+
+Dear ${order.customer_name},
+
+Your order status has been updated!
+
+===========================================
+ORDER INFORMATION
+===========================================
+📦 Order Number: ${order.order_number}
+📋 Status: ${newStatus}
+📅 Order Date: ${formatDate(order.created_at)}
+💰 Total Amount: EGP ${parseFloat(order.total_amount).toFixed(2)}
+📍 Governorate: ${order.shipping_governorate || 'Not specified'}
+🚚 Shipping Cost: EGP ${parseFloat(order.shipping_cost || 0).toFixed(2)}
+
+===========================================
+STATUS UPDATE DETAILS
+===========================================
+🔄 Previous Status: ${order.status || 'Pending'}
+✅ New Status: ${newStatus}
+⏰ Updated: ${new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}
+
+${statusMessage}
+
+===========================================
+NEXT STEPS
+===========================================
+${getNextSteps(newStatus)}
+
+Thank you for shopping with us!
+
+Best regards,
+SportFlex Store Team
+📞 Contact: +021 14082 1819
+📧 Email: yousef.hatem.developer@gmail.com
+`.trim();
+
+            // Create Gmail compose URL
+            const subject = encodeURIComponent(`📦 Order #${order.order_number} - Status Updated to ${newStatus}`);
+            const body = encodeURIComponent(emailBody);
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(order.customer_email)}&su=${subject}&body=${body}`;
+
+            // Open Gmail in new tab
+            window.open(gmailUrl, '_blank');
+
+        } catch (error) {
+            console.error('Error preparing email:', error);
+            toast.error('Failed to prepare email notification');
+        }
+    };
+
+    // Helper function for status messages
+    const getStatusMessage = (status) => {
+        const messages = {
+            'Pending': 'Your order has been received and is awaiting processing.',
+            'Processing': 'Your order is currently being processed. We\'re preparing your items for shipment.',
+            'Shipped': 'Great news! Your order has been shipped and is on its way to you.',
+            'Delivered': 'Your order has been successfully delivered. Thank you for shopping with us!',
+            'Cancelled': 'Your order has been cancelled. Please contact us if you have any questions.'
+        };
+        return messages[status] || 'Your order status has been updated.';
+    };
+
+    // Helper function for next steps
+    const getNextSteps = (status) => {
+        const steps = {
+            'Pending': '• We will notify you when your order starts processing\n• Estimated processing time: 24-48 hours',
+            'Processing': '• Your items are being prepared\n• You will receive shipping details soon\n• Estimated shipping time: 3-7 business days',
+            'Shipped': '• Track your shipment using the provided tracking number\n• Estimated delivery: Within 3-7 business days\n• Please ensure someone is available to receive the package',
+            'Delivered': '• Please inspect your items upon delivery\n• Contact us within 7 days for any issues\n• We hope you enjoy your purchase!',
+            'Cancelled': '• Any payments will be refunded within 5-7 business days\n• Contact us for more information\n• We hope to serve you better next time'
+        };
+        return steps[status] || '• We will contact you if any action is required';
+    };
 
     const saveNotes = async () => {
         try {
@@ -317,9 +419,10 @@ SportFlex Store Team
     const calculateOrderTotals = () => {
         const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
         const shipping = order?.shipping_cost || 0
+        const discount = order?.discount_amount || 0
         const total = order?.total_amount || 0
 
-        return { subtotal, shipping, total }
+        return { subtotal, shipping, discount, total }
     }
 
     const handlePrint = () => {
@@ -330,148 +433,7 @@ SportFlex Store Team
         navigate('/admin?tab=orders')
     }
 
-    const exportToPDF = async () => {
-        try {
-            setExportingPDF(true)
-
-            // Create a temporary div for PDF generation
-            const printContent = document.createElement('div')
-            printContent.className = 'print-pdf-content'
-            printContent.style.padding = '20px'
-            printContent.style.backgroundColor = 'white'
-            printContent.style.maxWidth = '800px'
-            printContent.style.margin = '0 auto'
-
-            const { subtotal, shipping, total } = calculateOrderTotals()
-
-            // Build PDF content
-            printContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px;">
-                    <h1 style="color: #3b82f6; font-size: 28px; margin-bottom: 10px;">SportFlex Store</h1>
-                    <p style="color: #6b7280; font-size: 16px;">Order Invoice</p>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                    <div>
-                        <h2 style="color: #1f2937; font-size: 22px; margin-bottom: 10px;">Order Details</h2>
-                        <p style="color: #6b7280; margin: 5px 0;"><strong>Order #:</strong> ${order.order_number}</p>
-                        <p style="color: #6b7280; margin: 5px 0;"><strong>Date:</strong> ${formatDate(order.created_at)}</p>
-                        <p style="color: #6b7280; margin: 5px 0;"><strong>Status:</strong> ${order.status}</p>
-                        <p style="color: #6b7280; margin: 5px 0;"><strong>Payment Method:</strong> ${order.payment_method}</p>
-                        ${order.notes ? `<p style="color: #6b7280; margin: 5px 0;"><strong>Notes:</strong> ${order.notes}</p>` : ''}
-                    </div>
-                    <div style="text-align: right;">
-                        <h3 style="color: #1f2937; font-size: 18px; margin-bottom: 10px;">SportFlex Store</h3>
-                        <p style="color: #6b7280; margin: 5px 0;">123 Sports Street</p>
-                        <p style="color: #6b7280; margin: 5px 0;">Cairo, Egypt</p>
-                        <p style="color: #6b7280; margin: 5px 0;">info@SportFlexstore.com</p>
-                        <p style="color: #6b7280; margin: 5px 0;">+20 123 456 7890</p>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div>
-                            <h3 style="color: #1f2937; font-size: 18px; margin-bottom: 10px;">Customer Information</h3>
-                            <p style="color: #6b7280; margin: 5px 0;"><strong>Name:</strong> ${order.customer_name}</p>
-                            <p style="color: #6b7280; margin: 5px 0;"><strong>Email:</strong> ${order.customer_email}</p>
-                            ${order.shipping_phone ? `<p style="color: #6b7280; margin: 5px 0;"><strong>Phone:</strong> ${order.shipping_phone}</p>` : ''}
-                        </div>
-                        <div style="text-align: right;">
-                            <h3 style="color: #1f2937; font-size: 18px; margin-bottom: 10px;">Shipping Address</h3>
-                            <p style="color: #6b7280; margin: 5px 0;">${order.shipping_address}</p>
-                            <p style="color: #6b7280; margin: 5px 0;">${order.shipping_city}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <h3 style="color: #1f2937; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Order Items</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background-color: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                                <th style="text-align: left; padding: 12px; color: #374151; font-weight: 600;">Item</th>
-                                <th style="text-align: center; padding: 12px; color: #374151; font-weight: 600;">Quantity</th>
-                                <th style="text-align: right; padding: 12px; color: #374151; font-weight: 600;">Price</th>
-                                <th style="text-align: right; padding: 12px; color: #374151; font-weight: 600;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${orderItems.map(item => `
-                                <tr style="border-bottom: 1px solid #e5e7eb;">
-                                    <td style="padding: 12px; color: #1f2937;">
-                                        <div style="font-weight: 500;">${item.product_title}</div>
-                                        <div style="color: #6b7280; font-size: 14px;">${item.products?.category || 'Uncategorized'}</div>
-                                    </td>
-                                    <td style="text-align: center; padding: 12px; color: #1f2937;">${item.quantity}</td>
-                                    <td style="text-align: right; padding: 12px; color: #1f2937;">EGP ${item.price.toFixed(2)}</td>
-                                    <td style="text-align: right; padding: 12px; color: #1f2937; font-weight: 500;">EGP ${(item.price * item.quantity).toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div style="margin-bottom: 30px; border-top: 2px solid #e5e7eb; padding-top: 20px;">
-                    <div style="display: flex; justify-content: flex-end;">
-                        <div style="width: 300px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="color: #6b7280;">Subtotal:</span>
-                                <span style="color: #1f2937; font-weight: 500;">EGP ${subtotal.toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="color: #6b7280;">Shipping:</span>
-                                <span style="color: #1f2937; font-weight: 500;">EGP ${shipping.toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
-                                <span style="color: #1f2937; font-size: 18px; font-weight: 700;">Total:</span>
-                                <span style="color: #3b82f6; font-size: 18px; font-weight: 700;">EGP ${total.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 14px;">
-                    <p>Thank you for your business!</p>
-                    <p>If you have any questions about this invoice, please contact our support team.</p>
-                    <p style="margin-top: 20px;">SportFlex Store • www.SportFlexstore.com • +20 123 456 7890</p>
-                </div>
-            `
-
-            // Add to document
-            document.body.appendChild(printContent)
-
-            // Generate canvas from HTML
-            const canvas = await html2canvas(printContent, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            })
-
-            // Create PDF
-            const imgData = canvas.toDataURL('image/png')
-            const pdf = new jsPDF('p', 'mm', 'a4')
-            const imgWidth = 210 // A4 width in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
-            pdf.save(`Order_${order.order_number}.pdf`)
-
-            // Clean up
-            document.body.removeChild(printContent)
-
-            toast.success('Order exported to PDF successfully!')
-
-        } catch (error) {
-            console.error('Error exporting to PDF:', error)
-            toast.error('Failed to export to PDF')
-        } finally {
-            setExportingPDF(false)
-        }
-    }
-
-    const { subtotal, shipping, total } = calculateOrderTotals()
+    const { subtotal, shipping, discount, total } = calculateOrderTotals()
 
     if (loading) {
         return (
@@ -520,13 +482,19 @@ SportFlex Store Team
                         </button>
                         <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
                         <p className="text-gray-600">Order #{order.order_number}</p>
-                       
+                        {order.discount_amount > 0 && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <FaTags className="text-green-500" />
+                                <span className="text-sm text-green-600 font-medium">
+                                    Promo code applied: EGP {parseFloat(order.discount_amount).toFixed(2)} discount
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-3 no-print">
                         <button
                             onClick={() => {
-                                // Open Gmail for direct contact
                                 const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(order.customer_email)}&su=${encodeURIComponent(`Regarding Your Order #${order.order_number}`)}`;
                                 window.open(gmailUrl, '_blank');
                             }}
@@ -539,22 +507,6 @@ SportFlex Store Team
                             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                         >
                             <FaPrint /> Print
-                        </button>
-                        <button
-                            onClick={exportToPDF}
-                            disabled={exportingPDF}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {exportingPDF ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    Exporting...
-                                </>
-                            ) : (
-                                <>
-                                    <FaDownload /> Export PDF
-                                </>
-                            )}
                         </button>
                     </div>
                 </motion.div>
@@ -669,8 +621,24 @@ SportFlex Store Team
                                                 className="w-20 h-20 object-cover rounded-lg border border-gray-200 no-print"
                                             />
                                             <div className="flex-1">
-                                                <h4 className="font-medium text-gray-900">{item.product_title}</h4>
-                                                <p className="text-sm text-gray-500">{item.products?.category || 'Uncategorized'}</p>
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{item.product_title}</h4>
+                                                        <p className="text-sm text-gray-500">{item.products?.category || 'Uncategorized'}</p>
+                                                    </div>
+                                                    {/* Stock Level Indicator */}
+                                                    {item.products?.stock !== undefined && (
+                                                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${item.products.stock < 5
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : item.products.stock < 10
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : 'bg-green-100 text-green-800'
+                                                            }`}>
+                                                            {item.products.stock < 5 && <FaExclamationCircle className="text-xs" />}
+                                                            <span>Stock: {item.products.stock}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center gap-4 mt-2">
                                                     <span className="text-gray-600">Qty: {item.quantity}</span>
                                                     <span className="text-gray-600">Price: EGP {item.price.toFixed(2)}</span>
@@ -696,6 +664,14 @@ SportFlex Store Team
                                         <span>Shipping</span>
                                         <span>EGP {shipping.toFixed(2)}</span>
                                     </div>
+                                    {discount > 0 && (
+                                        <div className="flex justify-between text-red-600">
+                                            <span className="flex items-center gap-2">
+                                                <FaTags /> Discount
+                                            </span>
+                                            <span>-EGP {discount.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200">
                                         <span>Total</span>
                                         <span className="text-blue-600">EGP {total.toFixed(2)}</span>
@@ -836,6 +812,12 @@ SportFlex Store Team
                                             <p className="font-medium">{order.order_number}</p>
                                         </div>
                                     </div>
+                                    {order.discount_amount > 0 && (
+                                        <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-lg">
+                                            <FaTags className="text-green-500 text-sm" />
+                                            <span className="text-green-700 text-sm font-medium">Discount Applied</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-3">
@@ -870,24 +852,19 @@ SportFlex Store Team
                                             <p className="font-medium">{order.user_id ? 'Registered User' : 'Guest Checkout'}</p>
                                         </div>
                                     </div>
+
+                                    {order.discount_amount > 0 && (
+                                        <div className="flex items-center gap-3">
+                                            <FaPercent className="text-gray-400" />
+                                            <div>
+                                                <p className="text-sm text-gray-500">Discount Applied</p>
+                                                <p className="font-medium text-green-600">-EGP {order.discount_amount.toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
-
-                        {/* Notes Preview (Print Only) */}
-                        {order.notes && (
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="bg-white rounded-2xl shadow-lg p-6 print-only"
-                            >
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Order Notes</h2>
-                                <div className="p-3 bg-gray-50 rounded-lg">
-                                    <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 </div>
 
@@ -987,130 +964,6 @@ SportFlex Store Team
               page-break-inside: avoid;
               break-inside: avoid;
             }
-            
-            .max-w-6xl {
-              max-width: 100% !important;
-              width: 100% !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            
-            .grid {
-              display: block !important;
-            }
-            
-            .lg\\:col-span-2 {
-              width: 100% !important;
-              float: none !important;
-              margin: 0 0 20px 0 !important;
-            }
-            
-            .lg\\:col-span-3 {
-              width: 100% !important;
-              float: none !important;
-            }
-            
-            .space-y-8 > * + * {
-              margin-top: 20px !important;
-            }
-            
-            .text-3xl { font-size: 24px !important; }
-            .text-xl { font-size: 18px !important; }
-            .text-lg { font-size: 16px !important; }
-            
-            img.no-print {
-              display: none !important;
-            }
-            
-            .bg-yellow-100, .bg-blue-100, .bg-green-100, .bg-red-100, .bg-purple-100 {
-              background-color: #f3f4f6 !important;
-              color: black !important;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            
-            .text-blue-600, .text-gray-900 {
-              color: black !important;
-            }
-            
-            .text-gray-600, .text-gray-500 {
-              color: #4b5563 !important;
-            }
-            
-            @page {
-              margin: 15mm;
-              size: A4;
-              counter-reset: page;
-            }
-            
-            @page :first {
-              margin-top: 15mm;
-            }
-            
-            @page :left {
-              margin-left: 15mm;
-              margin-right: 15mm;
-            }
-            
-            @page :right {
-              margin-left: 15mm;
-              margin-right: 15mm;
-            }
-            
-            body::after, html::after, .page-number, .page-count {
-              display: none !important;
-              content: none !important;
-            }
-            
-            footer, .footer, .print-footer {
-              display: none !important;
-            }
-            
-            .py-8 {
-              padding-top: 0 !important;
-              padding-bottom: 0 !important;
-            }
-            
-            .p-6 {
-              padding: 12px !important;
-            }
-            
-            .mb-8 {
-              margin-bottom: 12px !important;
-            }
-            
-            .relative.pl-8 {
-              padding-left: 20px !important;
-            }
-            
-            .absolute.-left-3 {
-              left: 0 !important;
-            }
-            
-            h1, h2, h3 {
-              page-break-after: avoid;
-            }
-            
-            table {
-              page-break-inside: auto;
-            }
-            
-            tr {
-              page-break-inside: avoid;
-              page-break-after: auto;
-            }
-            
-            thead {
-              display: table-header-group;
-            }
-            
-            tfoot {
-              display: table-footer-group;
-            }
-          }
-          
-          .print-only {
-            display: none;
           }
         `}
             </style>

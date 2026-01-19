@@ -16,9 +16,39 @@ export default function Navbar() {
     // State for cart items count
     const [cartItemsCount, setCartItemsCount] = useState(0);
     const [isLoadingCart, setIsLoadingCart] = useState(false);
+    const [specialOffer, setSpecialOffer] = useState('');
 
     // Check if user is logged in
     const isUserLoggedIn = userToken !== null;
+
+    // Fetch special offer
+    useEffect(() => {
+        fetchSpecialOffer();
+    }, []);
+
+    const fetchSpecialOffer = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('special_offers')
+                .select('banner_text')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (error && error.code !== 'PGRST116') throw error;
+
+            if (data) {
+                setSpecialOffer(data.banner_text);
+            } else {
+                // Fallback to default
+                setSpecialOffer('Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!');
+            }
+        } catch (error) {
+            console.error('Error fetching special offer:', error);
+            setSpecialOffer('Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!');
+        }
+    };
 
     // Fetch cart items count - useCallback to memoize the function
     const fetchCartCount = useCallback(async (userId) => {
@@ -164,7 +194,10 @@ export default function Navbar() {
 
     return <>
         <div className='bg-gradient-to-r from-blue-600 to-teal-500 py-3 text-center'>
-            <p className='font-serif text-white'>Summer Sale For All SportFlex And Free Express Delivery - OFF 50%! <Link to={'products'} className='ms-2 underline font-medium'>ShopNow</Link></p>
+            <p className='font-serif text-white'>
+                {specialOffer}
+                <Link to={'products'} className='ms-2 underline font-medium'>ShopNow</Link>
+            </p>
         </div>
 
         <nav className="bg-white sticky w-full z-30 top-0 start-0 border-b border-gray-200 shadow-sm">
