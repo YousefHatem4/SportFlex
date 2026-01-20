@@ -1,10 +1,22 @@
 // Products.jsx - COMPLETE SOLUTION WITH URL PARAMETER INTEGRATION
 import React, { useEffect, useState } from 'react'
-import style from './Products.module.css'
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { supabase } from '../../supabaseClient';
+import {
+    FaStar,
+    FaStarHalfAlt,
+    FaRegStar,
+    FaBoxOpen,
+    FaTimes,
+    FaCartPlus,
+    FaCheck,
+    FaHeart,
+    FaRegHeart,
+    FaShoppingCart,
+    FaSearch
+} from 'react-icons/fa';
 
 export default function Products() {
     const navigate = useNavigate();
@@ -70,11 +82,11 @@ export default function Products() {
             <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                     if (i < fullStars) {
-                        return <i key={i} className="fas fa-star text-amber-500 text-xs"></i>;
+                        return <FaStar key={i} className="text-amber-500 text-xs" />;
                     } else if (i === fullStars && hasHalfStar) {
-                        return <i key={i} className="fas fa-star-half-alt text-amber-500 text-xs"></i>;
+                        return <FaStarHalfAlt key={i} className="text-amber-500 text-xs" />;
                     } else {
-                        return <i key={i} className="far fa-star text-amber-500 text-xs"></i>;
+                        return <FaRegStar key={i} className="text-amber-500 text-xs" />;
                     }
                 })}
             </div>
@@ -474,8 +486,9 @@ export default function Products() {
                             />
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 text-sm"
+                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 text-sm flex items-center gap-2"
                             >
+                                <FaSearch />
                                 Search
                             </button>
                         </form>
@@ -547,7 +560,7 @@ export default function Products() {
                     className="col-span-full text-center py-16"
                 >
                     <div className="w-24 h-24 mx-auto mb-6 text-gray-300">
-                        <i className="fas fa-box-open text-8xl"></i>
+                        <FaBoxOpen className="text-8xl" />
                     </div>
                     <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Products Found</h3>
                     <p className="text-gray-600 mb-6">
@@ -627,7 +640,11 @@ export default function Products() {
                                             }}
                                             className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
                                         >
-                                            <i className={`fa-solid fa-heart text-sm ${isInWishlist(product.id) ? 'text-rose-500' : 'text-gray-400'}`}></i>
+                                            {isInWishlist(product.id) ? (
+                                                <FaHeart className="text-sm text-rose-500" />
+                                            ) : (
+                                                <FaRegHeart className="text-sm text-gray-400" />
+                                            )}
                                         </button>
                                     </div>
 
@@ -712,19 +729,19 @@ export default function Products() {
                                             <div className="flex items-center justify-center gap-2">
                                                 {isInCart(product.id) ? (
                                                     <>
-                                                        <i className="fas fa-check text-sm"></i>
+                                                        <FaCheck className="text-sm" />
                                                         <span className="hidden sm:inline">Added</span>
                                                         <span className="sm:hidden">In Cart</span>
                                                     </>
                                                 ) : product.stock <= 0 ? (
                                                     <>
-                                                        <i className="fas fa-times text-sm"></i>
+                                                        <FaTimes className="text-sm" />
                                                         <span className="hidden sm:inline">Out of Stock</span>
                                                         <span className="sm:hidden">Sold Out</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <i className="fas fa-cart-plus text-sm"></i>
+                                                        <FaCartPlus className="text-sm" />
                                                         <span className="hidden sm:inline">Add to Cart</span>
                                                         <span className="sm:hidden">Add</span>
                                                     </>
@@ -745,14 +762,13 @@ export default function Products() {
                                             }}
                                             title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                         >
-                                            <i className={`fa-solid fa-heart text-lg transition-all duration-300 ${isInWishlist(product.id)
-                                                ? "text-rose-500 animate-pulse"
-                                                : "text-gray-500 hover:text-rose-500"
-                                                }`}></i>
+                                            {isInWishlist(product.id) ? (
+                                                <FaHeart className="text-lg text-rose-500 animate-pulse" />
+                                            ) : (
+                                                <FaRegHeart className="text-lg text-gray-500 hover:text-rose-500" />
+                                            )}
                                         </motion.button>
                                     </div>
-
-                                 
                                 </div>
 
                                 {/* Decorative Bottom Accent - Mobile Only */}

@@ -1,10 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import style from './Home.module.css';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
-import Loading from '../Loading/Loading';
 import { motion } from 'framer-motion';
+import {
+    FaHeart,
+    FaRegHeart,
+    FaShoppingCart,
+    FaCartPlus,
+    FaCheck,
+    FaTimes,
+    FaEye,
+    FaList,
+    FaBolt,
+    FaArrowRight,
+    FaLayerGroup,
+    FaRunning,
+    FaMedal,
+    FaFutbol,
+    FaFire,
+    FaShippingFast,
+    FaShieldAlt,
+    FaCheckCircle,
+    FaUsers,
+    FaAward,
+    FaBoxOpen,
+    FaTags,
+    FaChevronRight,
+    FaHandPointer
+} from 'react-icons/fa';
 
 export default function Home() {
     const [products, setProducts] = useState([]);
@@ -427,9 +451,9 @@ export default function Home() {
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     <span className="relative flex items-center justify-center gap-3">
-                                        <i className="fas fa-bolt text-lg"></i>
+                                        <FaBolt className="text-lg" />
                                         Shop Now
-                                        <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform duration-300"></i>
+                                        <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
                                     </span>
                                 </motion.button>
 
@@ -440,7 +464,7 @@ export default function Home() {
                                     className="group bg-white text-gray-800 font-semibold py-4 px-8 rounded-xl border-2 border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300"
                                 >
                                     <span className="flex items-center justify-center gap-3">
-                                        <i className="fas fa-layer-group text-blue-500"></i>
+                                        <FaLayerGroup className="text-blue-500" />
                                         Browse Categories
                                     </span>
                                 </motion.button>
@@ -479,7 +503,7 @@ export default function Home() {
                                     className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-teal-400/20 rounded-2xl backdrop-blur-sm border border-blue-200/30 shadow-lg"
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <i className="fas fa-running text-3xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent"></i>
+                                        <FaRunning className="text-3xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent" />
                                     </div>
                                 </motion.div>
 
@@ -489,7 +513,7 @@ export default function Home() {
                                     className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-teal-300/20 rounded-full backdrop-blur-sm border border-teal-200/30 shadow-lg"
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <i className="fas fa-medal text-2xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent"></i>
+                                        <FaMedal className="text-2xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent" />
                                     </div>
                                 </motion.div>
 
@@ -512,9 +536,7 @@ export default function Home() {
                                                         className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl p-3 border border-gray-100 hover:border-blue-200 cursor-pointer transition-all duration-300"
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-400 rounded-lg flex items-center justify-center">
-                                                                <i className="fas fa-futbol text-white text-sm"></i>
-                                                            </div>
+                                                          
                                                             <span className="text-sm font-medium text-gray-800 truncate">
                                                                 {category.name}
                                                             </span>
@@ -546,7 +568,7 @@ export default function Home() {
                                             onClick={() => navigate('/products')}
                                             className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                                         >
-                                            <i className="fas fa-fire"></i>
+                                            <FaFire />
                                             View Hot Deals
                                         </button>
                                     </div>
@@ -560,15 +582,15 @@ export default function Home() {
                             {/* Trust Badges */}
                             <div className="flex flex-wrap justify-center gap-4 mt-8">
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <i className="fas fa-shipping-fast text-blue-500"></i>
+                                    <FaShippingFast className="text-blue-500" />
                                     <span>Free Shipping</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <i className="fas fa-shield-alt text-teal-500"></i>
+                                    <FaShieldAlt className="text-teal-500" />
                                     <span>Secure Payment</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <i className="fas fa-check-circle text-green-500"></i>
+                                    <FaCheckCircle className="text-green-500" />
                                     <span>Quality Guarantee</span>
                                 </div>
                             </div>
@@ -660,7 +682,11 @@ export default function Home() {
                                                 }}
                                                 className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
                                             >
-                                                <i className={`fa-solid fa-heart text-sm ${isInWishlist(product.id) ? 'text-rose-500' : 'text-gray-400'}`}></i>
+                                                {isInWishlist(product.id) ? (
+                                                    <FaHeart className="text-sm text-rose-500" />
+                                                ) : (
+                                                    <FaRegHeart className="text-sm text-gray-400" />
+                                                )}
                                             </button>
                                         </div>
 
@@ -744,19 +770,19 @@ export default function Home() {
                                                 <div className="flex items-center justify-center gap-2">
                                                     {isInCart(product.id) ? (
                                                         <>
-                                                            <i className="fas fa-check text-sm"></i>
+                                                            <FaCheck className="text-sm" />
                                                             <span className="hidden sm:inline">Added</span>
                                                             <span className="sm:hidden">In Cart</span>
                                                         </>
                                                     ) : product.stock <= 0 ? (
                                                         <>
-                                                            <i className="fas fa-times text-sm"></i>
+                                                            <FaTimes className="text-sm" />
                                                             <span className="hidden sm:inline">Out of Stock</span>
                                                             <span className="sm:hidden">Sold Out</span>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <i className="fas fa-cart-plus text-sm"></i>
+                                                            <FaCartPlus className="text-sm" />
                                                             <span className="hidden sm:inline">Add to Cart</span>
                                                             <span className="sm:hidden">Add</span>
                                                         </>
@@ -776,14 +802,15 @@ export default function Home() {
                                                 }}
                                                 title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                             >
-                                                <i className={`fa-solid fa-heart text-lg transition-all duration-300 ${isInWishlist(product.id)
-                                                    ? "text-rose-500 animate-pulse"
-                                                    : "text-gray-500 hover:text-rose-500"
-                                                    }`}></i>
+                                                {isInWishlist(product.id) ? (
+                                                    <FaHeart className="text-lg text-rose-500 animate-pulse" />
+                                                ) : (
+                                                    <FaRegHeart className="text-lg text-gray-500 hover:text-rose-500" />
+                                                )}
                                             </button>
                                         </div>
 
-                                      
+
                                     </div>
 
                                     {/* Decorative Bottom Accent - Mobile Only */}
@@ -794,7 +821,7 @@ export default function Home() {
                     ) : (
                         <div className="col-span-full text-center py-12">
                             <div className="text-gray-400 mb-4">
-                                <i className="fas fa-box-open text-4xl"></i>
+                                <FaBoxOpen className="text-4xl" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-600 mb-2">No Products Available</h3>
                             <p className="text-gray-500">Check back soon for new arrivals!</p>
@@ -807,7 +834,7 @@ export default function Home() {
                         <Link to={'/products'}
                             className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
                         >
-                            <i className="fas fa-eye mr-2"></i> View All Products
+                            <FaEye className="inline mr-2" /> View All Products
                         </Link>
                     </div>
                 )}
@@ -866,7 +893,7 @@ export default function Home() {
 
                                             {/* Mobile-only Floating Icon */}
                                             <div className="lg:hidden absolute -bottom-2 -left-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
-                                                <i className="fas fa-chevron-right text-xs text-blue-500"></i>
+                                                <FaChevronRight className="text-xs text-blue-500" />
                                             </div>
                                         </div>
 
@@ -896,7 +923,7 @@ export default function Home() {
                                     {/* Enhanced Click hint for Mobile */}
                                     <div className="mt-3 lg:mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                         <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 sm:px-3 sm:py-1 rounded-full">
-                                            <i className="fas fa-arrow-right text-xs"></i>
+                                            <FaArrowRight className="text-xs" />
                                             <span className="hidden sm:inline">Click to explore</span>
                                             <span className="sm:hidden">Explore</span>
                                         </span>
@@ -904,7 +931,7 @@ export default function Home() {
 
                                     {/* Mobile-only Touch Indicator */}
                                     <div className="lg:hidden absolute bottom-2 right-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <i className="fas fa-hand-pointer text-sm"></i>
+                                        <FaHandPointer className="text-sm" />
                                     </div>
                                 </div>
 
@@ -918,7 +945,7 @@ export default function Home() {
                     ) : (
                         <div className="col-span-full text-center py-12">
                             <div className="text-gray-400 mb-4">
-                                <i className="fas fa-tags text-4xl"></i>
+                                <FaTags className="text-4xl" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-600 mb-2">No Categories Available</h3>
                             <p className="text-gray-500">Categories will be added soon!</p>
@@ -931,7 +958,7 @@ export default function Home() {
                         <Link to={'/category'}
                             className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
                         >
-                            <i className="fas fa-list mr-2"></i> View All Categories
+                            <FaList className="inline mr-2" /> View All Categories
                         </Link>
                     </div>
                 )}
@@ -951,154 +978,37 @@ export default function Home() {
                 >
                     <div className="inline-flex items-center gap-3 mb-4">
                         <div className='bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg'></div>
-                <h2 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Why Choose Us</h2>
-            </div>
-            <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-gray-800'>Premium SportFlex Experience</h1>
-            <p className='text-gray-600 text-base lg:text-lg max-w-2xl mx-auto'>We're committed to providing exceptional service and support at every step of your fitness journey</p>
-        </motion.div >
-
-            {/* Features grid */ }
-            < div className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-7xl mx-auto' >
-                {/* First card - Free Delivery */ }
-                < motion.div
-    initial = {{ opacity: 0, y: 20 }
-}
-animate = {{ opacity: 1, y: 0 }}
-transition = {{ delay: 0.1 }}
-className = 'group relative'
-    >
-    {/* Card */ }
-    < div className = 'bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 lg:hover:-translate-y-3 border border-gray-100 relative overflow-hidden' >
-        {/* Hover gradient overlay */ }
-        < div className = 'absolute inset-0 bg-gradient-to-br from-blue-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500' ></div >
-
-            {/* Icon container */ }
-            < div className = 'relative mb-6 flex justify-center' >
-                <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-teal-400 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300'>
-                    <div className='w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center'>
-                        <svg width="28" height="28" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" className='group-hover:scale-110 transition-transform duration-300'>
-                            <g clipPath="url(#clip0_913_502)">
-                                <path d="M12.1667 32.1667C14.0077 32.1667 15.5 30.6743 15.5 28.8333C15.5 26.9924 14.0077 25.5 12.1667 25.5C10.3258 25.5 8.83337 26.9924 8.83337 28.8333C8.83337 30.6743 10.3258 32.1667 12.1667 32.1667Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M28.8333 32.1667C30.6743 32.1667 32.1667 30.6743 32.1667 28.8333C32.1667 26.9924 30.6743 25.5 28.8333 25.5C26.9924 25.5 25.5 26.9924 25.5 28.8333C25.5 30.6743 26.9924 32.1667 28.8333 32.1667Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M8.83325 28.8335H7.49992C6.39535 28.8335 5.49992 27.9381 5.49992 26.8335V22.1668M3.83325 8.8335H20.1666C21.2712 8.8335 22.1666 9.72893 22.1666 10.8335V28.8335M15.4999 28.8335H25.4999M32.1666 28.8335H33.4999C34.6045 28.8335 35.4999 27.9381 35.4999 26.8335V18.8335M35.4999 18.8335H22.1666M35.4999 18.8335L31.0825 11.4712C30.7211 10.8688 30.0701 10.5002 29.3675 10.5002H22.1666" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </g>
-                        </svg>
+                        <h2 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Why Choose Us</h2>
                     </div>
-                </div>
-                            </div >
+                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-gray-800'>Premium SportFlex Experience</h1>
+                    <p className='text-gray-600 text-base lg:text-lg max-w-2xl mx-auto'>We're committed to providing exceptional service and support at every step of your fitness journey</p>
+                </motion.div>
 
-    {/* Content */ }
-    < div className = 'relative text-center' >
-                                <h3 className='font-semibold text-lg sm:text-xl text-gray-800 mb-3 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-teal-500 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300'>
-                                    FREE AND FAST DELIVERY
-                                </h3>
-                                <p className='text-gray-600 text-sm leading-relaxed'>
-                                    Free delivery for all orders over EGP 140
-                                </p>
-                            </div >
-
-    {/* Bottom accent line */ }
-    < div className = 'absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center' ></div >
-                        </div >
-                    </motion.div >
-
-    {/* Second card - Customer Service */ }
-    < motion.div
-initial = {{ opacity: 0, y: 20 }}
-animate = {{ opacity: 1, y: 0 }}
-transition = {{ delay: 0.2 }}
-className = 'group relative'
-    >
-    <div className='bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 lg:hover:-translate-y-3 border border-gray-100 relative overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-br from-blue-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500'></div>
-
-        <div className='relative mb-6 flex justify-center'>
-            <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-teal-400 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300'>
-                <div className='w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center'>
-                    <svg width="28" height="28" viewBox="0 0 40 41" fill="none" xmlns="http://www.w3.org/2000/svg" className='group-hover:scale-110 transition-transform duration-300'>
-                        <g clipPath="url(#clip0_913_519)">
-                            <path d="M13.3334 25.5001C13.3334 23.6591 11.841 22.1667 10.0001 22.1667C8.15913 22.1667 6.66675 23.6591 6.66675 25.5001V28.8334C6.66675 30.6744 8.15913 32.1667 10.0001 32.1667C11.841 32.1667 13.3334 30.6744 13.3334 28.8334V25.5001Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M33.3334 25.5001C33.3334 23.6591 31.841 22.1667 30.0001 22.1667C28.1591 22.1667 26.6667 23.6591 26.6667 25.5001V28.8334C26.6667 30.6744 28.1591 32.1667 30.0001 32.1667C31.841 32.1667 33.3334 30.6744 33.3334 28.8334V25.5001Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M6.66675 25.5001V20.5001C6.66675 16.9639 8.07151 13.5725 10.572 11.072C13.0725 8.57151 16.4639 7.16675 20.0001 7.16675C23.5363 7.16675 26.9277 8.57151 29.4282 11.072C31.9287 13.5725 33.3334 16.9639 33.3334 20.5001V25.5001" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </g>
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <div className='relative text-center'>
-            <h3 className='font-semibold text-lg sm:text-xl text-gray-800 mb-3 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-teal-500 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300'>
-                24/7 CUSTOMER SERVICE
-            </h3>
-            <p className='text-gray-600 text-sm leading-relaxed'>
-                Friendly 24/7 customer support
-            </p>
-        </div>
-
-        <div className='absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center'></div>
-    </div>
-                    </motion.div >
-
-    {/* Third card - Money Back Guarantee */ }
-    < motion.div
-initial = {{ opacity: 0, y: 20 }}
-animate = {{ opacity: 1, y: 0 }}
-transition = {{ delay: 0.3 }}
-className = 'group relative md:col-span-2 lg:col-span-1 md:mx-auto lg:mx-0 md:max-w-sm lg:max-w-none'
-    >
-    <div className='bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 lg:hover:-translate-y-3 border border-gray-100 relative overflow-hidden'>
-        <div className='absolute inset-0 bg-gradient-to-br from-blue-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500'></div>
-
-        <div className='relative mb-6 flex justify-center'>
-            <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-teal-400 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300'>
-                <div className='w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center'>
-                    <svg width="28" height="28" viewBox="0 0 40 41" fill="none" xmlns="http://www.w3.org/2000/svg" className='group-hover:scale-110 transition-transform duration-300'>
-                        <path d="M19.9832 3.0874C21.0047 3.0874 22.0041 3.23663 22.7576 3.51807L31.075 6.63525H31.0759C33.2954 7.46202 35.0505 10.0076 35.0505 12.3667V24.7495C35.0505 25.8367 34.7063 27.0895 34.1238 28.2485C33.5778 29.3348 32.8404 30.3024 32.031 30.9556L31.8679 31.0825L24.7009 36.4321L24.6951 36.437C23.4124 37.4261 21.7238 37.9331 19.9998 37.9331C18.277 37.933 16.5847 37.4263 15.2644 36.4478H15.2634L8.09937 31.0991C7.22666 30.4484 6.42532 29.4208 5.84253 28.2593C5.25969 27.0976 4.91675 25.8447 4.91675 24.7661V12.3667C4.91675 10.0075 6.67169 7.46189 8.89136 6.63525H8.89233L17.2087 3.51807C17.9622 3.23655 18.9615 3.08743 19.9832 3.0874ZM20.0007 4.58545C19.2021 4.58763 18.3752 4.69487 17.7419 4.93115L17.741 4.93213L9.42456 8.04834H9.42358C8.59608 8.35993 7.85485 9.02245 7.32397 9.79053C6.7929 10.5589 6.43335 11.4898 6.43335 12.3833V24.7661C6.43335 25.6606 6.74393 26.6893 7.20093 27.6011C7.65781 28.5126 8.29317 29.3726 9.00073 29.9009L16.1677 35.2505C17.2296 36.0444 18.6282 36.4252 20.0017 36.4253C21.3756 36.4253 22.7779 36.0442 23.8474 35.2515L23.8494 35.2505L31.0154 29.9009L31.0164 29.8999C31.7311 29.3638 32.3667 28.5049 32.822 27.5942C33.2774 26.6836 33.5837 25.6596 33.5837 24.7661V12.3667C33.5837 11.4807 33.2233 10.5539 32.6931 9.78662C32.1626 9.01907 31.4221 8.35386 30.5974 8.03369L30.5925 8.03174L22.2751 4.91455L22.2664 4.91162C21.6282 4.68643 20.8001 4.58327 20.0007 4.58545Z" fill="#3B82F6" stroke="#3B82F6" />
-                        <path d="M24.4038 15.27C24.6919 14.9822 25.1754 14.982 25.4634 15.27C25.7513 15.558 25.7511 16.0415 25.4634 16.3296L18.2964 23.4966C18.1451 23.6478 17.9573 23.7163 17.7661 23.7163C17.5751 23.7162 17.388 23.6477 17.2368 23.4966L14.5532 20.813C14.2654 20.5249 14.2652 20.0414 14.5532 19.7534C14.8412 19.4654 15.3247 19.4655 15.6128 19.7534L17.7661 21.9067L18.1206 21.5532L24.4038 15.27Z" fill="#3B82F6" stroke="#3B82F6" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <div className='relative text-center'>
-            <h3 className='font-semibold text-lg sm:text-xl text-gray-800 mb-3 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-teal-500 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300'>
-                MONEY BACK GUARANTEE
-            </h3>
-            <p className='text-gray-600 text-sm leading-relaxed'>
-                We return money within 30 days
-            </p>
-        </div>
-
-        <div className='absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center'></div>
-    </div>
-                    </motion.div >
-                </div >
-
-    {/* Optional: Additional trust indicators */ }
-    < motion.div
-initial = {{ opacity: 0 }}
-animate = {{ opacity: 1 }}
-transition = {{ delay: 0.5 }}
-className = 'mt-12 lg:mt-16 text-center'
-    >
-    <div className='inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-gray-500 text-sm'>
-        <div className='flex items-center gap-2'>
-            <i className="fas fa-shield-alt bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent"></i>
-            <span>Secure Payment</span>
-        </div>
-        <div className='hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200'></div>
-        <div className='flex items-center gap-2'>
-            <i className="fas fa-users bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent"></i>
-            <span>10k+ Happy Customers</span>
-        </div>
-        <div className="hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200"></div>
-        <div className="flex items-center gap-2">
-            <i className="fas fa-award bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent"></i>
-            <span>Premium Quality</span>
-        </div>
-    </div>
-                </motion.div >
-            </section >
+                {/* Optional: Additional trust indicators */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className='mt-12 lg:mt-16 text-center'
+                >
+                    <div className='inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-gray-500 text-sm'>
+                        <div className='flex items-center gap-2'>
+                            <FaShieldAlt className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <span>Secure Payment</span>
+                        </div>
+                        <div className='hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200'></div>
+                        <div className='flex items-center gap-2'>
+                            <FaUsers className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <span>10k+ Happy Customers</span>
+                        </div>
+                        <div className="hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200"></div>
+                        <div className="flex items-center gap-2">
+                            <FaAward className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <span>Premium Quality</span>
+                        </div>
+                    </div>
+                </motion.div>
+            </section>
         </>
     );
 }

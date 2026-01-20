@@ -13,9 +13,6 @@ import NotFound from './components/NotFound/NotFound'
 import Products from './components/Products/Products'
 import Wishlist from './components/Wishlist/Wishlist'
 import UserContextProvider from './Context/userContext'
-import ForgetPass from './components/ForgetPass/ForgetPass'
-import VerfiyCode from './components/VerfiyCode/VerfiyCode'
-import ResetPassword from './components/ResetPassword/ResetPassword'
 import ProductDetails from './components/ProductDetails/ProductDetails'
 import Checkout from './components/CheckOut/Checkout'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
@@ -39,9 +36,6 @@ const routers = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'Products', element: <Products /> },
       { path: 'wishlist', element: <ProtectedRoute><Wishlist /></ProtectedRoute> },
-      { path: 'forgetpass', element: <ForgetPass /> },
-      { path: 'verfiycode', element: <VerfiyCode /> },
-      { path: 'resetpassword', element: <ResetPassword /> },
       { path: 'checkout', element: <ProtectedRoute><Checkout /></ProtectedRoute> },
       { path: 'admin', element: <AdminProtectedRoute><Admin /></AdminProtectedRoute> },
       { path: 'order/:orderId', element: <AdminProtectedRoute><OrderDetails /></AdminProtectedRoute> },

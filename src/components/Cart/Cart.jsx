@@ -1,10 +1,15 @@
 // Cart.jsx
 import React, { useEffect, useState } from 'react'
-import style from './Cart.module.css'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
+import {
+    FaShoppingCart,
+    FaHeart,
+    FaTrash,
+    FaSpinner
+} from 'react-icons/fa'
 
 export default function Cart() {
     const [isLoading, setIsLoading] = useState(true)
@@ -285,7 +290,7 @@ export default function Cart() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-gray-400 mb-4">
-                        <i className="fas fa-shopping-cart text-6xl"></i>
+                        <FaShoppingCart className="text-6xl" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-700 mb-3">Please Sign In</h3>
                     <p className="text-gray-500 mb-6">You need to be signed in to view your cart</p>
@@ -402,7 +407,7 @@ export default function Cart() {
 
                                         {/* Subtotal and Actions */}
                                         <div className="md:col-span-2 flex items-center justify-between">
-                                           
+
                                             <div className="flex gap-3">
                                                 <button
                                                     onClick={() => moveToWishlist(item.product.id)}
@@ -410,7 +415,7 @@ export default function Cart() {
                                                     disabled={isLoading}
                                                     title="Move to wishlist"
                                                 >
-                                                    <i className="fas fa-heart"></i>
+                                                    <FaHeart />
                                                 </button>
                                                 <button
                                                     onClick={() => removeItem(item.id)}
@@ -418,7 +423,7 @@ export default function Cart() {
                                                     disabled={isLoading}
                                                     title="Remove item"
                                                 >
-                                                    <i className="fas fa-trash"></i>
+                                                    <FaTrash />
                                                 </button>
                                                 <div>
                                                     <span className="text-gray-900 font-medium md:hidden">Subtotal: </span>
@@ -432,7 +437,7 @@ export default function Cart() {
                         ) : (
                             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
                                 <div className="text-gray-300 mb-4">
-                                    <i className="fas fa-shopping-cart text-6xl"></i>
+                                    <FaShoppingCart className="text-6xl" />
                                 </div>
                                 <h3 className="text-xl font-medium text-gray-700 mb-2">Your cart is empty</h3>
                                 <p className="text-gray-500 mb-6">Looks like you haven't added any SportFlex items to your cart yet.</p>

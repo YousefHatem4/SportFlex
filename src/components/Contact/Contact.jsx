@@ -1,5 +1,12 @@
 import React, { useState, useCallback, memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import {
+    FaEnvelope,
+    FaPhone,
+    FaMapMarkerAlt,
+    FaPaperPlane,
+    FaSpinner
+} from 'react-icons/fa';
 
 // Contact form component for user inquiries with Gmail integration
 // Handles form state, validation, and email composition
@@ -119,21 +126,21 @@ ${formData.name}
     // Contact information data
     const contactInfo = useMemo(() => [
         {
-            icon: 'fas fa-envelope',
+            icon: FaEnvelope,
             title: 'Email',
             content: 'yousef.hatem.developer@gmail.com',
             link: 'mailto:yousef.hatem.developer@gmail.com',
             color: 'blue'
         },
         {
-            icon: 'fas fa-phone',
+            icon: FaPhone,
             title: 'Phone',
             content: '+021 14082 1819',
             link: 'tel:+021140821819',
             color: 'teal'
         },
         {
-            icon: 'fas fa-map-marker-alt',
+            icon: FaMapMarkerAlt,
             title: 'Location',
             content: 'Egypt',
             link: null,
@@ -324,7 +331,7 @@ ${formData.name}
                             ></textarea>
                         </div>
 
-                        {/* Submit button */}
+                        {/* Submit button - EXACT DESIGN PRESERVED */}
                         <div className='pt-6'>
                             <motion.button
                                 type="submit"
@@ -339,12 +346,12 @@ ${formData.name}
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <i className="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>
+                                        <FaSpinner className="animate-spin mr-2 inline" aria-hidden="true" />
                                         Opening Gmail...
                                     </>
                                 ) : (
                                     <>
-                                        <i className="fas fa-paper-plane mr-2" aria-hidden="true"></i>
+                                        <FaPaperPlane className="mr-2 mb-1 inline" aria-hidden="true" />
                                         Send Message via Gmail
                                     </>
                                 )}
@@ -360,37 +367,40 @@ ${formData.name}
                         className='mt-12 pt-8 border-t border-gray-200'
                     >
                         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                            {contactInfo.map((info) => (
-                                <div
-                                    key={info.title}
-                                    className='text-center'
-                                    itemScope
-                                    itemType="https://schema.org/ContactPoint"
-                                >
+                            {contactInfo.map((info) => {
+                                const IconComponent = info.icon;
+                                return (
                                     <div
-                                        className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-r from-${info.color}-100 to-${info.color}-200 flex items-center justify-center mb-4`}
-                                        aria-hidden="true"
+                                        key={info.title}
+                                        className='text-center'
+                                        itemScope
+                                        itemType="https://schema.org/ContactPoint"
                                     >
-                                        <i className={`${info.icon} text-${info.color}-500 text-xl`}></i>
-                                    </div>
-                                    <h2 className='font-semibold text-gray-900 mb-2'>
-                                        {info.title}
-                                    </h2>
-                                    {info.link ? (
-                                        <a
-                                            href={info.link}
-                                            className={`text-${info.color}-600 hover:text-${info.color}-800 transition-colors duration-300`}
-                                            aria-label={`Contact via ${info.title}: ${info.content}`}
+                                        <div
+                                            className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-r from-${info.color}-100 to-${info.color}-200 flex items-center justify-center mb-4`}
+                                            aria-hidden="true"
                                         >
-                                            {info.content}
-                                        </a>
-                                    ) : (
-                                        <p className={`text-${info.color}-600`}>
-                                            {info.content}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
+                                            <IconComponent className={`text-${info.color}-500 text-xl`} />
+                                        </div>
+                                        <h2 className='font-semibold text-gray-900 mb-2'>
+                                            {info.title}
+                                        </h2>
+                                        {info.link ? (
+                                            <a
+                                                href={info.link}
+                                                className={`text-${info.color}-600 hover:text-${info.color}-800 transition-colors duration-300`}
+                                                aria-label={`Contact via ${info.title}: ${info.content}`}
+                                            >
+                                                {info.content}
+                                            </a>
+                                        ) : (
+                                            <p className={`text-${info.color}-600`}>
+                                                {info.content}
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </motion.footer>
                 </motion.article>

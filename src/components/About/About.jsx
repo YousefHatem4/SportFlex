@@ -1,6 +1,28 @@
 // About.jsx - Highly Optimized for Performance, Accessibility & SEO
 import React, { useMemo, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
+import {
+    FaUserCheck,
+    FaShippingFast,
+    FaCrown,
+    FaStar,
+    FaHeart,
+    FaShieldAlt,
+    FaRocket,
+    FaGlobe,
+    FaSeedling,
+    FaFlag,
+    FaPlane,
+    FaTrophy,
+    FaShoppingBag,
+    FaEnvelope,
+    FaBullseye,
+    FaEye,
+    FaCheck,
+    FaHandshake,
+    FaLightbulb,
+    FaCommentDots
+} from 'react-icons/fa';
 
 // Lazy load motion for better initial load performance
 const MotionSection = lazy(() => import('framer-motion').then(mod => ({ default: mod.motion.section })));
@@ -37,37 +59,37 @@ const ANIMATION_CONFIG = {
 function About() {
     // Static data arrays with stable references
     const STATS_DATA = useMemo(() => [
-        { id: 'stats-1', number: "50K+", label: "Happy Customers", icon: "fas fa-user-check" },
-        { id: 'stats-2', number: "1M+", label: "Orders Delivered", icon: "fas fa-shipping-fast" },
-        { id: 'stats-3', number: "500+", label: "Premium Brands", icon: "fas fa-crown" },
-        { id: 'stats-4', number: "99%", label: "Satisfaction Rate", icon: "fas fa-star" }
+        { id: 'stats-1', number: "50K+", label: "Happy Customers", icon: FaUserCheck },
+        { id: 'stats-2', number: "1M+", label: "Orders Delivered", icon: FaShippingFast },
+        { id: 'stats-3', number: "500+", label: "Premium Brands", icon: FaCrown },
+        { id: 'stats-4', number: "99%", label: "Satisfaction Rate", icon: FaStar }
     ], []);
 
     const VALUES_DATA = useMemo(() => [
         {
             id: 'value-1',
-            icon: "fas fa-heart",
+            icon: FaHeart,
             title: "Customer First",
             description: "Every decision we make is guided by what's best for our customers.",
             color: "from-rose-500 to-pink-500"
         },
         {
             id: 'value-2',
-            icon: "fas fa-shield-alt",
+            icon: FaShieldAlt,
             title: "Trust & Security",
             description: "We prioritize security and transparency in all our interactions.",
             color: "from-blue-500 to-indigo-500"
         },
         {
             id: 'value-3',
-            icon: "fas fa-rocket",
+            icon: FaRocket,
             title: "Innovation",
             description: "We continuously evolve to bring you the latest in e-commerce.",
             color: "from-purple-500 to-pink-500"
         },
         {
             id: 'value-4',
-            icon: "fas fa-globe",
+            icon: FaGlobe,
             title: "Sustainability",
             description: "Building a better future through responsible business practices.",
             color: "from-emerald-500 to-teal-500"
@@ -75,10 +97,10 @@ function About() {
     ], []);
 
     const JOURNEY_DATA = useMemo(() => [
-        { id: 'journey-1', year: "2020", title: "The Beginning", description: "Started with a vision to revolutionize online shopping", icon: "fas fa-seedling" },
-        { id: 'journey-2', year: "2021", title: "First Milestone", description: "Reached 10,000+ happy customers and 100+ brand partnerships", icon: "fas fa-flag" },
-        { id: 'journey-3', year: "2023", title: "Major Expansion", description: "Launched international shipping and mobile app", icon: "fas fa-plane" },
-        { id: 'journey-4', year: "2025", title: "Leading Innovation", description: "Now serving 50,000+ customers with cutting-edge technology", icon: "fas fa-trophy" }
+        { id: 'journey-1', year: "2020", title: "The Beginning", description: "Started with a vision to revolutionize online shopping", icon: FaSeedling },
+        { id: 'journey-2', year: "2021", title: "First Milestone", description: "Reached 10,000+ happy customers and 100+ brand partnerships", icon: FaFlag },
+        { id: 'journey-3', year: "2023", title: "Major Expansion", description: "Launched international shipping and mobile app", icon: FaPlane },
+        { id: 'journey-4', year: "2025", title: "Leading Innovation", description: "Now serving 50,000+ customers with cutting-edge technology", icon: FaTrophy }
     ], []);
 
     // Memoized color classes to prevent re-evaluation
@@ -139,7 +161,7 @@ function About() {
                                         className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-teal-500 text-white rounded-xl hover:shadow-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-offset-2"
                                         aria-label="Start shopping our premium products"
                                     >
-                                        <span className="fas fa-shopping-bag" aria-hidden="true" />
+                                        <FaShoppingBag aria-hidden="true" />
                                         <span>Start Shopping</span>
                                     </Link>
                                 </div>
@@ -149,7 +171,7 @@ function About() {
                                         className="inline-flex items-center gap-3 px-8 py-4 bg-white border-2 border-blue-500 text-blue-500 rounded-xl hover:bg-blue-50 transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-offset-2"
                                         aria-label="Contact our customer support team"
                                     >
-                                        <span className="fas fa-envelope" aria-hidden="true" />
+                                        <FaEnvelope aria-hidden="true" />
                                         <span>Contact Us</span>
                                     </Link>
                                 </div>
@@ -162,33 +184,36 @@ function About() {
                             role="list"
                             aria-label="Company achievements and statistics"
                         >
-                            {STATS_DATA.map((stat, index) => (
-                                <div key={stat.id} className="group" role="listitem">
-                                    <div
-                                        className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100/50"
-                                        aria-labelledby={`stat-${stat.id}`}
-                                    >
+                            {STATS_DATA.map((stat, index) => {
+                                const IconComponent = stat.icon;
+                                return (
+                                    <div key={stat.id} className="group" role="listitem">
                                         <div
-                                            className={`w-14 h-14 rounded-xl ${statColors[index][0]} flex items-center justify-center mb-4 transition-transform duration-300 bg-gradient-to-br`}
-                                            aria-hidden="true"
+                                            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-100/50"
+                                            aria-labelledby={`stat-${stat.id}`}
                                         >
-                                            <span
-                                                className={`${stat.icon} text-lg ${statColors[index][1]}`}
+                                            <div
+                                                className={`w-14 h-14 rounded-xl ${statColors[index][0]} flex items-center justify-center mb-4 transition-transform duration-300 bg-gradient-to-br`}
                                                 aria-hidden="true"
-                                            />
-                                        </div>
-                                        <div
-                                            id={`stat-${stat.id}`}
-                                            className="text-3xl font-bold text-gray-900 mb-2 transition-transform duration-300"
-                                        >
-                                            {stat.number}
-                                        </div>
-                                        <div className="text-gray-600 font-medium">
-                                            {stat.label}
+                                            >
+                                                <IconComponent
+                                                    className={`text-lg ${statColors[index][1]}`}
+                                                    aria-hidden="true"
+                                                />
+                                            </div>
+                                            <div
+                                                id={`stat-${stat.id}`}
+                                                className="text-3xl font-bold text-gray-900 mb-2 transition-transform duration-300"
+                                            >
+                                                {stat.number}
+                                            </div>
+                                            <div className="text-gray-600 font-medium">
+                                                {stat.label}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -209,7 +234,7 @@ function About() {
                             >
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center">
-                                        <span className="fas fa-bullseye text-white text-xl" aria-hidden="true" />
+                                        <FaBullseye className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <h3 id="mission-title" className="text-2xl lg:text-3xl font-bold text-gray-900">Our Mission</h3>
                                 </div>
@@ -225,7 +250,7 @@ function About() {
                             >
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center">
-                                        <span className="fas fa-eye text-white text-xl" aria-hidden="true" />
+                                        <FaEye className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <h3 id="vision-title" className="text-2xl lg:text-3xl font-bold text-gray-900">Our Vision</h3>
                                 </div>
@@ -257,27 +282,30 @@ function About() {
                         </header>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="list">
-                            {VALUES_DATA.map((value) => (
-                                <article
-                                    key={value.id}
-                                    className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 h-full shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
-                                    aria-labelledby={`value-title-${value.id}`}
-                                    role="listitem"
-                                >
-                                    <div
-                                        className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${value.color} flex items-center justify-center mb-6 transition-transform duration-300`}
-                                        aria-hidden="true"
+                            {VALUES_DATA.map((value) => {
+                                const IconComponent = value.icon;
+                                return (
+                                    <article
+                                        key={value.id}
+                                        className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 h-full shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
+                                        aria-labelledby={`value-title-${value.id}`}
+                                        role="listitem"
                                     >
-                                        <span className={`${value.icon} text-white text-2xl`} aria-hidden="true" />
-                                    </div>
-                                    <h3 id={`value-title-${value.id}`} className="text-xl font-bold text-gray-900 mb-4 transition-colors duration-300">
-                                        {value.title}
-                                    </h3>
-                                    <p className="text-gray-600 leading-relaxed">
-                                        {value.description}
-                                    </p>
-                                </article>
-                            ))}
+                                        <div
+                                            className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${value.color} flex items-center justify-center mb-6 transition-transform duration-300`}
+                                            aria-hidden="true"
+                                        >
+                                            <IconComponent className="text-white text-2xl" aria-hidden="true" />
+                                        </div>
+                                        <h3 id={`value-title-${value.id}`} className="text-xl font-bold text-gray-900 mb-4 transition-colors duration-300">
+                                            {value.title}
+                                        </h3>
+                                        <p className="text-gray-600 leading-relaxed">
+                                            {value.description}
+                                        </p>
+                                    </article>
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -305,33 +333,36 @@ function About() {
                                 aria-hidden="true"
                             />
 
-                            {JOURNEY_DATA.map((step, index) => (
-                                <article
-                                    key={step.id}
-                                    className={`relative mb-12 ${index % 2 === 0 ? 'lg:pr-1/2 lg:pl-12 lg:text-right' : 'lg:pl-1/2 lg:pr-12'}`}
-                                    aria-labelledby={`journey-step-${step.id}`}
-                                >
-                                    {/* Timeline marker */}
-                                    <div
-                                        className="absolute left-6 lg:left-1/2 w-12 h-12 -translate-x-1/2 bg-white rounded-full border-4 border-blue-500 flex items-center justify-center z-10"
-                                        aria-hidden="true"
+                            {JOURNEY_DATA.map((step, index) => {
+                                const IconComponent = step.icon;
+                                return (
+                                    <article
+                                        key={step.id}
+                                        className={`relative mb-12 ${index % 2 === 0 ? 'lg:pr-1/2 lg:pl-12 lg:text-right' : 'lg:pl-1/2 lg:pr-12'}`}
+                                        aria-labelledby={`journey-step-${step.id}`}
                                     >
-                                        <span className={`${step.icon} text-blue-500`} aria-hidden="true" />
-                                    </div>
-
-                                    <div className={`ml-20 lg:ml-0 ${index % 2 === 0 ? 'lg:mr-8' : 'lg:ml-8'}`}>
-                                        <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100">
-                                            <div className="inline-flex items-center gap-3 mb-4">
-                                                <time dateTime={step.year} className="px-4 py-1 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-full text-sm font-bold">
-                                                    {step.year}
-                                                </time>
-                                                <h3 id={`journey-step-${step.id}`} className="text-xl font-bold text-gray-900">{step.title}</h3>
-                                            </div>
-                                            <p className="text-gray-600">{step.description}</p>
+                                        {/* Timeline marker */}
+                                        <div
+                                            className="absolute left-6 lg:left-1/2 w-12 h-12 -translate-x-1/2 bg-white rounded-full border-4 border-blue-500 flex items-center justify-center z-10"
+                                            aria-hidden="true"
+                                        >
+                                            <IconComponent className="text-blue-500" aria-hidden="true" />
                                         </div>
-                                    </div>
-                                </article>
-                            ))}
+
+                                        <div className={`ml-20 lg:ml-0 ${index % 2 === 0 ? 'lg:mr-8' : 'lg:ml-8'}`}>
+                                            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100">
+                                                <div className="inline-flex items-center gap-3 mb-4">
+                                                    <time dateTime={step.year} className="px-4 py-1 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-full text-sm font-bold">
+                                                        {step.year}
+                                                    </time>
+                                                    <h3 id={`journey-step-${step.id}`} className="text-xl font-bold text-gray-900">{step.title}</h3>
+                                                </div>
+                                                <p className="text-gray-600">{step.description}</p>
+                                            </div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -356,7 +387,7 @@ function About() {
                             <div className="space-y-8">
                                 <div className="flex items-start gap-6">
                                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center">
-                                        <span className="fas fa-check text-white text-xl" aria-hidden="true" />
+                                        <FaCheck className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-3">Quality Over Quantity</h3>
@@ -366,7 +397,7 @@ function About() {
 
                                 <div className="flex items-start gap-6">
                                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center">
-                                        <span className="fas fa-handshake text-white text-xl" aria-hidden="true" />
+                                        <FaHandshake className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-3">Transparency First</h3>
@@ -376,7 +407,7 @@ function About() {
 
                                 <div className="flex items-start gap-6">
                                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                                        <span className="fas fa-lightbulb text-white text-xl" aria-hidden="true" />
+                                        <FaLightbulb className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-3">Continuous Innovation</h3>
@@ -414,7 +445,7 @@ function About() {
                                         className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-100 transition-all duration-300 font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
                                         aria-label="Shop now to explore our premium products"
                                     >
-                                        <span className="fas fa-shopping-bag" aria-hidden="true" />
+                                        <FaShoppingBag aria-hidden="true" />
                                         <span>Shop Now</span>
                                     </Link>
                                 </div>
@@ -424,7 +455,7 @@ function About() {
                                         className="inline-flex items-center gap-3 px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white/10 transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
                                         aria-label="Contact our team for assistance"
                                     >
-                                        <span className="fas fa-comment-dots" aria-hidden="true" />
+                                        <FaCommentDots aria-hidden="true" />
                                         <span>Get in Touch</span>
                                     </Link>
                                 </div>

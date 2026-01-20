@@ -7,6 +7,28 @@ import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import toast from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
+import {
+    FaHeart,
+    FaRegHeart,
+    FaShoppingCart,
+    FaCheck,
+    FaTimes,
+    FaBoxOpen,
+    FaImage,
+    FaBolt,
+    FaStar,
+    FaRegStar,
+    FaUser,
+    FaPen,
+    FaCheck as FaCheckCircle,
+    FaEdit,
+    FaTrash,
+    FaSpinner,
+    FaPaperPlane,
+    FaSave,
+    FaCommentAlt,
+    FaChevronDown
+} from 'react-icons/fa';
 
 export default function ProductDetails() {
     let { id } = useParams();
@@ -626,15 +648,18 @@ export default function ProductDetails() {
         beforeChange: (current, next) => setActiveImageIndex(next)
     };
 
-    // Render star rating
+    // Render star rating with React Icons
     const renderStars = (rating, size = 'text-base') => {
         return (
             <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <i
-                        key={star}
-                        className={`${star <= rating ? 'fas fa-star text-amber-500' : 'far fa-star text-gray-300'} ${size} mx-0.5`}
-                    />
+                    <span key={star} className={`mx-0.5 ${size}`}>
+                        {star <= rating ? (
+                            <FaStar className="text-amber-500" />
+                        ) : (
+                            <FaRegStar className="text-gray-300" />
+                        )}
+                    </span>
                 ))}
             </div>
         );
@@ -662,7 +687,7 @@ export default function ProductDetails() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-gray-400 mb-4">
-                        <i className="fas fa-box-open text-6xl"></i>
+                        <FaBoxOpen className="text-6xl mx-auto" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-700 mb-3">Product Not Found</h3>
                     <p className="text-gray-500 mb-6">The product you're looking for doesn't exist.</p>
@@ -703,7 +728,7 @@ export default function ProductDetails() {
                                 </Slider>
                             ) : (
                                 <div className='w-full h-[280px] sm:h-[350px] rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center'>
-                                    <i className="fas fa-image text-5xl text-gray-300"></i>
+                                    <FaImage className="text-5xl text-gray-300" />
                                 </div>
                             )}
 
@@ -772,8 +797,8 @@ export default function ProductDetails() {
                         <div className="mb-4">
                             <div className="text-2xl sm:text-3xl font-bold text-blue-600">EGP {product.price.toFixed(2)}</div>
                             {product.stock > 0 && product.stock <= 10 && (
-                                <div className="text-sm text-amber-600 font-medium mt-1">
-                                    <i className="fas fa-bolt mr-1"></i>
+                                <div className="text-sm text-amber-600 font-medium mt-1 flex items-center">
+                                    <FaBolt className="mr-1" />
                                     Only {product.stock} left
                                 </div>
                             )}
@@ -807,17 +832,17 @@ export default function ProductDetails() {
                             >
                                 {addedItems.includes(product._id) ? (
                                     <>
-                                        <i className="fas fa-check"></i>
+                                        <FaCheck />
                                         Added
                                     </>
                                 ) : product.stock <= 0 ? (
                                     <>
-                                        <i className="fas fa-times"></i>
+                                        <FaTimes />
                                         Out of Stock
                                     </>
                                 ) : (
                                     <>
-                                        <i className="fas fa-shopping-cart"></i>
+                                        <FaShoppingCart />
                                         Add to Cart
                                     </>
                                 )}
@@ -831,7 +856,11 @@ export default function ProductDetails() {
                                         : "border-gray-300 text-gray-500 hover:text-rose-500 hover:border-rose-400 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50"
                                     }`}
                             >
-                                <i className={`fa-solid fa-heart text-lg ${wishItems.includes(product._id) ? 'fas' : 'far'}`}></i>
+                                {wishItems.includes(product._id) ? (
+                                    <FaHeart className="text-lg" />
+                                ) : (
+                                    <FaRegHeart className="text-lg" />
+                                )}
                             </button>
                         </div>
 
@@ -890,7 +919,7 @@ export default function ProductDetails() {
                             </Slider>
                         ) : (
                             <div className='w-full h-[500px] lg:w-[520px] lg:h-[600px] rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center'>
-                                <i className="fas fa-image text-5xl text-gray-300"></i>
+                                <FaImage className="text-5xl text-gray-300" />
                             </div>
                         )}
                     </div>
@@ -919,7 +948,8 @@ export default function ProductDetails() {
                                         {product.stock > 0 && product.stock <= 10 && (
                                             <>
                                                 <span className="text-gray-300">•</span>
-                                                <span className='text-sm text-amber-600 font-medium'>
+                                                <span className='text-sm text-amber-600 font-medium flex items-center'>
+                                                    <FaBolt className="mr-1" />
                                                     Only {product.stock} left
                                                 </span>
                                             </>
@@ -956,20 +986,20 @@ export default function ProductDetails() {
                                 {addedItems.includes(product._id)
                                     ? (
                                         <>
-                                            <i className="fas fa-check"></i>
+                                            <FaCheck />
                                             Added to Cart
                                         </>
                                     )
                                     : product.stock <= 0
                                         ? (
                                             <>
-                                                <i className="fas fa-times"></i>
+                                                <FaTimes />
                                                 Out of Stock
                                             </>
                                         )
                                         : (
                                             <>
-                                                <i className="fas fa-shopping-cart"></i>
+                                                <FaShoppingCart />
                                                 Add to Cart
                                             </>
                                         )}
@@ -983,7 +1013,11 @@ export default function ProductDetails() {
                                         : "border-gray-300 text-gray-500 hover:text-rose-500 hover:border-rose-400 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50"
                                     }`}
                             >
-                                <i className={`fa-solid fa-heart text-xl ${wishItems.includes(product._id) ? 'fas' : 'far'}`}></i>
+                                {wishItems.includes(product._id) ? (
+                                    <FaHeart className="text-xl" />
+                                ) : (
+                                    <FaRegHeart className="text-xl" />
+                                )}
                             </button>
                         </div>
 
@@ -1035,7 +1069,7 @@ export default function ProductDetails() {
                                                         <span className="text-sm text-gray-700 font-medium mr-2">
                                                             {star}
                                                         </span>
-                                                        <i className="fas fa-star text-amber-400 text-sm"></i>
+                                                        <FaStar className="text-amber-400 text-sm" />
                                                     </div>
                                                     <div className="flex-1 mx-3">
                                                         <div className="h-2 lg:h-2.5 bg-gray-100 rounded-full overflow-hidden">
@@ -1065,7 +1099,7 @@ export default function ProductDetails() {
                                     onClick={() => setShowFeedbackForm(true)}
                                     className="w-full sm:w-auto flex items-center justify-center px-5 py-3.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all duration-300 shadow-sm"
                                 >
-                                    <i className="fas fa-pen mr-2"></i>
+                                    <FaPen className="mr-2" />
                                     Write a Review
                                 </button>
                             ) : (
@@ -1074,11 +1108,11 @@ export default function ProductDetails() {
                                         <div className="flex-1">
                                             <div className="flex items-center mb-2">
                                                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                                                    <i className="fas fa-user text-sm"></i>
+                                                    <FaUser className="text-sm" />
                                                 </div>
                                                 <h3 className="font-medium text-gray-900">Your Review</h3>
                                                 <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                                                    <i className="fas fa-check mr-1"></i>
+                                                    <FaCheckCircle className="mr-1" />
                                                     Submitted
                                                 </span>
                                             </div>
@@ -1094,9 +1128,9 @@ export default function ProductDetails() {
                                         <div className="mt-3 sm:mt-0">
                                             <button
                                                 onClick={() => setShowFeedbackForm(true)}
-                                                className="w-full sm:w-auto px-4 py-2 text-sm bg-white border border-blue-200 text-blue-600 font-medium rounded-lg hover:bg-blue-50 active:scale-95 transition-all"
+                                                className="w-full sm:w-auto px-4 py-2 text-sm bg-white border border-blue-200 text-blue-600 font-medium rounded-lg hover:bg-blue-50 active:scale-95 transition-all flex items-center"
                                             >
-                                                <i className="fas fa-edit mr-1"></i>
+                                                <FaEdit className="mr-1" />
                                                 Edit
                                             </button>
                                         </div>
@@ -1123,7 +1157,7 @@ export default function ProductDetails() {
                                             }}
                                             className="text-gray-400 hover:text-gray-600 transition-colors p-1"
                                         >
-                                            <i className="fas fa-times text-lg"></i>
+                                            <FaTimes className="text-lg" />
                                         </button>
                                     </div>
 
@@ -1141,11 +1175,11 @@ export default function ProductDetails() {
                                                         onClick={() => setFeedbackRating(star)}
                                                         className="p-1"
                                                     >
-                                                        <i
-                                                            className={`text-2xl lg:text-3xl transition-all duration-200 ${star <= feedbackRating
-                                                                ? 'fas fa-star text-amber-500 transform scale-110'
-                                                                : 'far fa-star text-gray-300 hover:text-amber-300 hover:scale-110'}`}
-                                                        />
+                                                        {star <= feedbackRating ? (
+                                                            <FaStar className={`text-2xl lg:text-3xl transition-all duration-200 text-amber-500 transform scale-110`} />
+                                                        ) : (
+                                                            <FaRegStar className={`text-2xl lg:text-3xl transition-all duration-200 text-gray-300 hover:text-amber-300 hover:scale-110`} />
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
@@ -1200,21 +1234,21 @@ export default function ProductDetails() {
                                         <button
                                             onClick={handleSubmitFeedback}
                                             disabled={submittingFeedback || feedbackRating < 1}
-                                            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center"
                                         >
                                             {submittingFeedback ? (
                                                 <>
-                                                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                    <FaSpinner className="animate-spin mr-2" />
                                                     Submitting...
                                                 </>
                                             ) : userFeedback ? (
                                                 <>
-                                                    <i className="fas fa-save mr-2"></i>
+                                                    <FaSave className="mr-2" />
                                                     Update Review
                                                 </>
                                             ) : (
                                                 <>
-                                                    <i className="fas fa-paper-plane mr-2"></i>
+                                                    <FaPaperPlane className="mr-2" />
                                                     Submit Review
                                                 </>
                                             )}
@@ -1261,7 +1295,7 @@ export default function ProductDetails() {
                             ) : allFeedbacks.length === 0 ? (
                                 <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
                                     <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <i className="fas fa-comment-alt text-xl text-blue-500"></i>
+                                        <FaCommentAlt className="text-xl text-blue-500" />
                                     </div>
                                     <h4 className="text-base font-semibold text-gray-700 mb-2">No reviews yet</h4>
                                     <p className="text-gray-600 text-sm px-4 mb-6">
@@ -1269,9 +1303,9 @@ export default function ProductDetails() {
                                     </p>
                                     <button
                                         onClick={() => setShowFeedbackForm(true)}
-                                        className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all"
+                                        className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all flex items-center justify-center mx-auto"
                                     >
-                                        <i className="fas fa-pen mr-2"></i>
+                                        <FaPen className="mr-2" />
                                         Write First Review
                                     </button>
                                 </div>
@@ -1315,9 +1349,9 @@ export default function ProductDetails() {
                                                             title="Delete this feedback"
                                                         >
                                                             {deletingFeedback === (feedback.feedback_id || feedback.id) ? (
-                                                                <i className="fas fa-spinner fa-spin"></i>
+                                                                <FaSpinner className="animate-spin" />
                                                             ) : (
-                                                                <i className="fas fa-trash"></i>
+                                                                <FaTrash />
                                                             )}
                                                         </button>
                                                     </div>
@@ -1339,8 +1373,8 @@ export default function ProductDetails() {
                             {/* Load More Button */}
                             {allFeedbacks.length > 5 && (
                                 <div className="mt-6 text-center">
-                                    <button className="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200">
-                                        <i className="fas fa-chevron-down mr-2"></i>
+                                    <button className="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 flex items-center justify-center mx-auto">
+                                        <FaChevronDown className="mr-2" />
                                         Load More Reviews
                                     </button>
                                 </div>

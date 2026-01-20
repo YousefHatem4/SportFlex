@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
+import { FaTags, FaShoppingBag } from 'react-icons/fa';
 
 export default function Category() {
     const [categories, setCategories] = useState([]);
@@ -101,7 +102,7 @@ export default function Category() {
                     className="text-center py-16"
                 >
                     <div className="w-24 h-24 mx-auto mb-6 text-gray-300">
-                        <i className="fas fa-tags text-8xl"></i>
+                        <FaTags className="text-8xl" />
                     </div>
                     <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Categories Available</h3>
                     <p className="text-gray-600 mb-6">Categories will be added soon!</p>
@@ -182,7 +183,7 @@ export default function Category() {
                         to="/products"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 hover:shadow-lg transition-all duration-300 shadow-md"
                     >
-                        <i className="fas fa-shopping-bag"></i>
+                        <FaShoppingBag />
                         View All Products
                     </Link>
                 </motion.div>

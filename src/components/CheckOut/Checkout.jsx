@@ -4,6 +4,26 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
+import {
+  FaUser,
+  FaMapMarkerAlt,
+  FaMoneyBillWave,
+  FaShoppingBag,
+  FaTag,
+  FaCheckCircle,
+  FaTimes,
+  FaShoppingCart,
+  FaTruck,
+  FaHeadset,
+  FaAward,
+  FaShieldAlt,
+  FaExclamationCircle,
+  FaExclamationTriangle,
+  FaInfoCircle,
+  FaSpinner,
+  FaArrowRight,
+  FaMoneyBill
+} from 'react-icons/fa';
 
 export default function Checkout() {
   const [apiError, setApiError] = useState(null)
@@ -422,7 +442,7 @@ export default function Checkout() {
               <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
-                    <i className="fas fa-user text-white text-lg"></i>
+                    <FaUser className="text-white text-lg" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
@@ -451,7 +471,7 @@ export default function Checkout() {
                     />
                     {formik.touched.firstName && formik.errors.firstName && (
                       <p className="text-red-500 text-sm flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                        <FaExclamationCircle className="text-xs" />
                         {formik.errors.firstName}
                       </p>
                     )}
@@ -477,7 +497,7 @@ export default function Checkout() {
                     />
                     {formik.touched.lastName && formik.errors.lastName && (
                       <p className="text-red-500 text-sm flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                        <FaExclamationCircle className="text-xs" />
                         {formik.errors.lastName}
                       </p>
                     )}
@@ -503,7 +523,7 @@ export default function Checkout() {
                     />
                     {formik.touched.email && formik.errors.email && (
                       <p className="text-red-500 text-sm flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                        <FaExclamationCircle className="text-xs" />
                         {formik.errors.email}
                       </p>
                     )}
@@ -515,7 +535,7 @@ export default function Checkout() {
               <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
-                    <i className="fas fa-map-marker-alt text-white text-lg"></i>
+                    <FaMapMarkerAlt className="text-white text-lg" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">Delivery Address</h2>
@@ -546,7 +566,7 @@ export default function Checkout() {
                     />
                     {formik.touched.details && formik.errors.details && (
                       <p className="text-red-500 text-sm flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                        <FaExclamationCircle className="text-xs" />
                         {formik.errors.details}
                       </p>
                     )}
@@ -611,7 +631,7 @@ export default function Checkout() {
                       />
                       {formik.touched.city && formik.errors.city && (
                         <p className="text-red-500 text-sm flex items-center gap-1">
-                          <i className="fas fa-exclamation-circle text-xs"></i>
+                          <FaExclamationCircle className="text-xs" />
                           {formik.errors.city}
                         </p>
                       )}
@@ -637,7 +657,7 @@ export default function Checkout() {
                       />
                       {formik.touched.phone && formik.errors.phone && (
                         <p className="text-red-500 text-sm flex items-center gap-1">
-                          <i className="fas fa-exclamation-circle text-xs"></i>
+                          <FaExclamationCircle className="text-xs" />
                           {formik.errors.phone}
                         </p>
                       )}
@@ -651,7 +671,7 @@ export default function Checkout() {
               <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
-                    <i className="fas fa-money-bill-wave text-white text-lg"></i>
+                    <FaMoneyBillWave className="text-white text-lg" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">Payment Method</h2>
@@ -662,22 +682,22 @@ export default function Checkout() {
                 <div className="p-6 rounded-2xl border-2 border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-100">
-                      <i className="fas fa-money-bill-wave text-2xl text-green-600"></i>
+                      <FaMoneyBill className="text-2xl text-green-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 text-lg mb-1">Cash on Delivery</h3>
                       <p className="text-sm text-gray-600 mb-3">Pay when you receive your order</p>
                       <div className="flex flex-wrap gap-2">
                         <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <i className="fas fa-check-circle"></i>
+                          <FaCheckCircle />
                           No additional fees
                         </p>
                         <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <i className="fas fa-check-circle"></i>
+                          <FaCheckCircle />
                           Safe and convenient
                         </p>
                         <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <i className="fas fa-check-circle"></i>
+                          <FaCheckCircle />
                           Available everywhere in Egypt
                         </p>
                       </div>
@@ -687,7 +707,7 @@ export default function Checkout() {
 
                 <div className="mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                   <div className="flex items-start gap-3">
-                    <i className="fas fa-info-circle text-blue-500 mt-1"></i>
+                    <FaInfoCircle className="text-blue-500 mt-1" />
                     <div>
                       <p className="text-sm text-blue-800 font-medium">Cash on Delivery Only</p>
                       <p className="text-xs text-blue-600 mt-1">
@@ -702,7 +722,7 @@ export default function Checkout() {
               {apiError && (
                 <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <i className="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                    <FaExclamationTriangle className="text-red-500 text-xl" />
                     <div>
                       <p className="text-red-800 font-semibold">Order Error</p>
                       <p className="text-red-600 text-sm mt-1">{apiError}</p>
@@ -721,7 +741,7 @@ export default function Checkout() {
             <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8 sticky top-6">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-400 rounded-xl flex items-center justify-center">
-                  <i className="fas fa-shopping-bag text-white"></i>
+                  <FaShoppingBag className="text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">Order Summary</h2>
               </div>
@@ -750,7 +770,7 @@ export default function Checkout() {
               {/* Promo Code Section - Fixed overflow issue */}
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <i className="fas fa-tag text-purple-500"></i>
+                  <FaTag className="text-purple-500" />
                   <h3 className="font-semibold text-gray-800">Promo Code</h3>
                 </div>
 
@@ -758,14 +778,14 @@ export default function Checkout() {
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
-                        <i className="fas fa-check-circle text-green-500"></i>
+                        <FaCheckCircle className="text-green-500" />
                         <span className="font-mono font-bold text-green-800">{appliedPromo.code}</span>
                       </div>
                       <button
                         onClick={handleRemovePromoCode}
                         className="text-red-500 hover:text-red-700 text-sm"
                       >
-                        <i className="fas fa-times"></i>
+                        <FaTimes />
                       </button>
                     </div>
                     <p className="text-sm text-green-700 mb-1">
@@ -798,7 +818,7 @@ export default function Checkout() {
                           }`}
                       >
                         {promoLoading ? (
-                          <i className="fas fa-spinner fa-spin"></i>
+                          <FaSpinner className="animate-spin" />
                         ) : (
                           'Apply'
                         )}
@@ -815,7 +835,7 @@ export default function Checkout() {
               <div className="space-y-4 mb-8 pb-6 border-b border-gray-200">
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-2">
-                    <i className="fas fa-shopping-cart text-sm"></i>
+                    <FaShoppingCart className="text-sm" />
                     Subtotal
                   </span>
                   <span className="font-medium">EGP {subtotal.toFixed(2)}</span>
@@ -824,7 +844,7 @@ export default function Checkout() {
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span className="flex items-center gap-2">
-                      <i className="fas fa-tag text-sm"></i>
+                      <FaTag className="text-sm" />
                       Discount
                     </span>
                     <span className="font-medium">- EGP {discount.toFixed(2)}</span>
@@ -833,7 +853,7 @@ export default function Checkout() {
 
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-2">
-                    <i className="fas fa-truck text-sm"></i>
+                    <FaTruck className="text-sm" />
                     Shipping
                   </span>
                   <span className="font-medium">EGP {shipping.toFixed(2)}</span>
@@ -857,15 +877,15 @@ export default function Checkout() {
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-3">
-                    <i className="fas fa-spinner fa-spin"></i>
+                    <FaSpinner className="animate-spin" />
                     Processing...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-3">
-                    <i className="fas fa-money-bill-wave"></i>
+                    <FaMoneyBillWave />
                     <span className="hidden sm:inline">Place Order (Cash on Delivery)</span>
                     <span className="sm:hidden">Place Order (COD)</span>
-                    <i className="fas fa-arrow-right ml-2"></i>
+                    <FaArrowRight className="ml-2" />
                   </span>
                 )}
               </button>
@@ -873,7 +893,7 @@ export default function Checkout() {
               {/* Payment Info Note */}
               <div className="mt-6 p-4 bg-green-50 rounded-2xl border border-green-100">
                 <div className="flex items-start gap-3">
-                  <i className="fas fa-money-bill-wave text-green-600 mt-1"></i>
+                  <FaMoneyBillWave className="text-green-600 mt-1" />
                   <div>
                     <p className="text-sm text-green-800 font-medium">Cash Payment Instructions</p>
                     <p className="text-xs text-green-600 mt-1">
@@ -886,20 +906,20 @@ export default function Checkout() {
               {/* Security & Trust Badges */}
               <div className="mt-6 space-y-3">
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <i className="fas fa-shield-alt text-green-500"></i>
+                  <FaShieldAlt className="text-green-500" />
                   <span>Secure cash on delivery</span>
                 </div>
                 <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
                   <span className="flex items-center gap-1">
-                    <i className="fas fa-truck"></i>
+                    <FaTruck />
                     Fast Delivery
                   </span>
                   <span className="flex items-center gap-1">
-                    <i className="fas fa-headset"></i>
+                    <FaHeadset />
                     24/7 Support
                   </span>
                   <span className="flex items-center gap-1">
-                    <i className="fas fa-award"></i>
+                    <FaAward />
                     Satisfaction Guaranteed
                   </span>
                 </div>
