@@ -207,42 +207,31 @@ export default function Navbar() {
                 </Link>
 
                 <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-                    {/* ICONS CONTAINER - Keeping same design but with admin's responsive logic */}
-                    <div className={`flex items-center gap-2 ${isUserLoggedIn ? '' : 'hidden'}`}>
-                        {isUserLoggedIn && <>
-                            {/* Wishlist Icon - Same design but with proper mobile handling */}
-                            <Link
-                                to={'wishlist'}
-                                className="inline-flex items-center justify-center w-10 h-10 md:w-8 md:h-8"
-                            >
-                                <i className={`${currentPath === '/wishlist' ? 'fa-solid fa-heart bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'fa-regular fa-heart'} text-gray-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent cursor-pointer transition-all duration-300 text-2xl md:text-xl`}></i>
-                            </Link>
+                    {isUserLoggedIn && <>
+                        {/* Heart Icon - Fixed for mobile */}
+                        <Link to={'wishlist'} className="md:block">
+                            <i className={`${currentPath === '/wishlist' ? 'fa-solid fa-heart text-blue-600' : 'fa-regular fa-heart text-gray-800'} hover:text-blue-600 cursor-pointer transition-all duration-300 text-2xl`}></i>
+                        </Link>
+                        {/* Cart Icon - Fixed for mobile */}
+                        <Link to={'cart'} className="relative md:ms-2">
+                            <i className={`${currentPath === '/cart' ? 'fa-solid fa-cart-shopping text-blue-600' : 'fa-solid fa-cart-shopping text-gray-800'} hover:text-blue-600 cursor-pointer transition-all duration-300 text-2xl`}></i>
+                            {cartItemsCount > 0 && (
+                                <span className='absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                    {isLoadingCart ? (
+                                        <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-white"></div>
+                                    ) : (
+                                        cartItemsCount > 99 ? '99+' : cartItemsCount
+                                    )}
+                                </span>
+                            )}
+                            {cartItemsCount === 0 && !isLoadingCart && isUserLoggedIn && (
+                                <span className='absolute -top-2 -right-2 bg-gray-300 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                    0
+                                </span>
+                            )}
+                        </Link>
+                    </>}
 
-                            {/* Cart Icon - Same design but with proper mobile handling */}
-                            <Link
-                                to={'cart'}
-                                className="inline-flex items-center justify-center w-10 h-10 md:w-8 md:h-8 relative"
-                            >
-                                <i className={`${currentPath === '/cart' ? 'fa-solid fa-cart-shopping bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'fa-solid fa-cart-shopping'} md:ms-2 text-gray-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent cursor-pointer transition-all duration-300 text-2xl md:text-xl`}></i>
-                                {cartItemsCount > 0 && (
-                                    <span className='absolute -top-1 -right-1 md:-top-0.5 md:-right-0.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium text-xs min-w-[18px] md:min-w-[16px] h-5 md:h-4 flex items-center justify-center px-1 rounded-full'>
-                                        {isLoadingCart ? (
-                                            <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-white"></div>
-                                        ) : (
-                                            cartItemsCount > 99 ? '99+' : cartItemsCount
-                                        )}
-                                    </span>
-                                )}
-                                {cartItemsCount === 0 && !isLoadingCart && isUserLoggedIn && (
-                                    <span className='absolute -top-1 -right-1 md:-top-0.5 md:-right-0.5 bg-gray-300 text-white font-medium text-xs min-w-[18px] md:min-w-[16px] h-5 md:h-4 flex items-center justify-center px-1 rounded-full'>
-                                        0
-                                    </span>
-                                )}
-                            </Link>
-                        </>}
-                    </div>
-
-                    {/* Mobile Menu Toggle - Same design */}
                     <button onClick={() => setMenuOpen(!menuOpen)} data-collapse-toggle="navbar-sticky" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
                         <span className="sr-only">Open main menu</span>
                         {menuOpen ? <><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -253,7 +242,6 @@ export default function Navbar() {
                     </button>
                 </div>
 
-                {/* NAVIGATION LINKS - Keeping exact same design */}
                 <div className={`items-center ${menuOpen ? 'block' : 'hidden'} justify-between w-full md:flex md:w-auto md:order-1`} id="navbar-sticky">
                     <ul className="flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-medium rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left">
                         <li>
@@ -311,6 +299,34 @@ export default function Navbar() {
                                 </span>
                             )}
                         </li>
+
+                        {/* Mobile-only icons section */}
+                        <div className="md:hidden flex justify-center items-center gap-6 pt-4 border-t border-gray-200 mt-4">
+                            {isUserLoggedIn && <>
+                                <Link to={'wishlist'} onClick={() => setMenuOpen(false)} className="flex flex-col items-center">
+                                    <i className={`${currentPath === '/wishlist' ? 'fa-solid fa-heart text-blue-600' : 'fa-regular fa-heart text-gray-700'} text-2xl mb-1`}></i>
+                                    <span className="text-xs text-gray-600">Wishlist</span>
+                                </Link>
+                                <Link to={'cart'} onClick={() => setMenuOpen(false)} className="flex flex-col items-center relative">
+                                    <i className={`${currentPath === '/cart' ? 'fa-solid fa-cart-shopping text-blue-600' : 'fa-solid fa-cart-shopping text-gray-700'} text-2xl mb-1`}></i>
+                                    {cartItemsCount > 0 && (
+                                        <span className='absolute -top-1 -right-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                            {isLoadingCart ? (
+                                                <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-white"></div>
+                                            ) : (
+                                                cartItemsCount > 99 ? '99+' : cartItemsCount
+                                            )}
+                                        </span>
+                                    )}
+                                    {cartItemsCount === 0 && !isLoadingCart && isUserLoggedIn && (
+                                        <span className='absolute -top-1 -right-2 bg-gray-300 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                            0
+                                        </span>
+                                    )}
+                                    <span className="text-xs text-gray-600">Cart</span>
+                                </Link>
+                            </>}
+                        </div>
                     </ul>
                 </div>
             </div>
