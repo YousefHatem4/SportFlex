@@ -387,46 +387,46 @@ export default function Checkout() {
 
   if (!cartItems.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/30 to-teal-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading checkout...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading checkout...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-teal-50/30">
+    <div className="min-h-screen bg-black">
       {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center">
-          <div className="bg-white/95 backdrop-blur-sm p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm mx-4 border border-white/20">
+          <div className="bg-gray-900/95 backdrop-blur-sm p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm mx-4 border border-gray-800">
             <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/20"></div>
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-blue-500 absolute top-0 left-0"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500/20"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-cyan-500 absolute top-0 left-0"></div>
             </div>
-            <p className="text-gray-700 font-semibold mt-6 text-lg">Processing your order</p>
-            <p className="text-gray-500 text-sm mt-2 text-center">Please don't close this window<br />This may take a few moments</p>
+            <p className="text-white font-semibold mt-6 text-lg">Processing your order</p>
+            <p className="text-gray-400 text-sm mt-2 text-center">Please don't close this window<br />This may take a few moments</p>
           </div>
         </div>
       )}
 
       {/* Elegant Header */}
-      <div className="relative bg-gradient-to-r from-white to-gray-50/80 backdrop-blur-sm border-b border-gray-100/50">
+      <div className="relative bg-gradient-to-r from-gray-900 to-gray-800/80 backdrop-blur-sm border-b border-gray-800/50">
         {/* Subtle background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/3 via-transparent to-teal-500/3"></div>
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-cyan-500/5"></div>
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent"></div>
 
         <div className="relative max-w-6xl mx-auto px-5 lg:px-30 py-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg shadow-lg"></div>
-              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <div className="bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg shadow-lg"></div>
+              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                 Complete Your Order
               </h1>
             </div>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
               You're just one step away from getting your favorite SportFlex delivered to your doorstep
             </p>
           </div>
@@ -439,21 +439,21 @@ export default function Checkout() {
           <div className="lg:col-span-3">
             <form onSubmit={formik.handleSubmit} className="space-y-8">
               {/* Customer Information */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
                     <FaUser className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
-                    <p className="text-gray-600">Tell us who you are</p>
+                    <h2 className="text-2xl font-bold text-white">Personal Information</h2>
+                    <p className="text-gray-400">Tell us who you are</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* First Name */}
                   <div className="space-y-2">
-                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-300">
                       First Name *
                     </label>
                     <input
@@ -463,14 +463,14 @@ export default function Checkout() {
                       value={formik.values.firstName}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.firstName && formik.errors.firstName
-                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                        : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                        } focus:outline-none placeholder-gray-400`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.firstName && formik.errors.firstName
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                        } focus:outline-none placeholder-gray-500`}
                       placeholder="Enter your first name"
                     />
                     {formik.touched.firstName && formik.errors.firstName && (
-                      <p className="text-red-500 text-sm flex items-center gap-1">
+                      <p className="text-red-400 text-sm flex items-center gap-1">
                         <FaExclamationCircle className="text-xs" />
                         {formik.errors.firstName}
                       </p>
@@ -479,7 +479,7 @@ export default function Checkout() {
 
                   {/* Last Name */}
                   <div className="space-y-2">
-                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-300">
                       Last Name *
                     </label>
                     <input
@@ -489,14 +489,14 @@ export default function Checkout() {
                       value={formik.values.lastName}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.lastName && formik.errors.lastName
-                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                        : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                        } focus:outline-none placeholder-gray-400`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.lastName && formik.errors.lastName
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                        } focus:outline-none placeholder-gray-500`}
                       placeholder="Enter your last name"
                     />
                     {formik.touched.lastName && formik.errors.lastName && (
-                      <p className="text-red-500 text-sm flex items-center gap-1">
+                      <p className="text-red-400 text-sm flex items-center gap-1">
                         <FaExclamationCircle className="text-xs" />
                         {formik.errors.lastName}
                       </p>
@@ -505,7 +505,7 @@ export default function Checkout() {
 
                   {/* Email */}
                   <div className="md:col-span-2 space-y-2">
-                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-300">
                       Email Address *
                     </label>
                     <input
@@ -515,14 +515,14 @@ export default function Checkout() {
                       value={formik.values.email}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.email && formik.errors.email
-                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                        : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                        } focus:outline-none placeholder-gray-400`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.email && formik.errors.email
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                        } focus:outline-none placeholder-gray-500`}
                       placeholder="your.email@example.com"
                     />
                     {formik.touched.email && formik.errors.email && (
-                      <p className="text-red-500 text-sm flex items-center gap-1">
+                      <p className="text-red-400 text-sm flex items-center gap-1">
                         <FaExclamationCircle className="text-xs" />
                         {formik.errors.email}
                       </p>
@@ -532,21 +532,21 @@ export default function Checkout() {
               </div>
 
               {/* Shipping Information */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
                     <FaMapMarkerAlt className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Delivery Address</h2>
-                    <p className="text-gray-600">Where should we send your order?</p>
+                    <h2 className="text-2xl font-bold text-white">Delivery Address</h2>
+                    <p className="text-gray-400">Where should we send your order?</p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   {/* Address */}
                   <div className="space-y-2">
-                    <label htmlFor="details" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="details" className="block text-sm font-semibold text-gray-300">
                       Street Address *
                     </label>
                     <input
@@ -558,14 +558,14 @@ export default function Checkout() {
                         formik.handleChange(e);
                       }}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.details && formik.errors.details
-                        ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                        : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                        } focus:outline-none placeholder-gray-400`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.details && formik.errors.details
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                        } focus:outline-none placeholder-gray-500`}
                       placeholder="Enter your complete address with landmarks"
                     />
                     {formik.touched.details && formik.errors.details && (
-                      <p className="text-red-500 text-sm flex items-center gap-1">
+                      <p className="text-red-400 text-sm flex items-center gap-1">
                         <FaExclamationCircle className="text-xs" />
                         {formik.errors.details}
                       </p>
@@ -574,7 +574,7 @@ export default function Checkout() {
 
                   {/* Governorate Selection */}
                   <div className="space-y-2">
-                    <label htmlFor="governorate" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="governorate" className="block text-sm font-semibold text-gray-300">
                       Governorate *
                     </label>
                     <select
@@ -582,27 +582,27 @@ export default function Checkout() {
                       value={selectedGovernorate}
                       onChange={(e) => setSelectedGovernorate(e.target.value)}
                       required
-                      className="w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300 focus:outline-none"
+                      className="w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600 focus:outline-none"
                     >
-                      <option value="">Select your governorate</option>
+                      <option value="" className="bg-gray-900">Select your governorate</option>
                       {shippingCosts.map((governorate) => (
-                        <option key={governorate.id} value={governorate.governorate}>
+                        <option key={governorate.id} value={governorate.governorate} className="bg-gray-900">
                           {governorate.governorate} - EGP {governorate.cost.toFixed(2)} ({governorate.delivery_days} days)
                         </option>
                       ))}
                     </select>
                     {selectedGovernorate && shippingCosts.find(g => g.governorate === selectedGovernorate) && (
-                      <div className="mt-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <div className="mt-2 p-3 bg-cyan-900/30 rounded-xl border border-cyan-800/50">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-blue-800">
+                            <p className="text-sm font-medium text-cyan-400">
                               Shipping to {selectedGovernorate}
                             </p>
-                            <p className="text-xs text-blue-600">
+                            <p className="text-xs text-cyan-500">
                               Delivery within {shippingCosts.find(g => g.governorate === selectedGovernorate).delivery_days} days
                             </p>
                           </div>
-                          <div className="text-blue-700 font-bold">
+                          <div className="text-cyan-400 font-bold">
                             EGP {shippingCosts.find(g => g.governorate === selectedGovernorate).cost.toFixed(2)}
                           </div>
                         </div>
@@ -613,7 +613,7 @@ export default function Checkout() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* City */}
                     <div className="space-y-2">
-                      <label htmlFor="city" className="block text-sm font-semibold text-gray-700">
+                      <label htmlFor="city" className="block text-sm font-semibold text-gray-300">
                         City/District *
                       </label>
                       <input
@@ -623,14 +623,14 @@ export default function Checkout() {
                         value={formik.values.city}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.city && formik.errors.city
-                          ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                          : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                          } focus:outline-none placeholder-gray-400`}
+                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.city && formik.errors.city
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                          } focus:outline-none placeholder-gray-500`}
                         placeholder="Enter your city or district"
                       />
                       {formik.touched.city && formik.errors.city && (
-                        <p className="text-red-500 text-sm flex items-center gap-1">
+                        <p className="text-red-400 text-sm flex items-center gap-1">
                           <FaExclamationCircle className="text-xs" />
                           {formik.errors.city}
                         </p>
@@ -639,7 +639,7 @@ export default function Checkout() {
 
                     {/* Phone */}
                     <div className="space-y-2">
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
+                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-300">
                         Phone Number (Egyptian) *
                       </label>
                       <input
@@ -649,14 +649,14 @@ export default function Checkout() {
                         value={formik.values.phone}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-gray-700 bg-white/70 backdrop-blur-sm ${formik.touched.phone && formik.errors.phone
-                          ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                          : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:border-gray-300'
-                          } focus:outline-none placeholder-gray-400`}
+                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.phone && formik.errors.phone
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                          } focus:outline-none placeholder-gray-500`}
                         placeholder="01XXXXXXXXX"
                       />
                       {formik.touched.phone && formik.errors.phone && (
-                        <p className="text-red-500 text-sm flex items-center gap-1">
+                        <p className="text-red-400 text-sm flex items-center gap-1">
                           <FaExclamationCircle className="text-xs" />
                           {formik.errors.phone}
                         </p>
@@ -668,35 +668,35 @@ export default function Checkout() {
               </div>
 
               {/* Payment Method - Cash on Delivery Only */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
                     <FaMoneyBillWave className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Payment Method</h2>
-                    <p className="text-gray-600">Pay when you receive your order</p>
+                    <h2 className="text-2xl font-bold text-white">Payment Method</h2>
+                    <p className="text-gray-400">Pay when you receive your order</p>
                   </div>
                 </div>
 
-                <div className="p-6 rounded-2xl border-2 border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg">
+                <div className="p-6 rounded-2xl border-2 border-green-500/50 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-100">
-                      <FaMoneyBill className="text-2xl text-green-600" />
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-900/30 border border-green-800/50">
+                      <FaMoneyBill className="text-2xl text-green-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 text-lg mb-1">Cash on Delivery</h3>
-                      <p className="text-sm text-gray-600 mb-3">Pay when you receive your order</p>
+                      <h3 className="font-bold text-white text-lg mb-1">Cash on Delivery</h3>
+                      <p className="text-sm text-gray-400 mb-3">Pay when you receive your order</p>
                       <div className="flex flex-wrap gap-2">
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
+                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
                           <FaCheckCircle />
                           No additional fees
                         </p>
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
+                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
                           <FaCheckCircle />
                           Safe and convenient
                         </p>
-                        <p className="text-xs text-green-600 font-medium flex items-center gap-1 whitespace-nowrap">
+                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
                           <FaCheckCircle />
                           Available everywhere in Egypt
                         </p>
@@ -705,12 +705,12 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <div className="mt-6 p-4 bg-cyan-900/30 rounded-2xl border border-cyan-800/50">
                   <div className="flex items-start gap-3">
-                    <FaInfoCircle className="text-blue-500 mt-1" />
+                    <FaInfoCircle className="text-cyan-400 mt-1" />
                     <div>
-                      <p className="text-sm text-blue-800 font-medium">Cash on Delivery Only</p>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-sm text-cyan-300 font-medium">Cash on Delivery Only</p>
+                      <p className="text-xs text-cyan-400 mt-1">
                         We currently only accept cash payments upon delivery. Our delivery agent will collect the payment when they deliver your order.
                       </p>
                     </div>
@@ -720,12 +720,12 @@ export default function Checkout() {
 
               {/* Error Message */}
               {apiError && (
-                <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6 shadow-lg">
+                <div className="bg-gradient-to-r from-red-900/30 to-pink-900/30 border-2 border-red-800/50 rounded-2xl p-6 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <FaExclamationTriangle className="text-red-500 text-xl" />
+                    <FaExclamationTriangle className="text-red-400 text-xl" />
                     <div>
-                      <p className="text-red-800 font-semibold">Order Error</p>
-                      <p className="text-red-600 text-sm mt-1">{apiError}</p>
+                      <p className="text-red-300 font-semibold">Order Error</p>
+                      <p className="text-red-400 text-sm mt-1">{apiError}</p>
                     </div>
                   </div>
                 </div>
@@ -738,29 +738,29 @@ export default function Checkout() {
 
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8 sticky top-6">
+            <div className="bg-gray-900/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-800/50 p-8 sticky top-6">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-400 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-xl flex items-center justify-center">
                   <FaShoppingBag className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Order Summary</h2>
+                <h2 className="text-2xl font-bold text-white">Order Summary</h2>
               </div>
 
               {/* Cart Items */}
               <div className="space-y-4 mb-8 max-h-64 overflow-y-auto custom-scrollbar">
                 {cartItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-teal-50/50 rounded-2xl border border-gray-100/50">
+                  <div key={index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-cyan-900/20 to-cyan-800/20 rounded-2xl border border-gray-800/50">
                     <img
                       src={item.product.imageCover || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
                       alt={item.product.title}
-                      className="w-16 h-16 rounded-xl object-contain border border-gray-100 bg-white"
+                      className="w-16 h-16 rounded-xl object-contain border border-gray-700 bg-gray-800"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">{item.product.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">Quantity: {item.count}</p>
+                      <h4 className="font-semibold text-white truncate">{item.product.title}</h4>
+                      <p className="text-sm text-gray-400 mt-1">Quantity: {item.count}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">EGP {(item.price * item.count).toFixed(2)}</p>
+                      <p className="font-bold text-cyan-400">EGP {(item.price * item.count).toFixed(2)}</p>
                       <p className="text-xs text-gray-500">EGP {item.price.toFixed(2)} each</p>
                     </div>
                   </div>
@@ -770,31 +770,31 @@ export default function Checkout() {
               {/* Promo Code Section - Fixed overflow issue */}
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaTag className="text-purple-500" />
-                  <h3 className="font-semibold text-gray-800">Promo Code</h3>
+                  <FaTag className="text-purple-400" />
+                  <h3 className="font-semibold text-gray-300">Promo Code</h3>
                 </div>
 
                 {appliedPromo ? (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200">
+                  <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-2xl p-4 border border-green-800/50">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
-                        <FaCheckCircle className="text-green-500" />
-                        <span className="font-mono font-bold text-green-800">{appliedPromo.code}</span>
+                        <FaCheckCircle className="text-green-400" />
+                        <span className="font-mono font-bold text-green-300">{appliedPromo.code}</span>
                       </div>
                       <button
                         onClick={handleRemovePromoCode}
-                        className="text-red-500 hover:text-red-700 text-sm"
+                        className="text-red-400 hover:text-red-300 text-sm"
                       >
                         <FaTimes />
                       </button>
                     </div>
-                    <p className="text-sm text-green-700 mb-1">
+                    <p className="text-sm text-green-400 mb-1">
                       {appliedPromo.discount_type === 'percentage'
                         ? `${appliedPromo.discount_value}% discount applied`
                         : `EGP ${appliedPromo.discount_value} discount applied`
                       }
                     </p>
-                    <p className="text-lg font-bold text-green-800">
+                    <p className="text-lg font-bold text-green-300">
                       - EGP {appliedPromo.discount_amount.toFixed(2)}
                     </p>
                   </div>
@@ -806,15 +806,15 @@ export default function Checkout() {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         placeholder="Enter promo code"
-                        className="flex-1 min-w-0 px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 focus:outline-none font-mono"
+                        className="flex-1 min-w-0 px-4 py-3 border-2 border-gray-700 rounded-2xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 focus:outline-none font-mono bg-gray-800 text-white"
                         disabled={promoLoading}
                       />
                       <button
                         onClick={handleApplyPromoCode}
                         disabled={promoLoading || !promoCode.trim()}
                         className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-300 whitespace-nowrap ${promoLoading || !promoCode.trim()
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 hover:scale-105 active:scale-95'
+                          ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 hover:scale-105 active:scale-95'
                           }`}
                       >
                         {promoLoading ? (
@@ -832,17 +832,17 @@ export default function Checkout() {
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-4 mb-8 pb-6 border-b border-gray-200">
-                <div className="flex justify-between text-gray-600">
+              <div className="space-y-4 mb-8 pb-6 border-b border-gray-800">
+                <div className="flex justify-between text-gray-400">
                   <span className="flex items-center gap-2">
                     <FaShoppingCart className="text-sm" />
                     Subtotal
                   </span>
-                  <span className="font-medium">EGP {subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-white">EGP {subtotal.toFixed(2)}</span>
                 </div>
 
                 {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
+                  <div className="flex justify-between text-green-400">
                     <span className="flex items-center gap-2">
                       <FaTag className="text-sm" />
                       Discount
@@ -851,17 +851,17 @@ export default function Checkout() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-400">
                   <span className="flex items-center gap-2">
                     <FaTruck className="text-sm" />
                     Shipping
                   </span>
-                  <span className="font-medium">EGP {shipping.toFixed(2)}</span>
+                  <span className="font-medium text-white">EGP {shipping.toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between text-xl font-bold text-gray-900 pt-4 border-t border-gray-200">
+                <div className="flex justify-between text-xl font-bold text-white pt-4 border-t border-gray-800">
                   <span>Total</span>
-                  <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">EGP {total.toFixed(2)}</span>
+                  <span className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">EGP {total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -870,9 +870,9 @@ export default function Checkout() {
                 type="button"
                 onClick={formik.handleSubmit}
                 disabled={loading || !formik.isValid || !selectedGovernorate}
-                className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-500/20 shadow-lg ${loading || !formik.isValid || !selectedGovernorate
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 hover:scale-105 hover:shadow-xl active:scale-95'
+                className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 shadow-lg ${loading || !formik.isValid || !selectedGovernorate
+                  ? 'bg-gray-700 text-gray-300 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:scale-105 hover:shadow-xl active:scale-95'
                   }`}
               >
                 {loading ? (
@@ -891,12 +891,12 @@ export default function Checkout() {
               </button>
 
               {/* Payment Info Note */}
-              <div className="mt-6 p-4 bg-green-50 rounded-2xl border border-green-100">
+              <div className="mt-6 p-4 bg-green-900/30 rounded-2xl border border-green-800/50">
                 <div className="flex items-start gap-3">
-                  <FaMoneyBillWave className="text-green-600 mt-1" />
+                  <FaMoneyBillWave className="text-green-400 mt-1" />
                   <div>
-                    <p className="text-sm text-green-800 font-medium">Cash Payment Instructions</p>
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="text-sm text-green-300 font-medium">Cash Payment Instructions</p>
+                    <p className="text-xs text-green-400 mt-1">
                       Please prepare exact cash amount (EGP {total.toFixed(2)}) for our delivery agent. You'll receive a confirmation email with order details.
                     </p>
                   </div>
@@ -906,7 +906,7 @@ export default function Checkout() {
               {/* Security & Trust Badges */}
               <div className="mt-6 space-y-3">
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <FaShieldAlt className="text-green-500" />
+                  <FaShieldAlt className="text-green-400" />
                   <span>Secure cash on delivery</span>
                 </div>
                 <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
@@ -936,15 +936,15 @@ export default function Checkout() {
             width: 6px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #1f2937;
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #374151;
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #4b5563;
           }
           .font-arabic {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

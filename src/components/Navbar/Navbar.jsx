@@ -194,135 +194,115 @@ export default function Navbar() {
     }
 
     return <>
-        <div className='bg-gradient-to-r from-blue-600 to-teal-500 py-3 text-center'>
-            <p className='font-serif text-white'>
+        <div className='bg-black py-3 text-center border-b-2 border-cyan-500'>
+            <p className='font-bold text-white'>
                 {specialOffer}
-                <Link to={'products'} className='ms-2 underline font-medium'>ShopNow</Link>
+                <Link to={'products'} className='ms-2 text-cyan-400 hover:text-cyan-300 font-extrabold transition-colors duration-200'>SHOP NOW →</Link>
             </p>
         </div>
 
-        <nav className="bg-white sticky w-full z-30 top-0 start-0 border-b border-gray-200 shadow-sm">
+        <nav className="bg-black sticky w-full z-30 top-0 start-0 border-b-2 border-gray-800 shadow-2xl">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to={''} className="flex items-center space-x-3 rtl:space-x-reverse">
-                    <span className="self-center text-2xl font-bold whitespace-nowrap text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent transition-all duration-300">SportFlex</span>
+                    <span className="self-center text-2xl font-extrabold whitespace-nowrap text-white hover:text-cyan-400 transition-colors duration-300">SPORTFLEX</span>
                 </Link>
 
                 <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
                     {isUserLoggedIn && <>
                         <Link to={'wishlist'} className="relative group">
-                            <FaRegHeart className="text-2xl cursor-pointer transition-all duration-300 text-gray-800 group-hover:opacity-0" />
-                            <FaRegHeart className="text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300" style={{
-                                background: 'linear-gradient(to right, #2563eb, #0d9488)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text'
-                            }} />
+                            <FaRegHeart className="text-2xl cursor-pointer transition-all duration-300 text-white group-hover:opacity-0" />
+                            <FaRegHeart className="text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-cyan-400" />
                             {currentPath === '/wishlist' && (
-                                <FaHeart className="text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300" style={{
-                                    background: 'linear-gradient(to right, #2563eb, #0d9488)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text'
-                                }} />
+                                <FaHeart className="text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300 text-cyan-400" />
                             )}
                         </Link>
                         <Link to={'cart'} className="relative group">
-                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer transition-all duration-300 text-gray-800 group-hover:opacity-0" />
-                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300" style={{
-                                background: 'linear-gradient(to right, #2563eb, #0d9488)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text'
-                            }} />
+                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer transition-all duration-300 text-white group-hover:opacity-0" />
+                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-cyan-400" />
                             {currentPath === '/cart' && (
-                                <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300" style={{
-                                    background: 'linear-gradient(to right, #2563eb, #0d9488)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text'
-                                }} />
+                                <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300 text-cyan-400" />
                             )}
                             {cartItemsCount > 0 && (
-                                <span className='absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                <span className='absolute -top-2 -right-2 bg-cyan-500 text-black font-extrabold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full shadow-lg ring-2 ring-black'>
                                     {isLoadingCart ? (
-                                        <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-white"></div>
+                                        <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-black"></div>
                                     ) : (
                                         cartItemsCount > 99 ? '99+' : cartItemsCount
                                     )}
                                 </span>
                             )}
                             {cartItemsCount === 0 && !isLoadingCart && isUserLoggedIn && (
-                                <span className='absolute -top-2 -right-2 bg-gray-300 text-white font-medium text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full'>
+                                <span className='absolute -top-2 -right-2 bg-gray-800 text-gray-300 font-bold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full ring-1 ring-gray-700'>
                                     0
                                 </span>
                             )}
                         </Link>
                     </>}
 
-                    <button onClick={() => setMenuOpen(!menuOpen)} data-collapse-toggle="navbar-sticky" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
+                    <button onClick={() => setMenuOpen(!menuOpen)} data-collapse-toggle="navbar-sticky" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors duration-200 ring-1 ring-gray-800">
                         <span className="sr-only">Open main menu</span>
                         {menuOpen ? <><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                         </svg></> : <> <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M1 1h15M1 7h15M1 13h15" />
+                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M1 1h15M1 7h15M1 13h15" />
                         </svg></>}
                     </button>
                 </div>
 
                 <div className={`items-center ${menuOpen ? 'block' : 'hidden'} justify-between w-full md:flex md:w-auto md:order-1`} id="navbar-sticky">
-                    <ul className="flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-medium rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left">
+                    <ul className="flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-bold rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left">
                         <li>
-                            <Link to={''} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                Home
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                            <Link to={''} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                HOME
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                             </Link>
                         </li>
                         <li>
-                            <Link to={'products'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/products' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                Products
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                            <Link to={'products'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/products' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                PRODUCTS
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to={'category'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/category' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                Categories
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                            <Link to={'category'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/category' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                CATEGORIES
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                             </Link>
                         </li>
                         <li>
-                            <Link to={'about'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/about' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                About
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                            <Link to={'about'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/about' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                ABOUT
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                             </Link>
                         </li>
                         <li>
-                            <Link to={'contact'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/contact' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                Contact
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                            <Link to={'contact'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/contact' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                CONTACT
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                             </Link>
                         </li>
 
                         {/* Show Admin link only for admin users */}
                         {isAdmin && (
                             <li>
-                                <Link to={'admin'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/admin' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                    Admin Panel
-                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                                <Link to={'admin'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/admin' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                    ADMIN PANEL
+                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                                 </Link>
                             </li>
                         )}
 
                         <li>
                             {!isUserLoggedIn && (
-                                <Link to={'login'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/login' ? 'bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent' : 'text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent'} rounded md:p-0 relative group transition-all duration-300`}>
-                                    Sign in
-                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                                <Link to={'login'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/login' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                                    SIGN IN
+                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
                                 </Link>
                             )}
                             {isUserLoggedIn && (
-                                <span onClick={logOut} className="cursor-pointer font-bold text-gray-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent text-sm transition-all duration-300">
-                                    Logout
+                                <span onClick={logOut} className="cursor-pointer font-extrabold text-white hover:text-cyan-400 text-sm transition-all duration-300 uppercase">
+                                    LOGOUT
                                 </span>
                             )}
                         </li>

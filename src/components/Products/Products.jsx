@@ -82,11 +82,11 @@ export default function Products() {
             <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                     if (i < fullStars) {
-                        return <FaStar key={i} className="text-amber-500 text-xs" />;
+                        return <FaStar key={i} className="text-cyan-500 text-xs" />;
                     } else if (i === fullStars && hasHalfStar) {
-                        return <FaStarHalfAlt key={i} className="text-amber-500 text-xs" />;
+                        return <FaStarHalfAlt key={i} className="text-cyan-500 text-xs" />;
                     } else {
-                        return <FaRegStar key={i} className="text-amber-500 text-xs" />;
+                        return <FaRegStar key={i} className="text-cyan-500 text-xs" />;
                     }
                 })}
             </div>
@@ -446,10 +446,10 @@ export default function Products() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading products...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p className="text-white">Loading products...</p>
                 </div>
             </div>
         );
@@ -457,7 +457,7 @@ export default function Products() {
 
     return <>
         {/* Products section */}
-        <section className='my-10 px-4 sm:px-6 lg:px-30'>
+        <section className='py-10 px-4 sm:px-6 lg:px-30 bg-black'>
             {/* title */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -467,9 +467,9 @@ export default function Products() {
             >
                 <div className='flex items-center justify-between flex-wrap gap-4 mb-6'>
                     <div className='flex items-center gap-5'>
-                        <div className='bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h1 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Our Products</h1>
-                        <span className="bg-gradient-to-r from-blue-100 to-teal-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
+                        <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Our Products</h1>
+                        <span className="bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 text-xs font-medium px-2.5 py-0.5 rounded-full">
                             {products.length} items
                         </span>
                     </div>
@@ -482,11 +482,11 @@ export default function Products() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search products..."
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm bg-gray-900 text-white placeholder-gray-400"
                             />
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 text-sm flex items-center gap-2"
+                                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-all duration-300 text-sm flex items-center gap-2"
                             >
                                 <FaSearch />
                                 Search
@@ -496,7 +496,7 @@ export default function Products() {
                         <select
                             value={selectedCategory}
                             onChange={(e) => handleCategoryChange(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm bg-gray-900 text-white"
                         >
                             <option value="all">All Categories</option>
                             {categories.map(category => (
@@ -507,7 +507,7 @@ export default function Products() {
                         {(selectedCategory !== 'all' || searchQuery) && (
                             <button
                                 onClick={handleClearFilters}
-                                className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-300 text-sm"
+                                className="px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-900 transition-all duration-300 text-sm"
                             >
                                 Clear Filters
                             </button>
@@ -522,27 +522,27 @@ export default function Products() {
                         animate={{ opacity: 1 }}
                         className="mb-4 flex flex-wrap gap-2 items-center"
                     >
-                        <span className="text-sm text-gray-600">Active filters:</span>
+                        <span className="text-sm text-gray-400">Active filters:</span>
                         {selectedCategory !== 'all' && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-cyan-900/50 text-cyan-400">
                                 Category: {categories.find(c => c.id === selectedCategory)?.name || 'Selected'}
                                 <button
                                     onClick={() => handleCategoryChange('all')}
-                                    className="ml-2 text-blue-600 hover:text-blue-800"
+                                    className="ml-2 text-cyan-400 hover:text-cyan-300"
                                 >
                                     ×
                                 </button>
                             </span>
                         )}
                         {searchQuery && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-cyan-800/50 text-cyan-400">
                                 Search: "{searchQuery}"
                                 <button
                                     onClick={() => {
                                         setSearchQuery('');
                                         handleSearch({ preventDefault: () => { } });
                                     }}
-                                    className="ml-2 text-teal-600 hover:text-teal-800"
+                                    className="ml-2 text-cyan-400 hover:text-cyan-300"
                                 >
                                     ×
                                 </button>
@@ -559,11 +559,11 @@ export default function Products() {
                     animate={{ opacity: 1 }}
                     className="col-span-full text-center py-16"
                 >
-                    <div className="w-24 h-24 mx-auto mb-6 text-gray-300">
+                    <div className="w-24 h-24 mx-auto mb-6 text-gray-600">
                         <FaBoxOpen className="text-8xl" />
                     </div>
-                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Products Found</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-2xl font-semibold text-white mb-2">No Products Found</h3>
+                    <p className="text-gray-400 mb-6">
                         {searchQuery
                             ? `No products found for "${searchQuery}"`
                             : selectedCategory !== 'all'
@@ -573,7 +573,7 @@ export default function Products() {
                     </p>
                     <button
                         onClick={handleClearFilters}
-                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition-colors duration-300"
+                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-colors duration-300"
                     >
                         View All Products
                     </button>
@@ -596,7 +596,7 @@ export default function Products() {
                             className='group'
                         >
                             {/* Enhanced Product Card matching home.jsx design */}
-                            <div className='cursor-pointer product bg-white rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-100 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
+                            <div className='cursor-pointer product bg-gray-900 rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-800 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
                                 {/* Product Image Container */}
                                 <Link to={`/productdetails/${product.id}`} className='block relative'>
                                     <div className="relative overflow-hidden rounded-t-xl lg:rounded-t-2xl">
@@ -613,19 +613,19 @@ export default function Products() {
                                             {/* Stock Badge */}
                                             <div className="absolute top-2 left-2">
                                                 {product.stock <= 10 && product.stock > 0 ? (
-                                                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                    <div className="bg-gradient-to-r from-cyan-700 to-cyan-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                                         <span className="hidden sm:inline">Only </span>{product.stock} left
                                                     </div>
                                                 ) : product.stock === 0 ? (
-                                                    <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                    <div className="bg-gradient-to-r from-red-700 to-rose-700 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                                         Sold Out
                                                     </div>
                                                 ) : null}
                                             </div>
 
                                             {/* Mobile-only Quick Action Overlay */}
-                                            <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
-                                                <span className="text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full">
+                                            <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+                                                <span className="text-white text-xs font-medium bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
                                                     Quick View
                                                 </span>
                                             </div>
@@ -638,10 +638,10 @@ export default function Products() {
                                                 e.stopPropagation();
                                                 handleWishlistAction(product.id);
                                             }}
-                                            className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
+                                            className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-gray-900/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 border border-gray-700"
                                         >
                                             {isInWishlist(product.id) ? (
-                                                <FaHeart className="text-sm text-rose-500" />
+                                                <FaHeart className="text-sm text-cyan-400" />
                                             ) : (
                                                 <FaRegHeart className="text-sm text-gray-400" />
                                             )}
@@ -657,26 +657,26 @@ export default function Products() {
                                             </span>
 
                                             {/* Mobile-only Rating */}
-                                            <div className="lg:hidden flex items-center text-amber-500 text-xs">
+                                            <div className="lg:hidden flex items-center text-cyan-500 text-xs">
                                                 {renderStars(product.ratingsAverage || 4.5)}
                                                 <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
                                             </div>
                                         </div>
 
                                         {/* Product Title - Better Mobile Typography */}
-                                        <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-blue-600 transition-colors duration-300">
+                                        <h3 className="text-sm sm:text-base font-semibold text-white leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-cyan-400 transition-colors duration-300">
                                             {product.title}
                                         </h3>
 
                                         {/* Price & Rating - Enhanced Layout */}
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                                                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                                                     EGP {parseFloat(product.price).toFixed(2)}
                                                 </span>
                                                 {/* Original Price if on sale */}
                                                 {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
-                                                    <span className="text-xs text-gray-400 line-through">
+                                                    <span className="text-xs text-gray-500 line-through">
                                                         EGP {parseFloat(product.originalPrice).toFixed(2)}
                                                     </span>
                                                 )}
@@ -684,7 +684,7 @@ export default function Products() {
 
                                             {/* Desktop-only Rating with feedback count */}
                                             <div className="hidden lg:flex items-center">
-                                                <div className="flex items-center text-amber-500 text-sm">
+                                                <div className="flex items-center text-cyan-500 text-sm">
                                                     {renderStars(product.ratingsAverage || 4.5)}
                                                     <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
                                                 </div>
@@ -698,13 +698,13 @@ export default function Products() {
                                         <div className="lg:hidden">
                                             {product.stock > 0 ? (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                                    <div className="w-full bg-gray-800 rounded-full h-1.5">
                                                         <div
-                                                            className="bg-green-500 h-1.5 rounded-full"
+                                                            className="bg-cyan-500 h-1.5 rounded-full"
                                                             style={{ width: `${Math.min((product.stock / 100) * 100, 100)}%` }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-xs text-gray-500">{product.stock} in stock</span>
+                                                    <span className="text-xs text-gray-400">{product.stock} in stock</span>
                                                 </div>
                                             ) : null}
                                         </div>
@@ -721,10 +721,10 @@ export default function Products() {
                                             disabled={isInCart(product.id) || product.stock <= 0}
                                             className={`cursor-pointer flex-1 py-3 sm:py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-sm font-medium 
                                                 ${isInCart(product.id)
-                                                    ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed shadow-md"
+                                                    ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white cursor-not-allowed shadow-md"
                                                     : product.stock <= 0
-                                                        ? "bg-gradient-to-r from-red-100 to-rose-100 text-red-600 cursor-not-allowed"
-                                                        : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-lg active:scale-95"}`}
+                                                        ? "bg-gradient-to-r from-gray-800 to-gray-900 text-gray-400 cursor-not-allowed"
+                                                        : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"}`}
                                         >
                                             <div className="flex items-center justify-center gap-2">
                                                 {isInCart(product.id) ? (
@@ -756,23 +756,23 @@ export default function Products() {
                                             className="hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
                                             style={{
                                                 background: isInWishlist(product.id)
-                                                    ? 'linear-gradient(135deg, rgba(255, 228, 230, 1), rgba(251, 207, 232, 1))'
-                                                    : 'white',
-                                                borderColor: isInWishlist(product.id) ? '#fb7185' : '#e5e7eb'
+                                                    ? 'linear-gradient(135deg, rgba(8, 145, 178, 0.2), rgba(6, 182, 212, 0.2))'
+                                                    : 'rgb(17, 24, 39)',
+                                                borderColor: isInWishlist(product.id) ? '#06b6d4' : '#374151'
                                             }}
                                             title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                         >
                                             {isInWishlist(product.id) ? (
-                                                <FaHeart className="text-lg text-rose-500 animate-pulse" />
+                                                <FaHeart className="text-lg text-cyan-400 animate-pulse" />
                                             ) : (
-                                                <FaRegHeart className="text-lg text-gray-500 hover:text-rose-500" />
+                                                <FaRegHeart className="text-lg text-gray-400 hover:text-cyan-400" />
                                             )}
                                         </motion.button>
                                     </div>
                                 </div>
 
                                 {/* Decorative Bottom Accent - Mobile Only */}
-                                <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
+                                <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
                             </div>
                         </motion.div>
                     ))}

@@ -461,23 +461,23 @@ export default function Wishlist() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
+            <div className="min-h-screen flex items-center justify-center px-4 bg-black">
                 <div className="text-center max-w-md w-full">
-                    <div className="text-gray-400 mb-6">
+                    <div className="text-gray-600 mb-6">
                         <FaHeart className="text-5xl sm:text-6xl mx-auto" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-4">Please Sign In</h3>
-                    <p className="text-gray-500 mb-6 px-4">You need to be signed in to view your wishlist</p>
+                    <h3 className="text-xl font-semibold text-white mb-4">Please Sign In</h3>
+                    <p className="text-gray-400 mb-6 px-4">You need to be signed in to view your wishlist</p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button
                             onClick={() => navigate('/login')}
-                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition text-sm sm:text-base"
+                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition text-sm sm:text-base"
                         >
                             Sign In
                         </button>
                         <button
                             onClick={() => navigate('/')}
-                            className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm sm:text-base flex items-center justify-center gap-2"
+                            className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition text-sm sm:text-base flex items-center justify-center gap-2"
                         >
                             <FaArrowLeft className="text-xs" />
                             Back to Home
@@ -490,10 +490,10 @@ export default function Wishlist() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading wishlist...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p className="text-white">Loading wishlist...</p>
                 </div>
             </div>
         );
@@ -501,7 +501,7 @@ export default function Wishlist() {
 
     return <>
         {/* Products section */}
-        <section className='my-6 sm:my-8 lg:my-10 px-3 sm:px-4 md:px-6 lg:px-30'>
+        <section className='py-6 sm:py-8 lg:py-10 px-3 sm:px-4 md:px-6 lg:px-30 bg-black'>
 
 
             {/* title */}
@@ -513,12 +513,12 @@ export default function Wishlist() {
             >
                 <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6'>
                     <div className='flex items-center gap-3 sm:gap-4'>
-                        <div className='bg-gradient-to-r from-pink-500 to-rose-400 w-3 sm:w-[20px] h-6 sm:h-[40px] rounded-lg shadow-md'></div>
+                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-3 sm:w-[20px] h-6 sm:h-[40px] rounded-lg shadow-md'></div>
                         <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4'>
-                            <h1 className='bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent font-extrabold text-base sm:text-lg md:text-xl tracking-wide'>
+                            <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-extrabold text-base sm:text-lg md:text-xl tracking-wide'>
                                 My Wishlist
                             </h1>
-                            <span className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 text-xs font-medium px-2.5 py-1 rounded-full self-start">
+                            <span className="bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 text-xs font-medium px-2.5 py-1 rounded-full self-start">
                                 {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'}
                             </span>
                         </div>
@@ -528,14 +528,14 @@ export default function Wishlist() {
                         <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                             <button
                                 onClick={moveAllToCart}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition w-full sm:w-auto"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-sm font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition w-full sm:w-auto"
                             >
                                 <FaShoppingCart className="text-sm" />
                                 <span className="whitespace-nowrap">Add All to Cart</span>
                             </button>
                             <button
                                 onClick={clearWishlist}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-sm font-medium rounded-lg hover:from-gray-600 hover:to-gray-700 transition w-full sm:w-auto"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white text-sm font-medium rounded-lg hover:from-gray-800 hover:to-gray-900 transition w-full sm:w-auto"
                             >
                                 <FaTrash className="text-sm" />
                                 <span className="whitespace-nowrap">Clear All</span>
@@ -565,7 +565,7 @@ export default function Wishlist() {
                             className="h-full"
                         >
                             {/* card */}
-                            <div className='cursor-pointer product bg-white p-3 sm:p-4 rounded-xl lg:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-100'>
+                            <div className='cursor-pointer product bg-gray-900 p-3 sm:p-4 rounded-xl lg:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-800'>
                                 {/* Product Image */}
                                 <Link to={`/productdetails/${item.product.id}`}>
                                     <div className="overflow-hidden rounded-lg lg:rounded-xl relative">
@@ -578,11 +578,11 @@ export default function Wishlist() {
                                             }}
                                         />
                                         {/* Subtle gradient overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
                                         {/* Mobile stock badge */}
                                         {item.product.stock <= 5 && item.product.stock > 0 && (
-                                            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                            <span className="absolute top-2 left-2 bg-red-700 text-white text-xs px-2 py-1 rounded-full">
                                                 Low Stock
                                             </span>
                                         )}
@@ -593,20 +593,20 @@ export default function Wishlist() {
                                         <span className="inline-block text-[10px] xs:text-xs font-medium text-gray-400 uppercase tracking-widest truncate max-w-full">
                                             {item.product.category}
                                         </span>
-                                        <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-tight sm:leading-snug line-clamp-2 min-h-[2.5rem] hover:bg-gradient-to-r hover:from-blue-600 hover:to-teal-500 hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                        <h3 className="text-sm sm:text-base font-semibold text-white leading-tight sm:leading-snug line-clamp-2 min-h-[2.5rem] hover:bg-gradient-to-r hover:from-cyan-400 hover:to-cyan-300 hover:bg-clip-text hover:text-transparent transition-all duration-300">
                                             {item.product.title}
                                         </h3>
 
                                         <div className="flex justify-between items-center mt-2">
                                             <div className="flex flex-col">
-                                                <span className="text-blue-600 font-bold text-sm sm:text-base">EGP {item.product.price.toFixed(2)}</span>
+                                                <span className="text-cyan-400 font-bold text-sm sm:text-base">EGP {item.product.price.toFixed(2)}</span>
                                                 {isMobile && (
                                                     <span className="text-[10px] text-gray-500 mt-0.5">
                                                         Stock: {item.product.stock}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="flex items-center text-amber-500 text-xs sm:text-sm">
+                                            <div className="flex items-center text-cyan-500 text-xs sm:text-sm">
                                                 <FaStar className="mr-1 text-xs sm:text-sm" />
                                                 <span className="font-medium">{item.product.ratingsAverage.toFixed(1)}</span>
                                                 {item.product.totalReviews > 0 && (
@@ -617,7 +617,7 @@ export default function Wishlist() {
                                             </div>
                                         </div>
                                         {!isMobile && (
-                                            <div className="text-xs text-gray-500 mt-1">
+                                            <div className="text-xs text-gray-400 mt-1">
                                                 Stock: {item.product.stock}
                                                 {item.product.totalReviews > 0 && (
                                                     <span className="ml-2">
@@ -637,10 +637,10 @@ export default function Wishlist() {
                                         disabled={isInCart(item.product.id) || item.product.stock <= 0}
                                         className={`cursor-pointer flex-1 py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-xs sm:text-sm font-semibold shadow 
                                             ${isInCart(item.product.id)
-                                                ? "bg-gray-400 text-white cursor-not-allowed shadow-none"
+                                                ? "bg-gray-700 text-gray-300 cursor-not-allowed shadow-none"
                                                 : item.product.stock <= 0
-                                                    ? "bg-red-100 text-red-600 cursor-not-allowed"
-                                                    : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-md"}`}
+                                                    ? "bg-red-900/30 text-red-400 cursor-not-allowed"
+                                                    : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-md"}`}
                                     >
                                         {isInCart(item.product.id)
                                             ? "Added"
@@ -652,7 +652,7 @@ export default function Wishlist() {
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
                                         onClick={() => handleRemoveFromWishlist(item.id, item.product.id)}
-                                        className="cursor-pointer p-2 sm:p-2.5 rounded-full border border-rose-400 bg-gradient-to-r from-rose-50 to-pink-50 text-rose-500 hover:scale-110 transition-colors duration-300 shadow-sm hover:shadow-md flex-shrink-0"
+                                        className="cursor-pointer p-2 sm:p-2.5 rounded-full border border-cyan-500 bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 text-cyan-400 hover:scale-110 transition-colors duration-300 shadow-sm hover:shadow-md flex-shrink-0"
                                         aria-label="Remove from wishlist"
                                     >
                                         <FaHeart className="text-sm sm:text-lg" />
@@ -667,23 +667,23 @@ export default function Wishlist() {
                         animate={{ opacity: 1 }}
                         className="col-span-full text-center py-10 sm:py-16 px-4"
                     >
-                        <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 text-gray-300">
+                        <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 text-gray-600">
                             <FaRegHeart className="text-6xl sm:text-8xl" />
                         </div>
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">Your wishlist is empty</h3>
-                        <p className="text-gray-600 mb-6 text-sm sm:text-base max-w-md mx-auto">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-2">Your wishlist is empty</h3>
+                        <p className="text-gray-400 mb-6 text-sm sm:text-base max-w-md mx-auto">
                             Start adding your favorite SportFlex items to your wishlist!
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <Link
                                 to="/products"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition-colors duration-300 text-sm sm:text-base"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-colors duration-300 text-sm sm:text-base"
                             >
                                 Browse Products
                             </Link>
                             <button
                                 onClick={() => navigate('/')}
-                                className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm sm:text-base"
+                                className="inline-flex items-center justify-center px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition text-sm sm:text-base"
                             >
                                 Go to Homepage
                             </button>
@@ -697,7 +697,7 @@ export default function Wishlist() {
                 <div className="fixed bottom-6 left-0 right-0 px-4 z-10">
                     <Link
                         to="/products"
-                        className="block w-full py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg text-center shadow-lg"
+                        className="block w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg text-center shadow-lg"
                     >
                         Browse Products
                     </Link>

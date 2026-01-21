@@ -224,11 +224,11 @@ export default function Home() {
             <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                     if (i < fullStars) {
-                        return <i key={i} className="fas fa-star text-amber-500 text-xs"></i>;
+                        return <i key={i} className="fas fa-star text-cyan-500 text-xs"></i>;
                     } else if (i === fullStars && hasHalfStar) {
-                        return <i key={i} className="fas fa-star-half-alt text-amber-500 text-xs"></i>;
+                        return <i key={i} className="fas fa-star-half-alt text-cyan-500 text-xs"></i>;
                     } else {
-                        return <i key={i} className="far fa-star text-amber-500 text-xs"></i>;
+                        return <i key={i} className="far fa-star text-cyan-500 text-xs"></i>;
                     }
                 })}
             </div>
@@ -391,10 +391,10 @@ export default function Home() {
     // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading products...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p className="text-white">Loading products...</p>
                 </div>
             </div>
         );
@@ -403,11 +403,11 @@ export default function Home() {
     return (
         <>
             {/* ========== UPDATED HEADER SECTION ========== */}
-            <section className="relative overflow-hidden">
+            <section className="relative overflow-hidden bg-black">
                 {/* Background decorative elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-teal-50"></div>
-                <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-teal-200/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-                <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-blue-100/30 to-teal-100/30 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
+                <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-cyan-900/20 to-cyan-700/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-cyan-800/30 to-cyan-600/30 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
 
                 {/* Main Header Container */}
                 <div className="relative px-4 sm:px-6 lg:px-8 py-12 lg:py-24 max-w-7xl mx-auto">
@@ -421,23 +421,23 @@ export default function Home() {
                             className="text-center lg:text-left"
                         >
                             {/* Badge */}
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-teal-500/10 rounded-full px-4 py-2 mb-6 backdrop-blur-sm border border-blue-200/50">
-                                <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-teal-400 rounded-full animate-pulse"></div>
-                                <span className="text-sm font-medium bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 rounded-full px-4 py-2 mb-6 backdrop-blur-sm border border-cyan-700/50">
+                                <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full animate-pulse"></div>
+                                <span className="text-sm font-medium bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                                     Premium SportFlex Collection
                                 </span>
                             </div>
 
                             {/* Main Heading */}
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                                <span className="block text-gray-900">Elevate Your</span>
-                                <span className="bg-gradient-to-r from-blue-600 via-teal-500 to-blue-600 bg-clip-text text-transparent animate-gradient">
+                                <span className="block text-white">Elevate Your</span>
+                                <span className="bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 bg-clip-text text-transparent animate-gradient">
                                     Athletic Performance
                                 </span>
                             </h1>
 
                             {/* Description */}
-                            <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                            <p className="text-lg text-gray-300 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
                                 Discover premium sportswear that combines cutting-edge technology with stylish design. Perfect for athletes who demand excellence in every move.
                             </p>
 
@@ -447,9 +447,9 @@ export default function Home() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/products')}
-                                    className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-teal-500 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                    className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     <span className="relative flex items-center justify-center gap-3">
                                         <FaBolt className="text-lg" />
                                         Shop Now
@@ -461,10 +461,10 @@ export default function Home() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/category')}
-                                    className="group bg-white text-gray-800 font-semibold py-4 px-8 rounded-xl border-2 border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300"
+                                    className="group bg-gray-900 text-white font-semibold py-4 px-8 rounded-xl border-2 border-gray-800 hover:border-cyan-500 shadow-sm hover:shadow-lg transition-all duration-300"
                                 >
                                     <span className="flex items-center justify-center gap-3">
-                                        <FaLayerGroup className="text-blue-500" />
+                                        <FaLayerGroup className="text-cyan-400" />
                                         Browse Categories
                                     </span>
                                 </motion.button>
@@ -473,16 +473,16 @@ export default function Home() {
                             {/* Stats */}
                             <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">500+</div>
-                                    <div className="text-sm text-gray-500">Premium Products</div>
+                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">500+</div>
+                                    <div className="text-sm text-gray-400">Premium Products</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">24/7</div>
-                                    <div className="text-sm text-gray-500">Customer Support</div>
+                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">24/7</div>
+                                    <div className="text-sm text-gray-400">Customer Support</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">30-Day</div>
-                                    <div className="text-sm text-gray-500">Returns</div>
+                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">30-Day</div>
+                                    <div className="text-sm text-gray-400">Returns</div>
                                 </div>
                             </div>
                         </motion.div>
@@ -500,44 +500,43 @@ export default function Home() {
                                 <motion.div
                                     animate={{ y: [-10, 10, -10] }}
                                     transition={{ duration: 3, repeat: Infinity }}
-                                    className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-teal-400/20 rounded-2xl backdrop-blur-sm border border-blue-200/30 shadow-lg"
+                                    className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-2xl backdrop-blur-sm border border-cyan-700/30 shadow-lg"
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <FaRunning className="text-3xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent" />
+                                        <FaRunning className="text-3xl bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
                                     </div>
                                 </motion.div>
 
                                 <motion.div
                                     animate={{ y: [10, -10, 10] }}
                                     transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-                                    className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-teal-300/20 rounded-full backdrop-blur-sm border border-teal-200/30 shadow-lg"
+                                    className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-cyan-300/20 rounded-full backdrop-blur-sm border border-cyan-600/30 shadow-lg"
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <FaMedal className="text-2xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent" />
+                                        <FaMedal className="text-2xl bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
                                     </div>
                                 </motion.div>
 
                                 {/* Main Card */}
-                                <div className="relative bg-white/80 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/50 overflow-hidden">
+                                <div className="relative bg-gray-900/80 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-gray-800/50 overflow-hidden">
                                     {/* Animated Gradient Border */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-teal-500/10 to-blue-500/10 animate-gradient-x rounded-3xl"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-cyan-400/10 to-cyan-500/10 animate-gradient-x rounded-3xl"></div>
 
                                     {/* Card Content */}
                                     <div className="relative z-10">
                                         {/* Featured Categories */}
                                         <div className="mb-8">
-                                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Featured Categories</h3>
+                                            <h3 className="text-lg font-semibold text-white mb-4">Featured Categories</h3>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {categories.slice(0, 4).map((category, index) => (
                                                     <motion.div
                                                         key={category.id}
                                                         whileHover={{ scale: 1.05 }}
                                                         onClick={() => handleCategoryClick(category.id)}
-                                                        className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl p-3 border border-gray-100 hover:border-blue-200 cursor-pointer transition-all duration-300"
+                                                        className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border border-gray-700 hover:border-cyan-600 cursor-pointer transition-all duration-300"
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                          
-                                                            <span className="text-sm font-medium text-gray-800 truncate">
+                                                            <span className="text-sm font-medium text-white truncate">
                                                                 {category.name}
                                                             </span>
                                                         </div>
@@ -547,18 +546,18 @@ export default function Home() {
                                         </div>
 
                                         {/* Quick Stats */}
-                                        <div className="bg-gradient-to-r from-blue-500/5 to-teal-500/5 rounded-2xl p-6 mb-6">
-                                            <h4 className="font-semibold text-gray-800 mb-3">Today's Deals</h4>
+                                        <div className="bg-gradient-to-r from-cyan-500/5 to-cyan-400/5 rounded-2xl p-6 mb-6">
+                                            <h4 className="font-semibold text-white mb-3">Today's Deals</h4>
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-gray-600">Flash Sale</span>
-                                                    <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                                                    <span className="text-sm text-gray-300">Flash Sale</span>
+                                                    <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                                                         Up to 50% OFF
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-gray-600">New Arrivals</span>
-                                                    <span className="text-sm font-bold text-green-600">+25 Items</span>
+                                                    <span className="text-sm text-gray-300">New Arrivals</span>
+                                                    <span className="text-sm font-bold text-cyan-400">+25 Items</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -566,7 +565,7 @@ export default function Home() {
                                         {/* CTA Button */}
                                         <button
                                             onClick={() => navigate('/products')}
-                                            className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                            className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                                         >
                                             <FaFire />
                                             View Hot Deals
@@ -574,23 +573,23 @@ export default function Home() {
                                     </div>
 
                                     {/* Decorative Corner Accents */}
-                                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-500/10 to-teal-500/10 rounded-bl-3xl"></div>
-                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-500/10 to-teal-500/10 rounded-tr-3xl"></div>
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-cyan-500/10 to-cyan-400/10 rounded-bl-3xl"></div>
+                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-cyan-500/10 to-cyan-400/10 rounded-tr-3xl"></div>
                                 </div>
                             </div>
 
                             {/* Trust Badges */}
                             <div className="flex flex-wrap justify-center gap-4 mt-8">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <FaShippingFast className="text-blue-500" />
+                                <div className="flex items-center gap-2 text-sm text-gray-300">
+                                    <FaShippingFast className="text-cyan-400" />
                                     <span>Free Shipping</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <FaShieldAlt className="text-teal-500" />
+                                <div className="flex items-center gap-2 text-sm text-gray-300">
+                                    <FaShieldAlt className="text-cyan-400" />
                                     <span>Secure Payment</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <FaCheckCircle className="text-green-500" />
+                                <div className="flex items-center gap-2 text-sm text-gray-300">
+                                    <FaCheckCircle className="text-cyan-400" />
                                     <span>Quality Guarantee</span>
                                 </div>
                             </div>
@@ -603,8 +602,8 @@ export default function Home() {
                         transition={{ duration: 2, repeat: Infinity }}
                         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block"
                     >
-                        <div className="w-6 h-10 border-2 border-gray-300 rounded-full flex justify-center">
-                            <div className="w-1 h-3 bg-gradient-to-b from-blue-500 to-teal-400 rounded-full mt-2 animate-bounce"></div>
+                        <div className="w-6 h-10 border-2 border-gray-700 rounded-full flex justify-center">
+                            <div className="w-1 h-3 bg-gradient-to-b from-cyan-500 to-cyan-400 rounded-full mt-2 animate-bounce"></div>
                         </div>
                     </motion.div>
                 </div>
@@ -612,7 +611,7 @@ export default function Home() {
             {/* ========== END OF UPDATED HEADER SECTION ========== */}
 
             {/* Products Section */}
-            <section className='my-10 px-4 sm:px-6 lg:px-30'>
+            <section className='py-10 px-4 sm:px-6 lg:px-30 bg-black'>
                 {/* Title */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -620,10 +619,10 @@ export default function Home() {
                     className='px-2 sm:px-0'
                 >
                     <div className='flex items-center gap-5'>
-                        <div className='bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h1 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Our Products</h1>
+                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
+                        <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Our Products</h1>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 text-gray-800'>Explore Our SportFlex</h1>
+                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 text-white'>Explore Our SportFlex</h1>
                 </motion.div>
 
                 {/* Products Grid - Enhanced for Mobile & Tablet */}
@@ -638,7 +637,7 @@ export default function Home() {
                                 className='group'
                             >
                                 {/* Enhanced Product Card for Mobile/Tablet */}
-                                <div className='cursor-pointer product bg-white rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-100 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
+                                <div className='cursor-pointer product bg-gray-900 rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-800 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
                                     {/* Product Image Container */}
                                     <Link to={`/productdetails/${product.id}`} className='block relative'>
                                         <div className="relative overflow-hidden rounded-t-xl lg:rounded-t-2xl">
@@ -655,19 +654,19 @@ export default function Home() {
                                                 {/* Mobile-optimized Stock Badge */}
                                                 <div className="absolute top-2 left-2">
                                                     {product.stock <= 10 && product.stock > 0 ? (
-                                                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        <div className="bg-gradient-to-r from-cyan-700 to-cyan-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                                             <span className="hidden sm:inline">Only </span>{product.stock} left
                                                         </div>
                                                     ) : product.stock === 0 ? (
-                                                        <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        <div className="bg-gradient-to-r from-red-700 to-rose-700 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                                             Sold Out
                                                         </div>
                                                     ) : null}
                                                 </div>
 
                                                 {/* Mobile-only Quick Action Overlay */}
-                                                <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
-                                                    <span className="text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+                                                    <span className="text-white text-xs font-medium bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
                                                         Quick View
                                                     </span>
                                                 </div>
@@ -680,10 +679,10 @@ export default function Home() {
                                                     e.stopPropagation();
                                                     handleWishlistAction(product.id);
                                                 }}
-                                                className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200"
+                                                className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-gray-900/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 border border-gray-700"
                                             >
                                                 {isInWishlist(product.id) ? (
-                                                    <FaHeart className="text-sm text-rose-500" />
+                                                    <FaHeart className="text-sm text-cyan-400" />
                                                 ) : (
                                                     <FaRegHeart className="text-sm text-gray-400" />
                                                 )}
@@ -699,26 +698,26 @@ export default function Home() {
                                                 </span>
 
                                                 {/* Mobile-only Rating */}
-                                                <div className="lg:hidden flex items-center text-amber-500 text-xs">
+                                                <div className="lg:hidden flex items-center text-cyan-500 text-xs">
                                                     {renderStars(product.ratingsAverage || 4.5)}
                                                     <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
                                                 </div>
                                             </div>
 
                                             {/* Product Title - Better Mobile Typography */}
-                                            <h3 className="text-sm sm:text-base font-semibold text-gray-800 leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-blue-600 transition-colors duration-300">
+                                            <h3 className="text-sm sm:text-base font-semibold text-white leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-cyan-400 transition-colors duration-300">
                                                 {product.title}
                                             </h3>
 
                                             {/* Price & Rating - Enhanced Layout */}
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
                                                 <div className="flex items-baseline gap-1">
-                                                    <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                                                    <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                                                         EGP {parseFloat(product.price).toFixed(2)}
                                                     </span>
                                                     {/* Original Price if on sale */}
                                                     {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
-                                                        <span className="text-xs text-gray-400 line-through">
+                                                        <span className="text-xs text-gray-500 line-through">
                                                             EGP {parseFloat(product.originalPrice).toFixed(2)}
                                                         </span>
                                                     )}
@@ -726,7 +725,7 @@ export default function Home() {
 
                                                 {/* Desktop-only Rating with REAL feedback count */}
                                                 <div className="hidden lg:flex items-center">
-                                                    <div className="flex items-center text-amber-500 text-sm">
+                                                    <div className="flex items-center text-cyan-500 text-sm">
                                                         {renderStars(product.ratingsAverage || 4.5)}
                                                         <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
                                                     </div>
@@ -740,13 +739,13 @@ export default function Home() {
                                             <div className="lg:hidden">
                                                 {product.stock > 0 ? (
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                                        <div className="w-full bg-gray-800 rounded-full h-1.5">
                                                             <div
-                                                                className="bg-green-500 h-1.5 rounded-full"
+                                                                className="bg-cyan-500 h-1.5 rounded-full"
                                                                 style={{ width: `${Math.min((product.stock / 100) * 100, 100)}%` }}
                                                             ></div>
                                                         </div>
-                                                        <span className="text-xs text-gray-500">{product.stock} in stock</span>
+                                                        <span className="text-xs text-gray-400">{product.stock} in stock</span>
                                                     </div>
                                                 ) : null}
                                             </div>
@@ -762,10 +761,10 @@ export default function Home() {
                                                 disabled={isInCart(product.id) || product.stock <= 0}
                                                 className={`cursor-pointer flex-1 py-3 sm:py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-sm font-medium 
                                                         ${isInCart(product.id)
-                                                        ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed shadow-md"
+                                                        ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white cursor-not-allowed shadow-md"
                                                         : product.stock <= 0
-                                                            ? "bg-gradient-to-r from-red-100 to-rose-100 text-red-600 cursor-not-allowed"
-                                                            : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-lg active:scale-95"}`}
+                                                            ? "bg-gradient-to-r from-gray-800 to-gray-900 text-gray-400 cursor-not-allowed"
+                                                            : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"}`}
                                             >
                                                 <div className="flex items-center justify-center gap-2">
                                                     {isInCart(product.id) ? (
@@ -796,16 +795,16 @@ export default function Home() {
                                                 className="hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
                                                 style={{
                                                     background: isInWishlist(product.id)
-                                                        ? 'linear-gradient(135deg, rgba(255, 228, 230, 1), rgba(251, 207, 232, 1))'
-                                                        : 'white',
-                                                    borderColor: isInWishlist(product.id) ? '#fb7185' : '#e5e7eb'
+                                                        ? 'linear-gradient(135deg, rgba(8, 145, 178, 0.2), rgba(6, 182, 212, 0.2))'
+                                                        : 'rgb(17, 24, 39)',
+                                                    borderColor: isInWishlist(product.id) ? '#06b6d4' : '#374151'
                                                 }}
                                                 title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                             >
                                                 {isInWishlist(product.id) ? (
-                                                    <FaHeart className="text-lg text-rose-500 animate-pulse" />
+                                                    <FaHeart className="text-lg text-cyan-400 animate-pulse" />
                                                 ) : (
-                                                    <FaRegHeart className="text-lg text-gray-500 hover:text-rose-500" />
+                                                    <FaRegHeart className="text-lg text-gray-400 hover:text-cyan-400" />
                                                 )}
                                             </button>
                                         </div>
@@ -814,17 +813,17 @@ export default function Home() {
                                     </div>
 
                                     {/* Decorative Bottom Accent - Mobile Only */}
-                                    <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
+                                    <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
                                 </div>
                             </motion.div>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-12">
-                            <div className="text-gray-400 mb-4">
+                            <div className="text-gray-600 mb-4">
                                 <FaBoxOpen className="text-4xl" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Products Available</h3>
-                            <p className="text-gray-500">Check back soon for new arrivals!</p>
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Products Available</h3>
+                            <p className="text-gray-400">Check back soon for new arrivals!</p>
                         </div>
                     )}
                 </div>
@@ -832,7 +831,7 @@ export default function Home() {
                 {products.length > 0 && (
                     <div className='flex justify-center mt-8 lg:mt-10'>
                         <Link to={'/products'}
-                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300"
                         >
                             <FaEye className="inline mr-2" /> View All Products
                         </Link>
@@ -841,7 +840,11 @@ export default function Home() {
             </section>
 
             {/* Category Section - Enhanced for Mobile & Tablet */}
-            <section className='px-4 sm:px-6 lg:px-30 py-12 sm:py-16 bg-gradient-to-b from-blue-50/30 via-white to-gray-50/30'>
+            <section className='px-4 sm:px-6 lg:px-30 py-12 sm:py-16 bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden'>
+                {/* Background decorative elements */}
+                <div className='absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-cyan-900/20 to-cyan-700/20 rounded-full blur-xl'></div>
+                <div className='absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-cyan-800/10 to-cyan-600/10 rounded-full blur-2xl'></div>
+
                 {/* Title */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -849,11 +852,11 @@ export default function Home() {
                     className='px-2 sm:px-0 mb-8 sm:mb-12'
                 >
                     <div className='flex items-center gap-5 mb-4'>
-                        <div className='bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h1 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Categories</h1>
+                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
+                        <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Categories</h1>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-800'>Browse SportFlex Categories</h1>
-                    <p className='text-gray-600 text-base lg:text-lg max-w-xl'>Discover our premium SportFlex collections</p>
+                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-white'>Browse SportFlex Categories</h1>
+                    <p className='text-gray-400 text-base lg:text-lg max-w-xl'>Discover our premium SportFlex collections</p>
                 </motion.div>
 
                 {/* Enhanced Categories Grid for Mobile/Tablet */}
@@ -868,15 +871,15 @@ export default function Home() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => handleCategoryClick(category.id)}
-                                className='group relative overflow-hidden rounded-xl lg:rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 lg:hover:-translate-y-2 cursor-pointer border border-gray-100 active:scale-95 lg:active:scale-100'
+                                className='group relative overflow-hidden rounded-xl lg:rounded-2xl bg-gray-900 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 lg:hover:-translate-y-2 cursor-pointer border border-gray-800 active:scale-95 lg:active:scale-100'
                             >
                                 {/* Mobile-optimized Background gradient overlay */}
-                                <div className='absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                                <div className='absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
 
                                 {/* Enhanced Content container for Mobile */}
                                 <div className='relative p-4 sm:p-5 lg:p-8 flex flex-col items-center text-center'>
                                     {/* Mobile-optimized Image container */}
-                                    <div className='relative mb-4 sm:mb-5 lg:mb-6 overflow-hidden rounded-lg lg:rounded-xl bg-gradient-to-br from-blue-50 to-teal-50 p-3 sm:p-4 group-hover:from-blue-100 group-hover:to-teal-100 transition-all duration-300'>
+                                    <div className='relative mb-4 sm:mb-5 lg:mb-6 overflow-hidden rounded-lg lg:rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 sm:p-4 group-hover:from-gray-700 group-hover:to-gray-800 transition-all duration-300'>
                                         {/* Image with Mobile Optimization */}
                                         <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mx-auto">
                                             <img
@@ -889,40 +892,40 @@ export default function Home() {
                                             />
 
                                             {/* Mobile-only Decorative circle */}
-                                            <div className='absolute -top-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-blue-400 to-teal-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                                            <div className='absolute -top-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
 
                                             {/* Mobile-only Floating Icon */}
-                                            <div className="lg:hidden absolute -bottom-2 -left-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
-                                                <FaChevronRight className="text-xs text-blue-500" />
+                                            <div className="lg:hidden absolute -bottom-2 -left-2 w-8 h-8 bg-gray-800 rounded-full shadow-md flex items-center justify-center">
+                                                <FaChevronRight className="text-xs text-cyan-400" />
                                             </div>
                                         </div>
 
                                         {/* Mobile-only Product Count Badge */}
                                         <div className="lg:hidden absolute -bottom-2 -right-2">
-                                            <div className="bg-gradient-to-r from-blue-500 to-teal-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                                 {Math.floor(Math.random() * 50) + 10}+
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Category name - Mobile Optimized */}
-                                    <h3 className='font-semibold text-base sm:text-lg lg:text-xl text-gray-800 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-teal-500 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 mb-1'>
+                                    <h3 className='font-semibold text-base sm:text-lg lg:text-xl text-white group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-cyan-300 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 mb-1'>
                                         {category.name}
                                     </h3>
 
                                     {/* Mobile-only Subtitle */}
-                                    <p className='lg:hidden text-xs text-gray-500 mt-1 line-clamp-1'>
+                                    <p className='lg:hidden text-xs text-gray-400 mt-1 line-clamp-1'>
                                         Explore collection
                                     </p>
 
                                     {/* Desktop-only Subtle description */}
-                                    <p className='hidden lg:block text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 line-clamp-2'>
+                                    <p className='hidden lg:block text-sm text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 line-clamp-2'>
                                         {category.description || 'Explore premium collection'}
                                     </p>
 
                                     {/* Enhanced Click hint for Mobile */}
                                     <div className="mt-3 lg:mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 sm:px-3 sm:py-1 rounded-full">
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-400 bg-cyan-900/30 px-2 py-1 sm:px-3 sm:py-1 rounded-full">
                                             <FaArrowRight className="text-xs" />
                                             <span className="hidden sm:inline">Click to explore</span>
                                             <span className="sm:hidden">Explore</span>
@@ -930,25 +933,25 @@ export default function Home() {
                                     </div>
 
                                     {/* Mobile-only Touch Indicator */}
-                                    <div className="lg:hidden absolute bottom-2 right-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div className="lg:hidden absolute bottom-2 right-2 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                         <FaHandPointer className="text-sm" />
                                     </div>
                                 </div>
 
                                 {/* Bottom border accent - Enhanced for Mobile */}
-                                <div className='absolute bottom-0 left-0 right-0 h-0.5 lg:h-1 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left'></div>
+                                <div className='absolute bottom-0 left-0 right-0 h-0.5 lg:h-1 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left'></div>
 
                                 {/* Mobile-only Top Accent */}
-                                <div className='lg:hidden absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left delay-100'></div>
+                                <div className='lg:hidden absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left delay-100'></div>
                             </motion.div>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-12">
-                            <div className="text-gray-400 mb-4">
+                            <div className="text-gray-600 mb-4">
                                 <FaTags className="text-4xl" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Categories Available</h3>
-                            <p className="text-gray-500">Categories will be added soon!</p>
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Categories Available</h3>
+                            <p className="text-gray-400">Categories will be added soon!</p>
                         </div>
                     )}
                 </div>
@@ -956,7 +959,7 @@ export default function Home() {
                 {categories.length > 0 && (
                     <div className='flex justify-center mt-8 lg:mt-10'>
                         <Link to={'/category'}
-                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300"
                         >
                             <FaList className="inline mr-2" /> View All Categories
                         </Link>
@@ -965,10 +968,10 @@ export default function Home() {
             </section>
 
             {/* Features Section */}
-            <section className='py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-30 bg-gradient-to-br from-blue-50/30 via-white to-teal-50/30 relative overflow-hidden'>
+            <section className='py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-30 bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden'>
                 {/* Background decorative elements */}
-                <div className='absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-blue-400/20 to-teal-400/20 rounded-full blur-xl'></div>
-                <div className='absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-blue-300/10 to-teal-300/10 rounded-full blur-2xl'></div>
+                <div className='absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-cyan-900/20 to-cyan-700/20 rounded-full blur-xl'></div>
+                <div className='absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-cyan-800/10 to-cyan-600/10 rounded-full blur-2xl'></div>
 
                 {/* Section header */}
                 <motion.div
@@ -977,11 +980,11 @@ export default function Home() {
                     className='text-center mb-12 lg:mb-16'
                 >
                     <div className="inline-flex items-center gap-3 mb-4">
-                        <div className='bg-gradient-to-r from-blue-500 to-teal-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h2 className='bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Why Choose Us</h2>
+                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
+                        <h2 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Why Choose Us</h2>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-gray-800'>Premium SportFlex Experience</h1>
-                    <p className='text-gray-600 text-base lg:text-lg max-w-2xl mx-auto'>We're committed to providing exceptional service and support at every step of your fitness journey</p>
+                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white'>Premium SportFlex Experience</h1>
+                    <p className='text-gray-400 text-base lg:text-lg max-w-2xl mx-auto'>We're committed to providing exceptional service and support at every step of your fitness journey</p>
                 </motion.div>
 
                 {/* Optional: Additional trust indicators */}
@@ -991,19 +994,19 @@ export default function Home() {
                     transition={{ delay: 0.5 }}
                     className='mt-12 lg:mt-16 text-center'
                 >
-                    <div className='inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-gray-500 text-sm'>
+                    <div className='inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-gray-400 text-sm'>
                         <div className='flex items-center gap-2'>
-                            <FaShieldAlt className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <FaShieldAlt className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
                             <span>Secure Payment</span>
                         </div>
-                        <div className='hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200'></div>
+                        <div className='hidden sm:block w-px h-4 bg-gradient-to-b from-cyan-700 to-cyan-500'></div>
                         <div className='flex items-center gap-2'>
-                            <FaUsers className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <FaUsers className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
                             <span>10k+ Happy Customers</span>
                         </div>
-                        <div className="hidden sm:block w-px h-4 bg-gradient-to-b from-blue-200 to-teal-200"></div>
+                        <div className="hidden sm:block w-px h-4 bg-gradient-to-b from-cyan-700 to-cyan-500"></div>
                         <div className="flex items-center gap-2">
-                            <FaAward className="bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text text-transparent" />
+                            <FaAward className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
                             <span>Premium Quality</span>
                         </div>
                     </div>

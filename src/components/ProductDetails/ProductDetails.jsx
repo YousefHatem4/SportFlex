@@ -655,9 +655,9 @@ export default function ProductDetails() {
                 {[1, 2, 3, 4, 5].map((star) => (
                     <span key={star} className={`mx-0.5 ${size}`}>
                         {star <= rating ? (
-                            <FaStar className="text-amber-500" />
+                            <FaStar className="text-cyan-500" />
                         ) : (
-                            <FaRegStar className="text-gray-300" />
+                            <FaRegStar className="text-gray-600" />
                         )}
                     </span>
                 ))}
@@ -673,10 +673,10 @@ export default function ProductDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading product details...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p className="text-white">Loading product details...</p>
                 </div>
             </div>
         );
@@ -684,16 +684,16 @@ export default function ProductDetails() {
 
     if (!product) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center">
-                    <div className="text-gray-400 mb-4">
+                    <div className="text-gray-600 mb-4">
                         <FaBoxOpen className="text-6xl mx-auto" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-3">Product Not Found</h3>
-                    <p className="text-gray-500 mb-6">The product you're looking for doesn't exist.</p>
+                    <h3 className="text-xl font-semibold text-white mb-3">Product Not Found</h3>
+                    <p className="text-gray-400 mb-6">The product you're looking for doesn't exist.</p>
                     <button
                         onClick={() => navigate('/products')}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition"
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition"
                     >
                         Browse Products
                     </button>
@@ -704,7 +704,7 @@ export default function ProductDetails() {
 
     return (
         <>
-            <section className='py-4 md:py-8 lg:py-16 px-4 sm:px-6 md:px-8 lg:px-30 lg:ms-10'>
+            <section className='py-4 md:py-8 lg:py-16 px-4 sm:px-6 md:px-8 lg:px-30 lg:ps-35 bg-black'>
                 {/* Mobile & Tablet Layout */}
                 <div className='block lg:hidden'>
                     {/* Product Images Section - Mobile Optimized */}
@@ -727,8 +727,8 @@ export default function ProductDetails() {
                                     ))}
                                 </Slider>
                             ) : (
-                                <div className='w-full h-[280px] sm:h-[350px] rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center'>
-                                    <FaImage className="text-5xl text-gray-300" />
+                                <div className='w-full h-[280px] sm:h-[350px] rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center'>
+                                    <FaImage className="text-5xl text-gray-600" />
                                 </div>
                             )}
 
@@ -738,7 +738,7 @@ export default function ProductDetails() {
                                     {allImages.map((_, index) => (
                                         <div
                                             key={index}
-                                            className={`w-2 h-2 rounded-full transition-all duration-300 ${index === activeImageIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
+                                            className={`w-2 h-2 rounded-full transition-all duration-300 ${index === activeImageIndex ? 'bg-cyan-400 scale-125' : 'bg-gray-600'}`}
                                         />
                                     ))}
                                 </div>
@@ -755,7 +755,7 @@ export default function ProductDetails() {
                                             sliderRef.current.slickGoTo(index);
                                             setActiveImageIndex(index);
                                         }}
-                                        className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 ${activeImageIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'}`}
+                                        className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 ${activeImageIndex === index ? 'border-cyan-500 ring-2 ring-cyan-900' : 'border-gray-700'}`}
                                     >
                                         <img
                                             className='w-20 h-20 object-cover'
@@ -769,35 +769,35 @@ export default function ProductDetails() {
                     </div>
 
                     {/* Product Info Card - Mobile Optimized */}
-                    <div className="bg-white rounded-2xl shadow-sm p-5 mb-8">
+                    <div className="bg-gray-900 rounded-2xl shadow-sm p-5 mb-8 border border-gray-800">
                         {/* Category Badge */}
                         <div className="mb-3">
-                            <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                            <span className="inline-block px-3 py-1 bg-cyan-900/30 text-cyan-400 text-xs font-medium rounded-full">
                                 {product.category?.name}
                             </span>
                         </div>
 
                         {/* Product Title */}
-                        <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-tight'>{product.title}</h1>
+                        <h1 className='text-xl sm:text-2xl font-bold text-white mb-2 leading-tight'>{product.title}</h1>
 
                         {/* Rating & Stock Status */}
                         <div className='flex items-center justify-between mb-4'>
                             <div className="flex items-center">
                                 {renderStars(feedbackStats.average_rating, 'text-sm sm:text-base')}
-                                <span className="ml-2 text-sm text-gray-600">
+                                <span className="ml-2 text-sm text-gray-400">
                                     ({feedbackStats.average_rating.toFixed(1)})
                                 </span>
                             </div>
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${product.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${product.stock > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
                                 {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                             </div>
                         </div>
 
                         {/* Price */}
                         <div className="mb-4">
-                            <div className="text-2xl sm:text-3xl font-bold text-blue-600">EGP {product.price.toFixed(2)}</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-cyan-400">EGP {product.price.toFixed(2)}</div>
                             {product.stock > 0 && product.stock <= 10 && (
-                                <div className="text-sm text-amber-600 font-medium mt-1 flex items-center">
+                                <div className="text-sm text-cyan-400 font-medium mt-1 flex items-center">
                                     <FaBolt className="mr-1" />
                                     Only {product.stock} left
                                 </div>
@@ -807,16 +807,16 @@ export default function ProductDetails() {
                         {/* Description - Expanded on Mobile */}
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm font-semibold text-gray-700">Description</h3>
-                                <span className="text-xs text-blue-500 font-medium">Details</span>
+                                <h3 className="text-sm font-semibold text-gray-300">Description</h3>
+                                <span className="text-xs text-cyan-400 font-medium">Details</span>
                             </div>
-                            <p className="text-gray-600 text-sm leading-relaxed">
+                            <p className="text-gray-400 text-sm leading-relaxed">
                                 {product.description}
                             </p>
                         </div>
 
                         {/* Divider */}
-                        <div className="h-px bg-gradient-to-r from-blue-100 to-teal-100 mb-6"></div>
+                        <div className="h-px bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 mb-6"></div>
 
                         {/* Action Buttons - Optimized without delivery section */}
                         <div className='flex gap-3'>
@@ -825,10 +825,10 @@ export default function ProductDetails() {
                                 disabled={addedItems.includes(product._id) || product.stock <= 0}
                                 className={`flex-1 py-3.5 rounded-xl transition-all duration-300 text-base font-semibold flex items-center justify-center gap-2
                                     ${addedItems.includes(product._id)
-                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        ? "bg-gray-800 text-gray-400 cursor-not-allowed"
                                         : product.stock <= 0
-                                            ? "bg-red-100 text-red-400 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 active:scale-[0.98]"}`}
+                                            ? "bg-red-900/30 text-red-400 cursor-not-allowed"
+                                            : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.98]"}`}
                             >
                                 {addedItems.includes(product._id) ? (
                                     <>
@@ -852,8 +852,8 @@ export default function ProductDetails() {
                                 onClick={() => handleWishlistAction(product._id)}
                                 className={`w-14 flex items-center justify-center rounded-xl border-2 transition-all duration-300 active:scale-95
                                     ${wishItems.includes(product._id)
-                                        ? "bg-gradient-to-r from-rose-50 to-pink-50 border-rose-400 text-rose-500"
-                                        : "border-gray-300 text-gray-500 hover:text-rose-500 hover:border-rose-400 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50"
+                                        ? "bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border-cyan-500 text-cyan-400"
+                                        : "border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500 hover:bg-gradient-to-r hover:from-cyan-900/30 hover:to-cyan-800/30"
                                     }`}
                             >
                                 {wishItems.includes(product._id) ? (
@@ -889,7 +889,7 @@ export default function ProductDetails() {
                                 className='rounded-lg flex-shrink-0 flex items-center justify-center hover:scale-[1.02] transition-transform duration-300'
                             >
                                 <img
-                                    className={`w-[120px] h-[120px] md:w-[140px] md:h-[140px] lg:w-[170px] lg:h-[138px] object-cover cursor-pointer border-2 ${mainImage === image.image_url ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'} hover:border-blue-400 transition-all duration-300`}
+                                    className={`w-[120px] h-[120px] md:w-[140px] md:h-[140px] lg:w-[170px] lg:h-[138px] object-cover cursor-pointer border-2 ${mainImage === image.image_url ? 'border-cyan-500 ring-2 ring-cyan-900' : 'border-gray-700'} hover:border-cyan-400 transition-all duration-300`}
                                     src={image.image_url}
                                     alt={`Thumbnail ${index + 1}`}
                                     onError={(e) => {
@@ -918,8 +918,8 @@ export default function ProductDetails() {
                                 ))}
                             </Slider>
                         ) : (
-                            <div className='w-full h-[500px] lg:w-[520px] lg:h-[600px] rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center'>
-                                <FaImage className="text-5xl text-gray-300" />
+                            <div className='w-full h-[500px] lg:w-[520px] lg:h-[600px] rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center'>
+                                <FaImage className="text-5xl text-gray-600" />
                             </div>
                         )}
                     </div>
@@ -927,10 +927,10 @@ export default function ProductDetails() {
                     {/* Product Info - Adjusted layout */}
                     <div className='ms-0 lg:ms-8 order-3 w-full lg:w-[420px]'>
                         <div className="mb-4">
-                            <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full mb-3">
+                            <span className="inline-block px-3 py-1 bg-cyan-900/30 text-cyan-400 text-sm font-medium rounded-full mb-3">
                                 {product.category?.name}
                             </span>
-                            <h1 className='text-2xl lg:text-3xl text-gray-900 font-bold leading-tight'>{product.title}</h1>
+                            <h1 className='text-2xl lg:text-3xl text-white font-bold leading-tight'>{product.title}</h1>
                         </div>
 
                         {/* Rating & Stock - Improved layout */}
@@ -938,17 +938,17 @@ export default function ProductDetails() {
                             <div className="flex items-center">
                                 {renderStars(feedbackStats.average_rating, 'text-lg')}
                                 <div className="ml-3">
-                                    <p className='text-gray-700 text-sm font-medium'>
+                                    <p className='text-gray-300 text-sm font-medium'>
                                         {feedbackStats.average_rating.toFixed(1)} • {feedbackStats.total_reviews} review{feedbackStats.total_reviews !== 1 ? 's' : ''}
                                     </p>
                                     <div className="flex items-center gap-3 mt-1">
-                                        <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
                                             {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                                         </span>
                                         {product.stock > 0 && product.stock <= 10 && (
                                             <>
-                                                <span className="text-gray-300">•</span>
-                                                <span className='text-sm text-amber-600 font-medium flex items-center'>
+                                                <span className="text-gray-600">•</span>
+                                                <span className='text-sm text-cyan-400 font-medium flex items-center'>
                                                     <FaBolt className="mr-1" />
                                                     Only {product.stock} left
                                                 </span>
@@ -961,14 +961,14 @@ export default function ProductDetails() {
 
                         {/* Price Section */}
                         <div className="mb-6">
-                            <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2">EGP {product.price.toFixed(2)}</div>
-                            <div className="h-px bg-gradient-to-r from-blue-100 to-teal-100"></div>
+                            <div className="text-3xl lg:text-4xl font-bold text-cyan-400 mb-2">EGP {product.price.toFixed(2)}</div>
+                            <div className="h-px bg-gradient-to-r from-cyan-900/30 to-cyan-800/30"></div>
                         </div>
 
                         {/* Description */}
                         <div className='mb-8'>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-3">Product Description</h3>
-                            <p className='text-gray-700 leading-relaxed'>{product.description}</p>
+                            <h3 className="text-lg font-semibold text-white mb-3">Product Description</h3>
+                            <p className='text-gray-300 leading-relaxed'>{product.description}</p>
                         </div>
 
                         {/* Action Buttons - Centered and improved */}
@@ -978,10 +978,10 @@ export default function ProductDetails() {
                                 disabled={addedItems.includes(product._id) || product.stock <= 0}
                                 className={`flex-1 py-4 rounded-xl transition-all duration-300 text-lg font-semibold flex items-center justify-center gap-3
                                         ${addedItems.includes(product._id)
-                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        ? "bg-gray-800 text-gray-400 cursor-not-allowed"
                                         : product.stock <= 0
-                                            ? "bg-red-100 text-red-400 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 hover:shadow-lg active:scale-[0.98]"}`}
+                                            ? "bg-red-900/30 text-red-400 cursor-not-allowed"
+                                            : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-[0.98]"}`}
                             >
                                 {addedItems.includes(product._id)
                                     ? (
@@ -1009,8 +1009,8 @@ export default function ProductDetails() {
                                 onClick={() => handleWishlistAction(product._id)}
                                 className={`w-16 h-16 flex items-center justify-center rounded-xl border-2 transition-all duration-300 hover:scale-110 active:scale-95
                                     ${wishItems.includes(product._id)
-                                        ? "bg-gradient-to-r from-rose-50 to-pink-50 border-rose-400 text-rose-500"
-                                        : "border-gray-300 text-gray-500 hover:text-rose-500 hover:border-rose-400 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50"
+                                        ? "bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border-cyan-500 text-cyan-400"
+                                        : "border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500 hover:bg-gradient-to-r hover:from-cyan-900/30 hover:to-cyan-800/30"
                                     }`}
                             >
                                 {wishItems.includes(product._id) ? (
@@ -1034,21 +1034,21 @@ export default function ProductDetails() {
 
                 {/* FEEDBACK SECTION - Responsive Design */}
                 <div className="mt-8 lg:mt-12 max-w-4xl mx-auto">
-                    <div className="border-t border-gray-200 pt-6 lg:pt-8">
-                        <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6 px-4 lg:px-0">Customer Reviews</h2>
+                    <div className="border-t border-gray-800 pt-6 lg:pt-8">
+                        <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6 px-4 lg:px-0">Customer Reviews</h2>
 
                         {/* Overall Rating Summary */}
-                        <div className="bg-white rounded-2xl shadow-sm p-5 lg:p-6 mb-6 mx-4 lg:mx-0">
+                        <div className="bg-gray-900 rounded-2xl shadow-sm p-5 lg:p-6 mb-6 mx-4 lg:mx-0 border border-gray-800">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                                 <div className="text-center md:text-left">
                                     <div className="flex flex-col items-center md:items-start">
-                                        <div className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
+                                        <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
                                             {feedbackStats.average_rating.toFixed(1)}
                                         </div>
                                         <div className="mb-3">
                                             {renderStars(feedbackStats.average_rating, 'text-lg lg:text-xl')}
                                         </div>
-                                        <div className="text-gray-600 text-sm">
+                                        <div className="text-gray-400 text-sm">
                                             {feedbackStats.total_reviews} review{feedbackStats.total_reviews !== 1 ? 's' : ''}
                                         </div>
                                     </div>
@@ -1066,21 +1066,21 @@ export default function ProductDetails() {
                                             return (
                                                 <div key={star} className="flex items-center">
                                                     <div className="w-14 lg:w-20 flex items-center justify-end">
-                                                        <span className="text-sm text-gray-700 font-medium mr-2">
+                                                        <span className="text-sm text-gray-300 font-medium mr-2">
                                                             {star}
                                                         </span>
-                                                        <FaStar className="text-amber-400 text-sm" />
+                                                        <FaStar className="text-cyan-400 text-sm" />
                                                     </div>
                                                     <div className="flex-1 mx-3">
-                                                        <div className="h-2 lg:h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div className="h-2 lg:h-2.5 bg-gray-800 rounded-full overflow-hidden">
                                                             <div
-                                                                className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                                                                className="h-full bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full transition-all duration-500"
                                                                 style={{ width: `${percentage}%` }}
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="w-12 lg:w-16 text-right">
-                                                        <span className="text-sm font-medium text-gray-700">
+                                                        <span className="text-sm font-medium text-gray-300">
                                                             {count}
                                                         </span>
                                                     </div>
@@ -1097,21 +1097,21 @@ export default function ProductDetails() {
                             {!userFeedback ? (
                                 <button
                                     onClick={() => setShowFeedbackForm(true)}
-                                    className="w-full sm:w-auto flex items-center justify-center px-5 py-3.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all duration-300 shadow-sm"
+                                    className="w-full sm:w-auto flex items-center justify-center px-5 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold rounded-xl hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.98] transition-all duration-300 shadow-sm"
                                 >
                                     <FaPen className="mr-2" />
                                     Write a Review
                                 </button>
                             ) : (
-                                <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-4 rounded-xl border border-blue-100">
+                                <div className="bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 p-4 rounded-xl border border-cyan-800">
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center mb-2">
-                                                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                                                <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
                                                     <FaUser className="text-sm" />
                                                 </div>
-                                                <h3 className="font-medium text-gray-900">Your Review</h3>
-                                                <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                                <h3 className="font-medium text-white">Your Review</h3>
+                                                <span className="ml-2 px-2 py-1 text-xs bg-cyan-900/50 text-cyan-400 rounded-full">
                                                     <FaCheckCircle className="mr-1" />
                                                     Submitted
                                                 </span>
@@ -1119,7 +1119,7 @@ export default function ProductDetails() {
                                             <div className="flex items-center flex-wrap gap-2">
                                                 {renderStars(userFeedback.rating, 'text-sm')}
                                                 {userFeedback.comment && (
-                                                    <span className="text-sm text-gray-600 truncate max-w-[200px]">
+                                                    <span className="text-sm text-gray-400 truncate max-w-[200px]">
                                                         "{userFeedback.comment.substring(0, 50)}..."
                                                     </span>
                                                 )}
@@ -1128,7 +1128,7 @@ export default function ProductDetails() {
                                         <div className="mt-3 sm:mt-0">
                                             <button
                                                 onClick={() => setShowFeedbackForm(true)}
-                                                className="w-full sm:w-auto px-4 py-2 text-sm bg-white border border-blue-200 text-blue-600 font-medium rounded-lg hover:bg-blue-50 active:scale-95 transition-all flex items-center"
+                                                className="w-full sm:w-auto px-4 py-2 text-sm bg-gray-800 border border-cyan-700 text-cyan-400 font-medium rounded-lg hover:bg-cyan-900/30 active:scale-95 transition-all flex items-center"
                                             >
                                                 <FaEdit className="mr-1" />
                                                 Edit
@@ -1141,10 +1141,10 @@ export default function ProductDetails() {
 
                         {/* Feedback Form */}
                         {showFeedbackForm && (
-                            <div className="bg-white rounded-xl border border-gray-200 mb-6 mx-4 lg:mx-0">
+                            <div className="bg-gray-900 rounded-xl border border-gray-800 mb-6 mx-4 lg:mx-0">
                                 <div className="p-5 lg:p-6">
                                     <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-lg lg:text-xl font-semibold text-gray-900">
+                                        <h3 className="text-lg lg:text-xl font-semibold text-white">
                                             {userFeedback ? 'Edit Your Review' : 'Write Your Review'}
                                         </h3>
                                         <button
@@ -1155,7 +1155,7 @@ export default function ProductDetails() {
                                                     setFeedbackComment('');
                                                 }
                                             }}
-                                            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                                            className="text-gray-500 hover:text-gray-300 transition-colors p-1"
                                         >
                                             <FaTimes className="text-lg" />
                                         </button>
@@ -1163,7 +1163,7 @@ export default function ProductDetails() {
 
                                     {/* Star Rating Input */}
                                     <div className="mb-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                                        <label className="block text-sm font-medium text-gray-300 mb-3">
                                             How would you rate this product?
                                         </label>
                                         <div className="flex flex-col items-center">
@@ -1176,18 +1176,18 @@ export default function ProductDetails() {
                                                         className="p-1"
                                                     >
                                                         {star <= feedbackRating ? (
-                                                            <FaStar className={`text-2xl lg:text-3xl transition-all duration-200 text-amber-500 transform scale-110`} />
+                                                            <FaStar className={`text-2xl lg:text-3xl transition-all duration-200 text-cyan-500 transform scale-110`} />
                                                         ) : (
-                                                            <FaRegStar className={`text-2xl lg:text-3xl transition-all duration-200 text-gray-300 hover:text-amber-300 hover:scale-110`} />
+                                                            <FaRegStar className={`text-2xl lg:text-3xl transition-all duration-200 text-gray-600 hover:text-cyan-400 hover:scale-110`} />
                                                         )}
                                                     </button>
                                                 ))}
                                             </div>
                                             <div className="flex items-center mt-2">
-                                                <span className="text-lg font-bold text-amber-600 mr-2">
+                                                <span className="text-lg font-bold text-cyan-400 mr-2">
                                                     {feedbackRating}.0
                                                 </span>
-                                                <span className="text-sm text-gray-600">
+                                                <span className="text-sm text-gray-400">
                                                     out of 5 stars
                                                 </span>
                                             </div>
@@ -1196,7 +1196,7 @@ export default function ProductDetails() {
 
                                     {/* Comment Input */}
                                     <div className="mb-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                                        <label className="block text-sm font-medium text-gray-300 mb-3">
                                             Share your experience (Optional)
                                         </label>
                                         <div className="relative">
@@ -1204,12 +1204,12 @@ export default function ProductDetails() {
                                                 value={feedbackComment}
                                                 onChange={(e) => setFeedbackComment(e.target.value)}
                                                 placeholder="What did you like or dislike? Would you recommend this product to others?"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 text-sm lg:text-base"
+                                                className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-none transition-all duration-200 text-sm lg:text-base bg-gray-800 text-white placeholder:text-gray-500"
                                                 rows="4"
                                                 maxLength="1000"
                                             />
                                             <div className="absolute bottom-3 right-3">
-                                                <div className={`text-xs px-2 py-1 rounded ${feedbackComment.length > 800 ? 'text-amber-600 bg-amber-50' : 'text-gray-500 bg-gray-100'}`}>
+                                                <div className={`text-xs px-2 py-1 rounded ${feedbackComment.length > 800 ? 'text-cyan-400 bg-cyan-900/30' : 'text-gray-500 bg-gray-800'}`}>
                                                     {feedbackComment.length}/1000
                                                 </div>
                                             </div>
@@ -1217,7 +1217,7 @@ export default function ProductDetails() {
                                     </div>
 
                                     {/* Form Actions */}
-                                    <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-100">
+                                    <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-800">
                                         <button
                                             onClick={() => {
                                                 setShowFeedbackForm(false);
@@ -1226,7 +1226,7 @@ export default function ProductDetails() {
                                                     setFeedbackComment('');
                                                 }
                                             }}
-                                            className="w-full sm:w-auto px-5 py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 active:scale-95 transition-all duration-200 font-medium"
+                                            className="w-full sm:w-auto px-5 py-2.5 text-gray-300 border border-gray-700 rounded-lg hover:bg-gray-800 active:scale-95 transition-all duration-200 font-medium"
                                             disabled={submittingFeedback}
                                         >
                                             Cancel
@@ -1234,7 +1234,7 @@ export default function ProductDetails() {
                                         <button
                                             onClick={handleSubmitFeedback}
                                             disabled={submittingFeedback || feedbackRating < 1}
-                                            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center"
+                                            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center"
                                         >
                                             {submittingFeedback ? (
                                                 <>
@@ -1261,19 +1261,19 @@ export default function ProductDetails() {
                         {/* Customer Reviews List */}
                         <div className="mt-6 lg:mt-8 px-4 lg:px-0">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-                                <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-0">
+                                <h3 className="text-lg lg:text-xl font-bold text-white mb-3 sm:mb-0">
                                     Customer Reviews
-                                    <span className="text-gray-500 text-base lg:text-lg font-normal ml-2">
+                                    <span className="text-gray-400 text-base lg:text-lg font-normal ml-2">
                                         ({allFeedbacks.length})
                                     </span>
                                 </h3>
                                 {allFeedbacks.length > 0 && (
                                     <div className="flex items-center space-x-2">
-                                        <span className="text-sm text-gray-600 hidden sm:block">Sort by:</span>
+                                        <span className="text-sm text-gray-400 hidden sm:block">Sort by:</span>
                                         <select
                                             value={sortBy}
                                             onChange={handleSortChange}
-                                            className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-auto"
+                                            className="text-sm border border-gray-700 rounded-lg px-3 py-2 bg-gray-900 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 w-full sm:w-auto"
                                         >
                                             <option value="most_recent">Most Recent</option>
                                             <option value="highest_rating">Highest Rating</option>
@@ -1286,24 +1286,24 @@ export default function ProductDetails() {
                             {loadingFeedback ? (
                                 <div className="text-center py-8">
                                     <div className="inline-flex items-center justify-center">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
                                         <div className="ml-3 text-left">
-                                            <p className="text-gray-700 font-medium">Loading reviews...</p>
+                                            <p className="text-gray-300 font-medium">Loading reviews...</p>
                                         </div>
                                     </div>
                                 </div>
                             ) : allFeedbacks.length === 0 ? (
-                                <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <FaCommentAlt className="text-xl text-blue-500" />
+                                <div className="text-center py-8 bg-gray-900 rounded-xl border border-gray-800">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-cyan-900/30 rounded-full flex items-center justify-center">
+                                        <FaCommentAlt className="text-xl text-cyan-400" />
                                     </div>
-                                    <h4 className="text-base font-semibold text-gray-700 mb-2">No reviews yet</h4>
-                                    <p className="text-gray-600 text-sm px-4 mb-6">
+                                    <h4 className="text-base font-semibold text-white mb-2">No reviews yet</h4>
+                                    <p className="text-gray-400 text-sm px-4 mb-6">
                                         Be the first to share your thoughts!
                                     </p>
                                     <button
                                         onClick={() => setShowFeedbackForm(true)}
-                                        className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 active:scale-[0.98] transition-all flex items-center justify-center mx-auto"
+                                        className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.98] transition-all flex items-center justify-center mx-auto"
                                     >
                                         <FaPen className="mr-2" />
                                         Write First Review
@@ -1313,22 +1313,22 @@ export default function ProductDetails() {
                                 <div className="space-y-4">
                                     {allFeedbacks.slice(0, 5).map((feedback) => (
                                         <div key={feedback.feedback_id || feedback.id}
-                                            className="bg-white rounded-xl border border-gray-200 p-4 lg:p-5 hover:border-blue-200 transition-all duration-300">
+                                            className="bg-gray-900 rounded-xl border border-gray-800 p-4 lg:p-5 hover:border-cyan-800 transition-all duration-300">
                                             <div className="flex justify-between">
                                                 <div className="flex items-start">
-                                                    <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-100 to-teal-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-base lg:text-lg">
+                                                    <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-cyan-900/50 to-cyan-800/50 rounded-full flex items-center justify-center text-cyan-400 font-bold text-base lg:text-lg">
                                                         {feedback.user_name?.charAt(0).toUpperCase() || 'U'}
                                                     </div>
                                                     <div className="ml-3 lg:ml-4">
                                                         <div className="flex flex-wrap items-center gap-1 lg:gap-2 mb-1">
-                                                            <h4 className="font-semibold text-gray-900 text-sm lg:text-base">
+                                                            <h4 className="font-semibold text-white text-sm lg:text-base">
                                                                 {feedback.user_name}
                                                             </h4>
                                                         </div>
                                                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 lg:gap-2">
                                                             <div className="flex items-center">
                                                                 {renderStars(feedback.rating, 'text-xs lg:text-sm')}
-                                                                <span className="text-sm font-medium text-gray-700 ml-2">
+                                                                <span className="text-sm font-medium text-gray-300 ml-2">
                                                                     {feedback.rating}.0
                                                                 </span>
                                                             </div>
@@ -1345,7 +1345,7 @@ export default function ProductDetails() {
                                                         <button
                                                             onClick={() => handleDeleteFeedback(feedback.feedback_id || feedback.id)}
                                                             disabled={deletingFeedback === (feedback.feedback_id || feedback.id)}
-                                                            className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="p-2 text-red-400 hover:bg-red-900/30 hover:text-red-300 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             title="Delete this feedback"
                                                         >
                                                             {deletingFeedback === (feedback.feedback_id || feedback.id) ? (
@@ -1360,7 +1360,7 @@ export default function ProductDetails() {
 
                                             {feedback.comment && (
                                                 <div className="mt-3 lg:mt-4">
-                                                    <p className="text-gray-700 text-sm lg:text-base leading-relaxed">
+                                                    <p className="text-gray-300 text-sm lg:text-base leading-relaxed">
                                                         {feedback.comment}
                                                     </p>
                                                 </div>
@@ -1373,7 +1373,7 @@ export default function ProductDetails() {
                             {/* Load More Button */}
                             {allFeedbacks.length > 5 && (
                                 <div className="mt-6 text-center">
-                                    <button className="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 active:scale-95 transition-all duration-200 flex items-center justify-center mx-auto">
+                                    <button className="w-full sm:w-auto px-5 py-2.5 border border-gray-700 text-gray-300 font-medium rounded-lg hover:bg-gray-800 hover:border-gray-600 active:scale-95 transition-all duration-200 flex items-center justify-center mx-auto">
                                         <FaChevronDown className="mr-2" />
                                         Load More Reviews
                                     </button>

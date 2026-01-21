@@ -40,8 +40,10 @@ const routers = createBrowserRouter([
       { path: 'admin', element: <AdminProtectedRoute><Admin /></AdminProtectedRoute> },
       { path: 'order/:orderId', element: <AdminProtectedRoute><OrderDetails /></AdminProtectedRoute> },
       { path: 'productdetails/:id', element: <ProductDetails /> },
-      { path: 'productdetailsadmin/:id', element: <ProductDetailsAdmin /> },
-      { path: 'editproductdetailsadmin/:id', element: <ProductEditAdmin /> },
+      {
+        path: 'productdetailsadmin/:id', element: <AdminProtectedRoute><ProductDetailsAdmin /></AdminProtectedRoute> },
+      {
+        path: 'editproductdetailsadmin/:id', element: <AdminProtectedRoute><ProductEditAdmin /></AdminProtectedRoute> },
       { path: '*', element: <NotFound /> },
     ]
   }

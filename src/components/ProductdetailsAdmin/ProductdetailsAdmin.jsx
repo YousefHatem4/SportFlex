@@ -186,10 +186,10 @@ export default function ProductDetailsAdmin() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center">
-                    <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium">Loading product details...</p>
+                    <FaSpinner className="animate-spin text-4xl text-cyan-500 mx-auto mb-4" />
+                    <p className="text-gray-400 font-medium">Loading product details...</p>
                 </div>
             </div>
         );
@@ -197,16 +197,16 @@ export default function ProductDetailsAdmin() {
 
     if (!product) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-gray-400 mb-4">
+                    <div className="text-gray-600 mb-4">
                         <FaBox className="text-6xl mx-auto" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-3">Product Not Found</h3>
-                    <p className="text-gray-500 mb-6">The product you're looking for doesn't exist.</p>
+                    <h3 className="text-xl font-semibold text-white mb-3">Product Not Found</h3>
+                    <p className="text-gray-400 mb-6">The product you're looking for doesn't exist.</p>
                     <button
                         onClick={() => navigate('/admin')}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition"
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition"
                     >
                         Go Back to Admin
                     </button>
@@ -216,13 +216,13 @@ export default function ProductDetailsAdmin() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+        <div className="min-h-screen bg-black py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Back Button */}
                 <div className="mb-6">
                     <button
                         onClick={() => navigate('/admin')}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+                        className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors"
                     >
                         <FaArrowLeft /> Back to Admin Panel
                     </button>
@@ -230,11 +230,11 @@ export default function ProductDetailsAdmin() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Product Details</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">Product Details</h1>
                     <div className="flex gap-3">
                         <button
                             onClick={handleEditProduct}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300"
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-all duration-300"
                         >
                             <FaEdit /> Edit Product
                         </button>
@@ -248,12 +248,12 @@ export default function ProductDetailsAdmin() {
                 </div>
 
                 {/* Product Details Card */}
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-gray-800">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
                         {/* Product Images */}
                         <div className="space-y-4">
                             {/* Main Image */}
-                            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden bg-gray-100">
+                            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden bg-gray-800">
                                 {allImages.length > 0 ? (
                                     <>
                                         <img
@@ -268,22 +268,22 @@ export default function ProductDetailsAdmin() {
                                             <>
                                                 <button
                                                     onClick={handlePreviousImage}
-                                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gray-800/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors border border-gray-700"
                                                 >
-                                                    <FaChevronLeft className="text-gray-700" />
+                                                    <FaChevronLeft className="text-gray-300" />
                                                 </button>
                                                 <button
                                                     onClick={handleNextImage}
-                                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gray-800/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors border border-gray-700"
                                                 >
-                                                    <FaChevronRight className="text-gray-700" />
+                                                    <FaChevronRight className="text-gray-300" />
                                                 </button>
                                             </>
                                         )}
                                     </>
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <FaImage className="text-4xl text-gray-300" />
+                                        <FaImage className="text-4xl text-gray-600" />
                                     </div>
                                 )}
                             </div>
@@ -298,7 +298,7 @@ export default function ProductDetailsAdmin() {
                                                 setCurrentImageIndex(index);
                                                 setMainImage(image.image_url);
                                             }}
-                                            className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'} hover:border-blue-400 transition-colors`}
+                                            className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${currentImageIndex === index ? 'border-cyan-500' : 'border-gray-700'} hover:border-cyan-400 transition-colors`}
                                         >
                                             <img
                                                 src={image.image_url}
@@ -311,7 +311,7 @@ export default function ProductDetailsAdmin() {
                             )}
 
                             {/* Image Count */}
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
                                 <FaImage />
                                 <span>{allImages.length} image{allImages.length !== 1 ? 's' : ''}</span>
                             </div>
@@ -321,42 +321,42 @@ export default function ProductDetailsAdmin() {
                         <div className="space-y-6">
                             {/* Product Title and Category */}
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{product.title}</h2>
+                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{product.title}</h2>
                                 <div className="flex items-center gap-2">
-                                    <FaTag className="text-gray-400" />
-                                    <span className="text-gray-600">{product.category.name}</span>
+                                    <FaTag className="text-gray-500" />
+                                    <span className="text-gray-400">{product.category.name}</span>
                                 </div>
                             </div>
 
                             {/* Price */}
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg">
-                                    <FaMoneyBill className="text-blue-500 text-xl" />
+                                <div className="p-3 bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 rounded-lg border border-cyan-800/50">
+                                    <FaMoneyBill className="text-cyan-400 text-xl" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Price</p>
-                                    <p className="text-2xl font-bold text-blue-600">EGP {product.price.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-cyan-400">EGP {product.price.toFixed(2)}</p>
                                 </div>
                             </div>
 
                             {/* Stock Status */}
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-                                    <FaBox className="text-green-500 text-xl" />
+                                <div className="p-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg border border-green-800/50">
+                                    <FaBox className="text-green-400 text-xl" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Stock Status</p>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-lg font-semibold ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                                        <span className={`text-lg font-semibold ${product.stock > 10 ? 'text-green-400' : product.stock > 0 ? 'text-amber-400' : 'text-red-400'}`}>
                                             {product.stock} units available
                                         </span>
                                         {product.stock === 0 && (
-                                            <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                            <span className="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs font-medium">
                                                 Out of Stock
                                             </span>
                                         )}
                                         {product.stock > 0 && product.stock <= 10 && (
-                                            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                                            <span className="px-2 py-1 bg-amber-900/50 text-amber-300 rounded-full text-xs font-medium">
                                                 Low Stock
                                             </span>
                                         )}
@@ -366,24 +366,24 @@ export default function ProductDetailsAdmin() {
 
                             {/* Sales */}
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                                    <FaShoppingCart className="text-purple-500 text-xl" />
+                                <div className="p-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg border border-purple-800/50">
+                                    <FaShoppingCart className="text-purple-400 text-xl" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Total Sales</p>
-                                    <p className="text-lg font-semibold text-gray-800">{product.sales || 0} units sold</p>
+                                    <p className="text-lg font-semibold text-white">{product.sales || 0} units sold</p>
                                 </div>
                             </div>
 
                             {/* Dates */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
-                                        <FaCalendar className="text-gray-500 text-xl" />
+                                    <div className="p-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg border border-gray-700">
+                                        <FaCalendar className="text-gray-400 text-xl" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Created</p>
-                                        <p className="text-sm font-medium text-gray-800">
+                                        <p className="text-sm font-medium text-gray-300">
                                             {new Date(product.created_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -393,12 +393,12 @@ export default function ProductDetailsAdmin() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
-                                        <FaCalendar className="text-gray-500 text-xl" />
+                                    <div className="p-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg border border-gray-700">
+                                        <FaCalendar className="text-gray-400 text-xl" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Last Updated</p>
-                                        <p className="text-sm font-medium text-gray-800">
+                                        <p className="text-sm font-medium text-gray-300">
                                             {new Date(product.updated_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -410,42 +410,42 @@ export default function ProductDetailsAdmin() {
                             </div>
 
                             {/* Product ID */}
-                            <div className="p-4 bg-gray-50 rounded-lg">
+                            <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
                                 <p className="text-sm text-gray-500 mb-1">Product ID</p>
-                                <p className="font-mono text-sm text-gray-700 break-all">{product.id}</p>
+                                <p className="font-mono text-sm text-gray-300 break-all">{product.id}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Product Description */}
-                    <div className="border-t border-gray-200 p-6 md:p-8">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Product Description</h3>
+                    <div className="border-t border-gray-800 p-6 md:p-8">
+                        <h3 className="text-lg font-semibold text-white mb-4">Product Description</h3>
                         <div className="prose max-w-none">
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                            <p className="text-gray-400 leading-relaxed whitespace-pre-line">
                                 {product.description || 'No description available for this product.'}
                             </p>
                         </div>
                     </div>
 
                     {/* Additional Stats */}
-                    <div className="border-t border-gray-200 p-6 md:p-8">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Product Statistics</h3>
+                    <div className="border-t border-gray-800 p-6 md:p-8">
+                        <h3 className="text-lg font-semibold text-white mb-4">Product Statistics</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
-                                <p className="text-sm text-blue-600 font-medium">Inventory Value</p>
-                                <p className="text-2xl font-bold text-gray-800">
+                            <div className="bg-gradient-to-br from-cyan-900/30 to-cyan-800/30 p-4 rounded-xl border border-cyan-800/50">
+                                <p className="text-sm text-cyan-400 font-medium">Inventory Value</p>
+                                <p className="text-2xl font-bold text-white">
                                     EGP {(product.price * product.stock).toFixed(2)}
                                 </p>
                             </div>
-                            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-                                <p className="text-sm text-green-600 font-medium">Potential Revenue</p>
-                                <p className="text-2xl font-bold text-gray-800">
+                            <div className="bg-gradient-to-br from-green-900/30 to-green-800/30 p-4 rounded-xl border border-green-800/50">
+                                <p className="text-sm text-green-400 font-medium">Potential Revenue</p>
+                                <p className="text-2xl font-bold text-white">
                                     EGP {(product.price * product.sales || 0).toFixed(2)}
                                 </p>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-                                <p className="text-sm text-purple-600 font-medium">Stock Alert</p>
-                                <p className="text-2xl font-bold text-gray-800">
+                            <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/30 p-4 rounded-xl border border-purple-800/50">
+                                <p className="text-sm text-purple-400 font-medium">Stock Alert</p>
+                                <p className="text-2xl font-bold text-white">
                                     {product.stock <= 10 ? 'Low' : 'Good'}
                                 </p>
                             </div>
@@ -457,13 +457,13 @@ export default function ProductDetailsAdmin() {
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-end">
                     <button
                         onClick={() => navigate('/admin')}
-                        className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
                     >
                         Back to Dashboard
                     </button>
                     <button
                         onClick={handleEditProduct}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300"
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-all duration-300"
                     >
                         Edit Product Details
                     </button>
