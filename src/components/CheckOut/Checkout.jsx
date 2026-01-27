@@ -22,7 +22,16 @@ import {
   FaInfoCircle,
   FaSpinner,
   FaArrowRight,
-  FaMoneyBill
+  FaMoneyBill,
+  FaCreditCard,
+  FaLock,
+  FaPhone,
+  FaStore,
+  FaGlobe,
+  FaMobileAlt,
+  FaQrcode,
+  FaBuilding,
+  FaReceipt
 } from 'react-icons/fa';
 
 export default function Checkout() {
@@ -39,6 +48,7 @@ export default function Checkout() {
   const [promoCode, setPromoCode] = useState('')
   const [appliedPromo, setAppliedPromo] = useState(null)
   const [promoLoading, setPromoLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('cash') // 'cash' or 'online'
 
   const navigate = useNavigate();
 
@@ -241,50 +251,37 @@ export default function Checkout() {
         }
       }
 
-      // Prepare order data
-      const orderData = {
-        customer_name: `${formik.values.firstName} ${formik.values.lastName}`,
-        customer_email: formik.values.email,
-        shipping_address: shippingAddress.details,
-        shipping_city: shippingAddress.city,
-        shipping_governorate: selectedGovernorate,
-        shipping_phone: shippingAddress.phone,
-        payment_method: 'cash', // Always cash on delivery
-        items: cartItems.map(item => ({
-          product_title: item.product.title,
-          quantity: item.count,
-          price: item.price,
-          subtotal: item.price * item.count
-        })),
-        order_number: orderNumber,
-        total_amount: total,
-        subtotal: subtotal,
-        shipping_cost: shippingCost,
-        discount_amount: discount
-      }
+      // FIXED: Always use 'pending' status initially (not 'processing')
+      const orderStatus = 'pending'; // Always 'pending' initially
+      const orderPaymentStatus = paymentMethod === 'online' ? 'paid' : 'pending';
 
-      // 1. Create order in database
+      // Create order with valid status values
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
           order_number: orderNumber,
-          customer_name: orderData.customer_name,
-          customer_email: orderData.customer_email,
+          customer_name: `${formik.values.firstName} ${formik.values.lastName}`,
+          customer_email: formik.values.email,
           user_id: user.id,
           total_amount: total,
-          shipping_address: orderData.shipping_address,
-          shipping_city: orderData.shipping_city,
-          shipping_governorate: orderData.shipping_governorate,
-          shipping_phone: orderData.shipping_phone,
-          payment_method: orderData.payment_method,
+          subtotal: subtotal, // Added subtotal field
+          shipping_address: shippingAddress.details,
+          shipping_city: shippingAddress.city,
+          shipping_governorate: selectedGovernorate,
+          shipping_phone: shippingAddress.phone,
+          payment_method: paymentMethod,
           shipping_cost: shippingCost,
           discount_amount: discount,
-          status: 'Pending'
+          status: orderStatus, // FIXED: Always 'pending'
+          payment_status: orderPaymentStatus // 'paid' for online, 'pending' for cash
         }])
-        .select()
+        .select('*')
         .single()
 
-      if (orderError) throw orderError
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        throw orderError;
+      }
 
       // 2. Create order items
       const orderItems = cartItems.map(item => ({
@@ -346,7 +343,11 @@ export default function Checkout() {
       // 6. Clear localStorage cart
       localStorage.removeItem('checkout_cart')
 
-      toast.success('Order placed successfully! You will receive a confirmation email shortly.')
+      if (paymentMethod === 'online') {
+        toast.success('Order placed successfully! Your payment was processed. You will receive a confirmation email shortly.');
+      } else {
+        toast.success('Order placed successfully! You will receive a confirmation email shortly.');
+      }
 
       setTimeout(() => {
         navigate('/')
@@ -667,55 +668,217 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Payment Method - Cash on Delivery Only */}
+              {/* Payment Method Selection */}
               <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <FaMoneyBillWave className="text-white text-lg" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <FaCreditCard className="text-white text-lg" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">Payment Method</h2>
-                    <p className="text-gray-400">Pay when you receive your order</p>
+                    <p className="text-gray-400">Choose how you want to pay</p>
                   </div>
                 </div>
 
-                <div className="p-6 rounded-2xl border-2 border-green-500/50 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-900/30 border border-green-800/50">
-                      <FaMoneyBill className="text-2xl text-green-400" />
+                {/* Payment Method Options */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Cash on Delivery Option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left ${paymentMethod === 'cash'
+                      ? 'border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg'
+                      : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                      }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === 'cash'
+                        ? 'bg-green-900/30 border border-green-800/50'
+                        : 'bg-gray-800 border border-gray-700'
+                        }`}>
+                        <FaMoneyBill className={`text-xl ${paymentMethod === 'cash' ? 'text-green-400' : 'text-gray-400'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-white text-lg mb-1">Cash on Delivery</h3>
+                        <p className="text-sm text-gray-400 mb-2">Pay when you receive your order</p>
+                        <div className="flex flex-wrap gap-1">
+                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'cash'
+                            ? 'bg-green-900/50 text-green-300'
+                            : 'bg-gray-700 text-gray-300'
+                            }`}>
+                            No fees
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'cash'
+                            ? 'bg-green-900/50 text-green-300'
+                            : 'bg-gray-700 text-gray-300'
+                            }`}>
+                            Available everywhere
+                          </span>
+                        </div>
+                      </div>
+                      {paymentMethod === 'cash' && (
+                        <div className="text-green-400">
+                          <FaCheckCircle className="text-xl" />
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white text-lg mb-1">Cash on Delivery</h3>
-                      <p className="text-sm text-gray-400 mb-3">Pay when you receive your order</p>
-                      <div className="flex flex-wrap gap-2">
-                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <FaCheckCircle />
-                          No additional fees
-                        </p>
-                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <FaCheckCircle />
-                          Safe and convenient
-                        </p>
-                        <p className="text-xs text-green-400 font-medium flex items-center gap-1 whitespace-nowrap">
-                          <FaCheckCircle />
-                          Available everywhere in Egypt
+                  </button>
+
+                  {/* Online Payment Option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('online')}
+                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left ${paymentMethod === 'online'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-500/5 shadow-lg'
+                      : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                      }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === 'online'
+                        ? 'bg-blue-900/30 border border-blue-800/50'
+                        : 'bg-gray-800 border border-gray-700'
+                        }`}>
+                        <FaCreditCard className={`text-xl ${paymentMethod === 'online' ? 'text-blue-400' : 'text-gray-400'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-white text-lg mb-1">Online Payment</h3>
+                        <p className="text-sm text-gray-400 mb-2">Pay securely with card or wallet</p>
+                        <div className="flex flex-wrap gap-1">
+                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'online'
+                            ? 'bg-blue-900/50 text-blue-300'
+                            : 'bg-gray-700 text-gray-300'
+                            }`}>
+                            Instant confirmation
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'online'
+                            ? 'bg-blue-900/50 text-blue-300'
+                            : 'bg-gray-700 text-gray-300'
+                            }`}>
+                            Secure payment
+                          </span>
+                        </div>
+                      </div>
+                      {paymentMethod === 'online' && (
+                        <div className="text-blue-400">
+                          <FaCheckCircle className="text-xl" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {/* Online Payment Instructions - Only show when selected */}
+                {paymentMethod === 'online' && (
+                  <div className="mt-6 p-6 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 rounded-2xl border border-blue-800/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <FaLock className="text-blue-400 text-xl" />
+                      <h3 className="text-lg font-bold text-white">Online Payment Instructions</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Bank Transfer Option */}
+                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                        <div className="flex items-center gap-3 mb-3">
+                          <FaBuilding className="text-blue-400" />
+                          <h4 className="font-semibold text-white">Bank Transfer</h4>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Bank Name:</span>
+                            <span className="text-sm font-mono text-white">Commercial International Bank (CIB)</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Account Name:</span>
+                            <span className="text-sm font-mono text-white">SportFlex Store</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Account Number:</span>
+                            <span className="text-sm font-mono text-white">123-456-789-10</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">IBAN:</span>
+                            <span className="text-sm font-mono text-blue-300">EG123456789012345678901234</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mobile Wallet Option */}
+                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                        <div className="flex items-center gap-3 mb-3">
+                          <FaMobileAlt className="text-green-400" />
+                          <h4 className="font-semibold text-white">Mobile Wallet</h4>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center">
+                            <div className="w-12 h-12 bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-2">
+                              <FaPhone className="text-blue-400" />
+                            </div>
+                            <p className="text-sm font-semibold text-white">Vodafone Cash</p>
+                            <p className="text-xs text-gray-400">0100 123 4567</p>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-12 h-12 bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-2">
+                              <FaQrcode className="text-purple-400" />
+                            </div>
+                            <p className="text-sm font-semibold text-white">InstaPay</p>
+                            <p className="text-xs text-gray-400">Scan QR Code</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Payment Steps */}
+                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                        <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+                          <FaReceipt className="text-yellow-400" />
+                          How to Pay
+                        </h4>
+                        <ol className="space-y-2 text-sm text-gray-300">
+                          <li className="flex items-start gap-2">
+                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <span>Transfer the exact amount: <strong className="text-blue-300">EGP {total.toFixed(2)}</strong></span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <span>Include your order number as reference</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <span>Send payment screenshot to: <span className="text-blue-300">+20 100 123 4567</span></span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                            <span>Your order will be processed immediately after verification</span>
+                          </li>
+                        </ol>
+                      </div>
+
+                      {/* Important Notes */}
+                      <div className="p-3 bg-gradient-to-r from-blue-900/20 to-blue-800/20 rounded-xl border border-blue-800/30">
+                        <div className="flex items-start gap-2">
+                          <FaInfoCircle className="text-blue-400 mt-1 flex-shrink-0" />
+                          <p className="text-sm text-blue-300">
+                            <strong>Note:</strong> Please keep your payment receipt. Orders with online payment will be shipped faster.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cash on Delivery Instructions - Only show when selected */}
+                {paymentMethod === 'cash' && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-green-900/30 to-green-800/30 rounded-2xl border border-green-800/50">
+                    <div className="flex items-start gap-3">
+                      <FaInfoCircle className="text-green-400 mt-1" />
+                      <div>
+                        <p className="text-sm text-green-300 font-medium">Cash Payment Instructions</p>
+                        <p className="text-xs text-green-400 mt-1">
+                          Please prepare exact cash amount (EGP {total.toFixed(2)}) for our delivery agent. You'll receive a confirmation email with order details.
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-cyan-900/30 rounded-2xl border border-cyan-800/50">
-                  <div className="flex items-start gap-3">
-                    <FaInfoCircle className="text-cyan-400 mt-1" />
-                    <div>
-                      <p className="text-sm text-cyan-300 font-medium">Cash on Delivery Only</p>
-                      <p className="text-xs text-cyan-400 mt-1">
-                        We currently only accept cash payments upon delivery. Our delivery agent will collect the payment when they deliver your order.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Error Message */}
@@ -865,6 +1028,36 @@ export default function Checkout() {
                 </div>
               </div>
 
+              {/* Payment Method Display */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-2xl border border-gray-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-300 font-medium flex items-center gap-2">
+                    {paymentMethod === 'cash' ? (
+                      <>
+                        <FaMoneyBill className="text-green-400" />
+                        Cash on Delivery
+                      </>
+                    ) : (
+                      <>
+                        <FaCreditCard className="text-blue-400" />
+                        Online Payment
+                      </>
+                    )}
+                  </span>
+                  {paymentMethod === 'online' && (
+                    <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded-full">
+                      Pay Now
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">
+                  {paymentMethod === 'cash'
+                    ? 'Pay when you receive your order'
+                    : 'Complete payment to confirm order immediately'
+                  }
+                </p>
+              </div>
+
               {/* Place Order Button */}
               <button
                 type="button"
@@ -872,13 +1065,22 @@ export default function Checkout() {
                 disabled={loading || !formik.isValid || !selectedGovernorate}
                 className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 shadow-lg ${loading || !formik.isValid || !selectedGovernorate
                   ? 'bg-gray-700 text-gray-300 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:scale-105 hover:shadow-xl active:scale-95'
+                  : paymentMethod === 'online'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 hover:shadow-xl active:scale-95'
+                    : 'bg-gradient-to-r from-green-600 to-cyan-600 text-white hover:from-green-700 hover:to-cyan-700 hover:scale-105 hover:shadow-xl active:scale-95'
                   }`}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-3">
                     <FaSpinner className="animate-spin" />
                     Processing...
+                  </span>
+                ) : paymentMethod === 'online' ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <FaCreditCard />
+                    <span className="hidden sm:inline">Pay EGP {total.toFixed(2)} Online</span>
+                    <span className="sm:hidden">Pay Online</span>
+                    <FaArrowRight className="ml-2" />
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-3">
@@ -890,24 +1092,11 @@ export default function Checkout() {
                 )}
               </button>
 
-              {/* Payment Info Note */}
-              <div className="mt-6 p-4 bg-green-900/30 rounded-2xl border border-green-800/50">
-                <div className="flex items-start gap-3">
-                  <FaMoneyBillWave className="text-green-400 mt-1" />
-                  <div>
-                    <p className="text-sm text-green-300 font-medium">Cash Payment Instructions</p>
-                    <p className="text-xs text-green-400 mt-1">
-                      Please prepare exact cash amount (EGP {total.toFixed(2)}) for our delivery agent. You'll receive a confirmation email with order details.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Security & Trust Badges */}
               <div className="mt-6 space-y-3">
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <FaShieldAlt className="text-green-400" />
-                  <span>Secure cash on delivery</span>
+                  <FaLock className="text-green-400" />
+                  <span>100% Secure Payment</span>
                 </div>
                 <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
                   <span className="flex items-center gap-1">
@@ -919,8 +1108,8 @@ export default function Checkout() {
                     24/7 Support
                   </span>
                   <span className="flex items-center gap-1">
-                    <FaAward />
-                    Satisfaction Guaranteed
+                    <FaShieldAlt />
+                    Buyer Protection
                   </span>
                 </div>
               </div>
@@ -1010,16 +1199,15 @@ export default function Checkout() {
               font-size: 1rem !important;
             }
             
-            /* Fix for Cash on Delivery box text overflow */
-            .flex.flex-wrap.gap-2 {
-              gap: 0.5rem !important;
+            /* Fix for payment method boxes */
+            .grid.grid-cols-1.md\\:grid-cols-2.gap-6 {
+              grid-template-columns: 1fr !important;
             }
             
             .whitespace-nowrap {
               white-space: normal !important;
               font-size: 0.7rem !important;
               padding: 0.25rem 0.5rem;
-              background: rgba(34, 197, 94, 0.1);
               border-radius: 0.5rem;
             }
             
@@ -1045,6 +1233,11 @@ export default function Checkout() {
             
             .text-lg {
               font-size: 1rem !important;
+            }
+            
+            /* Online payment instructions responsive */
+            .grid.grid-cols-2.gap-4 {
+              grid-template-columns: 1fr !important;
             }
           }
           
@@ -1094,9 +1287,9 @@ export default function Checkout() {
               top: 0 !important;
             }
             
-            /* Tablet fix for Cash on Delivery box */
-            .flex.flex-wrap.gap-2 {
-              flex-wrap: wrap !important;
+            /* Tablet fix for payment method boxes */
+            .grid.grid-cols-1.md\\:grid-cols-2.gap-6 {
+              grid-template-columns: 1fr !important;
             }
             
             .whitespace-nowrap {
@@ -1128,9 +1321,13 @@ export default function Checkout() {
               white-space: nowrap !important;
             }
             
-            /* Fixed Cash on Delivery section */
+            /* Fixed payment method section */
             .flex.flex-wrap.gap-2 {
               gap: 0.75rem !important;
+            }
+            
+            .grid.grid-cols-2.gap-4 {
+              gap: 1.5rem !important;
             }
           }
         `}

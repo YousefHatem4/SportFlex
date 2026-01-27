@@ -3,7 +3,7 @@ import React, { useContext, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { userContext } from '../../Context/userContext'
 import { supabase } from '../../supabaseClient'
-import { FaHeart, FaRegHeart, FaShoppingCart } from 'react-icons/fa'
+import { FaHeart, FaRegHeart, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 
 export default function Navbar() {
     const location = useLocation();
@@ -17,38 +17,91 @@ export default function Navbar() {
     // State for cart items count
     const [cartItemsCount, setCartItemsCount] = useState(0);
     const [isLoadingCart, setIsLoadingCart] = useState(false);
-    const [specialOffer, setSpecialOffer] = useState('');
+
+    // State for special offers slider
+    const [specialOffers, setSpecialOffers] = useState([]);
+    const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
+    const [isAnimating, setIsAnimating] = useState(false);
 
     // Check if user is logged in
     const isUserLoggedIn = userToken !== null;
 
-    // Fetch special offer
+    // Fetch special offers
     useEffect(() => {
-        fetchSpecialOffer();
-    }, []);
+        fetchSpecialOffers();
 
-    const fetchSpecialOffer = async () => {
+        // Set up auto-rotation for offers
+        const interval = setInterval(() => {
+            nextOffer();
+        }, 5000); // Change offer every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [specialOffers.length, currentOfferIndex]);
+
+    const fetchSpecialOffers = async () => {
         try {
             const { data, error } = await supabase
                 .from('special_offers')
-                .select('banner_text')
+                .select('banner_text, is_active')
                 .eq('is_active', true)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
+                .order('created_at', { ascending: false });
 
-            if (error && error.code !== 'PGRST116') throw error;
+            if (error) throw error;
 
-            if (data) {
-                setSpecialOffer(data.banner_text);
+            if (data && data.length > 0) {
+                setSpecialOffers(data.map(item => item.banner_text));
             } else {
-                // Fallback to default
-                setSpecialOffer('Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!');
+                // Fallback to default offers
+                setSpecialOffers([
+                    'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
+                    'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!',
+                    'Free Shipping on Orders Over EGP 500!',
+                    'New Collection Launch - Up to 40% Off!'
+                ]);
             }
         } catch (error) {
-            console.error('Error fetching special offer:', error);
-            setSpecialOffer('Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!');
+            console.error('Error fetching special offers:', error);
+            setSpecialOffers([
+                'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
+                'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!'
+            ]);
         }
+    };
+
+    // Slider navigation functions
+    const nextOffer = () => {
+        if (specialOffers.length <= 1) return;
+
+        setIsAnimating(true);
+        setTimeout(() => {
+            setCurrentOfferIndex((prevIndex) =>
+                prevIndex === specialOffers.length - 1 ? 0 : prevIndex + 1
+            );
+            setIsAnimating(false);
+        }, 300);
+    };
+
+    const prevOffer = () => {
+        if (specialOffers.length <= 1) return;
+
+        setIsAnimating(true);
+        setTimeout(() => {
+            setCurrentOfferIndex((prevIndex) =>
+                prevIndex === 0 ? specialOffers.length - 1 : prevIndex - 1
+            );
+            setIsAnimating(false);
+        }, 300);
+    };
+
+    // Manual navigation for dots
+    const goToOffer = (index) => {
+        if (index === currentOfferIndex || specialOffers.length <= 1) return;
+
+        setIsAnimating(true);
+        setTimeout(() => {
+            setCurrentOfferIndex(index);
+            setIsAnimating(false);
+        }, 300);
     };
 
     // Fetch cart items count - useCallback to memoize the function
@@ -194,12 +247,84 @@ export default function Navbar() {
     }
 
     return <>
-        <div className='bg-black py-3 text-center border-b-2 border-cyan-500'>
-            <p className='font-bold text-white'>
-                {specialOffer}
-                <Link to={'products'} className='ms-2 text-cyan-400 hover:text-cyan-300 font-extrabold transition-colors duration-200'>SHOP NOW →</Link>
-            </p>
-        </div>
+        {/* Special Offers Slider */}
+        {specialOffers.length > 0 && (
+            <div className='bg-gradient-to-r from-gray-900 via-black to-gray-900 py-3 text-center border-b-2 border-cyan-500 relative overflow-hidden'>
+                {/* Navigation Buttons - Only show if there are multiple offers */}
+                {specialOffers.length > 1 && (
+                    <>
+                        <button
+                            onClick={prevOffer}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors duration-200 z-10 bg-black/50 rounded-full p-1"
+                            disabled={isAnimating}
+                        >
+                            <FaChevronLeft />
+                        </button>
+                        <button
+                            onClick={nextOffer}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors duration-200 z-10 bg-black/50 rounded-full p-1"
+                            disabled={isAnimating}
+                        >
+                            <FaChevronRight />
+                        </button>
+                    </>
+                )}
+
+                <div className="relative max-w-4xl mx-auto px-8">
+                    {/* Animated Offer Text */}
+                    <div className={`transition-all duration-500 ease-in-out ${isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+                        <p className='font-bold text-white text-sm md:text-base'>
+                            {specialOffers[currentOfferIndex]}
+                            <Link
+                                to={'products'}
+                                className='ms-2 text-cyan-400 hover:text-cyan-300 font-extrabold transition-colors duration-200 inline-flex items-center gap-1'
+                            >
+                                SHOP NOW <span className="text-lg">→</span>
+                            </Link>
+                        </p>
+                    </div>
+
+                    {/* Dots Indicator - Only show if there are multiple offers */}
+                    {specialOffers.length > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-2">
+                            {specialOffers.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => goToOffer(index)}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentOfferIndex
+                                            ? 'bg-cyan-500 w-6'
+                                            : 'bg-gray-600 hover:bg-gray-500'
+                                        }`}
+                                    disabled={isAnimating}
+                                    aria-label={`Go to offer ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Progress Bar for Auto-Sliding */}
+                {specialOffers.length > 1 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800">
+                        <div
+                            className="h-full bg-cyan-500 transition-all duration-5000 ease-linear"
+                            style={{
+                                width: isAnimating ? '100%' : '0%',
+                                animation: isAnimating ? 'none' : 'progress 5s linear'
+                            }}
+                            key={currentOfferIndex}
+                        />
+                    </div>
+                )}
+
+                <style>{`
+                    @keyframes progress {
+                        from { width: 0%; }
+                        to { width: 100%; }
+                    }
+                `}</style>
+            </div>
+        )}
 
         <nav className="bg-black sticky w-full z-30 top-0 start-0 border-b-2 border-gray-800 shadow-2xl">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
