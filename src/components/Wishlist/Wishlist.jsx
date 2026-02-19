@@ -21,12 +21,41 @@ export default function Wishlist() {
     const [user, setUser] = useState(null);
     const [addedItems, setAddedItems] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
+
+    // Listen for theme changes
+    useEffect(() => {
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+        };
+
+        window.addEventListener('storage', checkTheme);
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setIsDarkMode(isDark);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => {
+            window.removeEventListener('storage', checkTheme);
+            observer.disconnect();
+        };
+    }, []);
 
     // Check user session
     useEffect(() => {
         checkUser();
 
-        // Check screen size for responsive adjustments
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
         };
@@ -47,12 +76,10 @@ export default function Wishlist() {
         }
     };
 
-    // Enhanced function to fetch wishlist items with real review data
     const fetchWishlistItems = async (userId) => {
         try {
             setLoading(true);
 
-            // First get wishlist items
             const { data: wishlistData, error: wishlistError } = await supabase
                 .from('wishlist_items')
                 .select('*')
@@ -66,10 +93,8 @@ export default function Wishlist() {
                 return;
             }
 
-            // Get product IDs from wishlist
             const productIds = wishlistData.map(item => item.product_id);
 
-            // Fetch products details
             const { data: productsData, error: productsError } = await supabase
                 .from('products')
                 .select(`
@@ -80,11 +105,9 @@ export default function Wishlist() {
 
             if (productsError) throw productsError;
 
-            // Fetch real review data for all products
             const productsWithReviews = await Promise.all(
                 productsData.map(async (product) => {
                     try {
-                        // Get feedback statistics from product_feedback_stats table
                         const { data: statsData, error: statsError } = await supabase
                             .from('product_feedback_stats')
                             .select('*')
@@ -95,7 +118,6 @@ export default function Wishlist() {
                             console.warn('No feedback stats for product:', product.id, statsError);
                         }
 
-                        // If no stats found, calculate manually from feedback table
                         let averageRating = product.ratingsAverage || 4.5;
                         let totalReviews = 0;
 
@@ -103,7 +125,6 @@ export default function Wishlist() {
                             averageRating = parseFloat(statsData.average_rating) || 0;
                             totalReviews = statsData.total_reviews || 0;
                         } else {
-                            // Fallback: calculate from product_feedback table
                             const { data: feedbackData, error: feedbackError } = await supabase
                                 .from('product_feedback')
                                 .select('rating')
@@ -132,7 +153,6 @@ export default function Wishlist() {
                 })
             );
 
-            // Combine data
             const formattedItems = wishlistData.map(wishlistItem => {
                 const product = productsWithReviews.find(p => p.id === wishlistItem.product_id);
 
@@ -155,26 +175,22 @@ export default function Wishlist() {
                     },
                     created_at: wishlistItem.created_at
                 };
-            }).filter(item => item !== null); // Remove null items
+            }).filter(item => item !== null);
 
             setWishlistItems(formattedItems);
         } catch (error) {
             console.error('Error fetching wishlist items:', error);
             toast.error('Failed to load wishlist items');
-
-            // Try alternative method
             await fetchWishlistItemsAlternative(userId);
         } finally {
             setLoading(false);
         }
     };
 
-    // Alternative method with integrated review data
     const fetchWishlistItemsAlternative = async (userId) => {
         try {
             setLoading(true);
 
-            // First fetch wishlist items with product details
             const { data: wishlistData, error } = await supabase
                 .from('wishlist_items')
                 .select(`
@@ -194,13 +210,11 @@ export default function Wishlist() {
                 return;
             }
 
-            // Fetch review data for all products in wishlist
             const productsWithReviews = await Promise.all(
                 wishlistData.map(async (item) => {
                     const product = item.products;
 
                     try {
-                        // Get feedback statistics
                         const { data: statsData, error: statsError } = await supabase
                             .from('product_feedback_stats')
                             .select('average_rating, total_reviews')
@@ -261,7 +275,6 @@ export default function Wishlist() {
         }
     };
 
-    // Fetch user's cart items
     const fetchUserCart = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -286,7 +299,6 @@ export default function Wishlist() {
                 return;
             }
 
-            // Check if product is already in cart
             const { data: existingItem, error: checkError } = await supabase
                 .from('cart_items')
                 .select('*')
@@ -299,7 +311,6 @@ export default function Wishlist() {
             }
 
             if (existingItem) {
-                // Update quantity
                 const { error: updateError } = await supabase
                     .from('cart_items')
                     .update({ quantity: existingItem.quantity + 1 })
@@ -308,7 +319,6 @@ export default function Wishlist() {
                 if (updateError) throw updateError;
                 toast.success("Product quantity updated in cart!");
             } else {
-                // Add new item to cart
                 const { error: insertError } = await supabase
                     .from('cart_items')
                     .insert({
@@ -321,10 +331,7 @@ export default function Wishlist() {
                 toast.success("Product added to cart!");
             }
 
-            // Update local state
             setAddedItems((prev) => [...prev, productId]);
-
-            // Refresh cart count
             fetchUserCart(user.id);
 
         } catch (error) {
@@ -349,7 +356,6 @@ export default function Wishlist() {
 
             if (error) throw error;
 
-            // Update local state
             setWishlistItems(prev => prev.filter(item => item.id !== wishlistItemId));
             toast.success("Product removed from wishlist!");
 
@@ -374,7 +380,6 @@ export default function Wishlist() {
 
             const toastId = toast.loading(`Adding ${wishlistItems.length} items to cart...`);
 
-            // Add each item to cart
             for (const item of wishlistItems) {
                 const { data: existingItem } = await supabase
                     .from('cart_items')
@@ -398,7 +403,6 @@ export default function Wishlist() {
                         });
                 }
 
-                // Remove from wishlist
                 await supabase
                     .from('wishlist_items')
                     .delete()
@@ -449,7 +453,6 @@ export default function Wishlist() {
         }
     };
 
-    // Check if product is in cart
     const isInCart = (productId) => {
         return addedItems.includes(productId);
     };
@@ -461,23 +464,37 @@ export default function Wishlist() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4 bg-black">
+            <div className={`min-h-screen flex items-center justify-center px-4 transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 <div className="text-center max-w-md w-full">
-                    <div className="text-gray-600 mb-6">
+                    <div className={`mb-6 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                         <FaHeart className="text-5xl sm:text-6xl mx-auto" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-4">Please Sign In</h3>
-                    <p className="text-gray-400 mb-6 px-4">You need to be signed in to view your wishlist</p>
+                    <h3 className={`text-xl font-semibold mb-4 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Please Sign In
+                    </h3>
+                    <p className={`mb-6 px-4 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        You need to be signed in to view your wishlist
+                    </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button
                             onClick={() => navigate('/login')}
-                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition text-sm sm:text-base"
+                            className={`px-6 py-3 text-white font-medium rounded-lg transition text-sm sm:text-base
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                         >
                             Sign In
                         </button>
                         <button
                             onClick={() => navigate('/')}
-                            className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition text-sm sm:text-base flex items-center justify-center gap-2"
+                            className={`px-6 py-3 border font-medium rounded-lg transition text-sm sm:text-base flex items-center justify-center gap-2
+                                ${isDarkMode
+                                    ? 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
                         >
                             <FaArrowLeft className="text-xs" />
                             Back to Home
@@ -490,21 +507,21 @@ export default function Wishlist() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                    <p className="text-white">Loading wishlist...</p>
+                    <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4
+                        ${isDarkMode ? 'border-cyan-500' : 'border-cyan-700'}`}></div>
+                    <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>Loading wishlist...</p>
                 </div>
             </div>
         );
     }
 
     return <>
-        {/* Products section */}
-        <section className='py-6 sm:py-8 lg:py-10 px-3 sm:px-4 md:px-6 lg:px-30 bg-black'>
+        <section className={`py-6 sm:py-8 lg:py-10 px-3 sm:px-4 md:px-6 lg:px-30 transition-colors duration-300
+            ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
 
-
-            {/* title */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -513,12 +530,22 @@ export default function Wishlist() {
             >
                 <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6'>
                     <div className='flex items-center gap-3 sm:gap-4'>
-                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-3 sm:w-[20px] h-6 sm:h-[40px] rounded-lg shadow-md'></div>
+                        <div className={`w-3 sm:w-[20px] h-6 sm:h-[40px] rounded-lg shadow-md transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                        </div>
                         <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4'>
-                            <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-extrabold text-base sm:text-lg md:text-xl tracking-wide'>
+                            <h1 className={`font-extrabold text-base sm:text-lg md:text-xl tracking-wide bg-gradient-to-r bg-clip-text text-transparent
+                                ${isDarkMode
+                                    ? 'from-cyan-400 to-cyan-300'
+                                    : 'from-cyan-700 to-cyan-600'}`}>
                                 My Wishlist
                             </h1>
-                            <span className="bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 text-xs font-medium px-2.5 py-1 rounded-full self-start">
+                            <span className={`text-xs font-medium px-2.5 py-1 rounded-full self-start transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
+                                    : 'bg-gradient-to-r from-cyan-200/60 to-cyan-100/60 text-cyan-800'}`}>
                                 {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'}
                             </span>
                         </div>
@@ -528,14 +555,20 @@ export default function Wishlist() {
                         <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                             <button
                                 onClick={moveAllToCart}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-sm font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition w-full sm:w-auto"
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition w-full sm:w-auto
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                        : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                             >
                                 <FaShoppingCart className="text-sm" />
                                 <span className="whitespace-nowrap">Add All to Cart</span>
                             </button>
                             <button
                                 onClick={clearWishlist}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white text-sm font-medium rounded-lg hover:from-gray-800 hover:to-gray-900 transition w-full sm:w-auto"
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition w-full sm:w-auto
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900'
+                                        : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700'}`}
                             >
                                 <FaTrash className="text-sm" />
                                 <span className="whitespace-nowrap">Clear All</span>
@@ -545,7 +578,6 @@ export default function Wishlist() {
                 </div>
             </motion.div>
 
-            {/* Products Grid - Responsive changes */}
             <motion.div
                 initial="hidden"
                 animate="show"
@@ -564,9 +596,11 @@ export default function Wishlist() {
                             transition={{ duration: 0.3 }}
                             className="h-full"
                         >
-                            {/* card */}
-                            <div className='cursor-pointer product bg-gray-900 p-3 sm:p-4 rounded-xl lg:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-800'>
-                                {/* Product Image */}
+                            <div className={`cursor-pointer p-3 sm:p-4 rounded-xl lg:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border
+                                ${isDarkMode
+                                    ? 'bg-gray-900 border-gray-800'
+                                    : 'bg-white border-gray-200'}`}>
+
                                 <Link to={`/productdetails/${item.product.id}`}>
                                     <div className="overflow-hidden rounded-lg lg:rounded-xl relative">
                                         <img
@@ -577,47 +611,58 @@ export default function Wishlist() {
                                                 e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
                                             }}
                                         />
-                                        {/* Subtle gradient overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-                                        {/* Mobile stock badge */}
                                         {item.product.stock <= 5 && item.product.stock > 0 && (
-                                            <span className="absolute top-2 left-2 bg-red-700 text-white text-xs px-2 py-1 rounded-full">
+                                            <span className={`absolute top-2 left-2 text-white text-xs px-2 py-1 rounded-full transition-colors duration-300
+                                                ${isDarkMode ? 'bg-red-700' : 'bg-red-600'}`}>
                                                 Low Stock
                                             </span>
                                         )}
                                     </div>
 
-                                    {/* Product Info */}
                                     <div className="mt-3 sm:mt-4 space-y-1.5">
-                                        <span className="inline-block text-[10px] xs:text-xs font-medium text-gray-400 uppercase tracking-widest truncate max-w-full">
+                                        <span className={`inline-block text-[10px] xs:text-xs font-medium uppercase tracking-widest truncate max-w-full transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                             {item.product.category}
                                         </span>
-                                        <h3 className="text-sm sm:text-base font-semibold text-white leading-tight sm:leading-snug line-clamp-2 min-h-[2.5rem] hover:bg-gradient-to-r hover:from-cyan-400 hover:to-cyan-300 hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                        <h3 className={`text-sm sm:text-base font-semibold leading-tight sm:leading-snug line-clamp-2 min-h-[2.5rem] transition-all duration-300
+                                            ${isDarkMode
+                                                ? 'text-white hover:bg-gradient-to-r hover:from-cyan-400 hover:to-cyan-300 hover:bg-clip-text hover:text-transparent'
+                                                : 'text-gray-900 hover:bg-gradient-to-r hover:from-cyan-700 hover:to-cyan-600 hover:bg-clip-text hover:text-transparent'}`}>
                                             {item.product.title}
                                         </h3>
 
                                         <div className="flex justify-between items-center mt-2">
                                             <div className="flex flex-col">
-                                                <span className="text-cyan-400 font-bold text-sm sm:text-base">EGP {item.product.price.toFixed(2)}</span>
+                                                <span className={`font-bold text-sm sm:text-base transition-colors duration-300
+                                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                                    EGP {item.product.price.toFixed(2)}
+                                                </span>
                                                 {isMobile && (
-                                                    <span className="text-[10px] text-gray-500 mt-0.5">
+                                                    <span className={`text-[10px] mt-0.5 transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
                                                         Stock: {item.product.stock}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="flex items-center text-cyan-500 text-xs sm:text-sm">
-                                                <FaStar className="mr-1 text-xs sm:text-sm" />
-                                                <span className="font-medium">{item.product.ratingsAverage.toFixed(1)}</span>
+                                            <div className="flex items-center text-xs sm:text-sm">
+                                                <FaStar className={`mr-1 text-xs sm:text-sm ${isDarkMode ? 'text-cyan-500' : 'text-cyan-700'}`} />
+                                                <span className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                                    {item.product.ratingsAverage.toFixed(1)}
+                                                </span>
                                                 {item.product.totalReviews > 0 && (
-                                                    <span className="text-gray-500 text-[10px] ml-1">
+                                                    <span className={`text-[10px] ml-1 transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
                                                         ({item.product.totalReviews})
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                         {!isMobile && (
-                                            <div className="text-xs text-gray-400 mt-1">
+                                            <div className={`text-xs mt-1 transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                 Stock: {item.product.stock}
                                                 {item.product.totalReviews > 0 && (
                                                     <span className="ml-2">
@@ -629,7 +674,6 @@ export default function Wishlist() {
                                     </div>
                                 </Link>
 
-                                {/* Action Buttons */}
                                 <div className="mt-4 sm:mt-5 flex justify-between items-center gap-2 sm:gap-3">
                                     <motion.button
                                         whileTap={{ scale: 0.95 }}
@@ -637,10 +681,16 @@ export default function Wishlist() {
                                         disabled={isInCart(item.product.id) || item.product.stock <= 0}
                                         className={`cursor-pointer flex-1 py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-xs sm:text-sm font-semibold shadow 
                                             ${isInCart(item.product.id)
-                                                ? "bg-gray-700 text-gray-300 cursor-not-allowed shadow-none"
+                                                ? isDarkMode
+                                                    ? "bg-gray-700 text-gray-300 cursor-not-allowed shadow-none"
+                                                    : "bg-gray-300 text-gray-600 cursor-not-allowed shadow-none"
                                                 : item.product.stock <= 0
-                                                    ? "bg-red-900/30 text-red-400 cursor-not-allowed"
-                                                    : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-md"}`}
+                                                    ? isDarkMode
+                                                        ? "bg-red-900/30 text-red-400 cursor-not-allowed"
+                                                        : "bg-red-100 text-red-600 cursor-not-allowed"
+                                                    : isDarkMode
+                                                        ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-md"
+                                                        : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 hover:shadow-md"}`}
                                     >
                                         {isInCart(item.product.id)
                                             ? "Added"
@@ -652,7 +702,10 @@ export default function Wishlist() {
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
                                         onClick={() => handleRemoveFromWishlist(item.id, item.product.id)}
-                                        className="cursor-pointer p-2 sm:p-2.5 rounded-full border border-cyan-500 bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 text-cyan-400 hover:scale-110 transition-colors duration-300 shadow-sm hover:shadow-md flex-shrink-0"
+                                        className={`cursor-pointer p-2 sm:p-2.5 rounded-full border hover:scale-110 transition-colors duration-300 shadow-sm hover:shadow-md flex-shrink-0
+                                            ${isDarkMode
+                                                ? 'border-cyan-500 bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 text-cyan-400'
+                                                : 'border-cyan-600 bg-gradient-to-r from-cyan-200/60 to-cyan-100/60 text-cyan-700'}`}
                                         aria-label="Remove from wishlist"
                                     >
                                         <FaHeart className="text-sm sm:text-lg" />
@@ -667,23 +720,34 @@ export default function Wishlist() {
                         animate={{ opacity: 1 }}
                         className="col-span-full text-center py-10 sm:py-16 px-4"
                     >
-                        <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 text-gray-600">
+                        <div className={`w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 transition-colors duration-300
+                            ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                             <FaRegHeart className="text-6xl sm:text-8xl" />
                         </div>
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-2">Your wishlist is empty</h3>
-                        <p className="text-gray-400 mb-6 text-sm sm:text-base max-w-md mx-auto">
+                        <h3 className={`text-lg sm:text-xl md:text-2xl font-semibold mb-2 transition-colors duration-300
+                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            Your wishlist is empty
+                        </h3>
+                        <p className={`mb-6 text-sm sm:text-base max-w-md mx-auto transition-colors duration-300
+                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                             Start adding your favorite SportFlex items to your wishlist!
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <Link
                                 to="/products"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-colors duration-300 text-sm sm:text-base"
+                                className={`inline-flex items-center justify-center px-6 py-3 text-white font-medium rounded-lg transition-colors duration-300 text-sm sm:text-base
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                        : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                             >
                                 Browse Products
                             </Link>
                             <button
                                 onClick={() => navigate('/')}
-                                className="inline-flex items-center justify-center px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition text-sm sm:text-base"
+                                className={`inline-flex items-center justify-center px-6 py-3 border font-medium rounded-lg transition text-sm sm:text-base
+                                    ${isDarkMode
+                                        ? 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                                        : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
                             >
                                 Go to Homepage
                             </button>
@@ -692,12 +756,14 @@ export default function Wishlist() {
                 )}
             </motion.div>
 
-            {/* Mobile floating action button for empty wishlist */}
             {isMobile && wishlistItems.length === 0 && (
                 <div className="fixed bottom-6 left-0 right-0 px-4 z-10">
                     <Link
                         to="/products"
-                        className="block w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg text-center shadow-lg"
+                        className={`block w-full py-3 text-white font-medium rounded-lg text-center shadow-lg transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}
                     >
                         Browse Products
                     </Link>

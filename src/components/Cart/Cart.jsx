@@ -1,4 +1,3 @@
-// Cart.jsx
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
@@ -15,7 +14,37 @@ export default function Cart() {
     const [isLoading, setIsLoading] = useState(true)
     const [cartItems, setCartItems] = useState([])
     const [user, setUser] = useState(null)
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
     const navigate = useNavigate()
+
+    // Listen for theme changes
+    useEffect(() => {
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+        };
+
+        window.addEventListener('storage', checkTheme);
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setIsDarkMode(isDark);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => {
+            window.removeEventListener('storage', checkTheme);
+            observer.disconnect();
+        };
+    }, []);
 
     // Check user session
     useEffect(() => {
@@ -287,16 +316,23 @@ export default function Cart() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 <div className="text-center">
-                    <div className="text-gray-600 mb-4">
+                    <div className={`mb-4 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                         <FaShoppingCart className="text-6xl" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-3">Please Sign In</h3>
-                    <p className="text-gray-400 mb-6">You need to be signed in to view your cart</p>
+                    <h3 className={`text-xl font-semibold mb-3 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Please Sign In</h3>
+                    <p className={`mb-6 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>You need to be signed in to view your cart</p>
                     <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition"
+                        className={`px-6 py-3 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                     >
                         Sign In
                     </button>
@@ -306,13 +342,19 @@ export default function Cart() {
     }
 
     return (
-        <section className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-20">
+        <section className={`min-h-screen py-8 px-4 sm:px-6 lg:px-20 transition-colors duration-300
+            ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
             {/* Loading Overlay */}
             {isLoading && (
-                <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-                    <div className="bg-gray-900 p-6 rounded-lg shadow-xl flex items-center border border-gray-800">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500 mr-3"></div>
-                        <span className="text-white">Loading cart...</span>
+                <div className={`fixed inset-0 bg-opacity-20 flex items-center justify-center z-50
+                    ${isDarkMode ? 'bg-black' : 'bg-gray-900'}`}>
+                    <div className={`p-6 rounded-lg shadow-xl flex items-center border transition-colors duration-300
+                        ${isDarkMode
+                            ? 'bg-gray-900 border-gray-800'
+                            : 'bg-white border-gray-200'}`}>
+                        <div className={`animate-spin rounded-full h-6 w-6 border-b-2 mr-3
+                            ${isDarkMode ? 'border-cyan-500' : 'border-cyan-700'}`}></div>
+                        <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>Loading cart...</span>
                     </div>
                 </div>
             )}
@@ -324,22 +366,35 @@ export default function Cart() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 mb-2"
                 >
-                    <div className="bg-gradient-to-r from-cyan-500 to-cyan-400 w-5 h-10 rounded-md"></div>
-                    <h1 className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-extrabold text-2xl tracking-wide">
+                    <div className={`w-5 h-10 rounded-md transition-colors duration-300
+                        ${isDarkMode
+                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                            : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}></div>
+                    <h1 className={`font-extrabold text-2xl tracking-wide bg-gradient-to-r bg-clip-text text-transparent
+                        ${isDarkMode
+                            ? 'from-cyan-400 to-cyan-300'
+                            : 'from-cyan-700 to-cyan-600'}`}>
                         Shopping Cart
                     </h1>
-                    <span className="bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 text-xs font-medium px-2.5 py-1 rounded-full">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors duration-300
+                        ${isDarkMode
+                            ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
+                            : 'bg-gradient-to-r from-cyan-100 to-cyan-50 text-cyan-700'}`}>
                         {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
                     </span>
                 </motion.div>
-                <p className="text-gray-400 mb-8 ml-8">Review your SportFlex items and proceed to checkout</p>
+                <p className={`mb-8 ml-8 transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Review your SportFlex items and proceed to checkout</p>
 
                 {/* Cart Container */}
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Cart Items */}
                     <div className="lg:w-2/3">
                         {/* Desktop Headers */}
-                        <div className="hidden md:grid grid-cols-12 gap-4 bg-gray-900 rounded-xl shadow-sm p-6 mb-4 text-gray-400 font-medium text-sm uppercase tracking-wide border border-gray-800">
+                        <div className={`hidden md:grid grid-cols-12 gap-4 rounded-xl shadow-sm p-6 mb-4 text-sm font-medium uppercase tracking-wide border transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gray-900 text-gray-400 border-gray-800'
+                                : 'bg-white text-gray-600 border-gray-200'}`}>
                             <div className="col-span-5">Product</div>
                             <div className="col-span-2 text-center">Price</div>
                             <div className="col-span-3 text-center">Quantity</div>
@@ -361,48 +416,67 @@ export default function Cart() {
                                     <motion.div
                                         key={item.id}
                                         variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-                                        className="bg-gray-900 rounded-xl shadow-sm p-4 md:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 items-center border border-gray-800"
+                                        className={`rounded-xl shadow-sm p-4 md:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 items-center border transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'bg-gray-900 border-gray-800'
+                                                : 'bg-white border-gray-200'}`}
                                     >
                                         {/* Product Info */}
                                         <div className="md:col-span-5 flex items-center gap-4">
                                             <img
                                                 src={item.product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
-                                                className="w-20 h-20 object-cover rounded-lg border border-gray-800"
+                                                className={`w-20 h-20 object-cover rounded-lg border transition-colors duration-300
+                                                    ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}
                                                 alt={item.product.title}
                                                 onError={(e) => {
                                                     e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop';
                                                 }}
                                             />
                                             <div>
-                                                <h3 className="font-medium text-white line-clamp-2">{item.product.title}</h3>
-                                                <p className="text-gray-400 text-sm mt-1">{item.product.category}</p>
+                                                <h3 className={`font-medium line-clamp-2 transition-colors duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.product.title}</h3>
+                                                <p className={`text-sm mt-1 transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{item.product.category}</p>
                                             </div>
                                         </div>
 
                                         {/* Price */}
                                         <div className="md:col-span-2 flex justify-start md:justify-center">
-                                            <span className="text-white font-medium md:hidden mr-2">Price: </span>
-                                            <p className="text-cyan-400 font-semibold">EGP {item.price.toFixed(2)}</p>
+                                            <span className={`font-medium md:hidden mr-2 transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Price: </span>
+                                            <p className={`font-semibold transition-colors duration-300
+                                                ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>EGP {item.price.toFixed(2)}</p>
                                         </div>
 
                                         {/* Quantity Selector */}
                                         <div className="md:col-span-3 flex items-center justify-start md:justify-center">
-                                            <span className="text-white font-medium md:hidden mr-2">Qty: </span>
-                                            <div className="flex items-center border border-gray-700 rounded-lg w-28 h-10 justify-between bg-gray-800">
+                                            <span className={`font-medium md:hidden mr-2 transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Qty: </span>
+                                            <div className={`flex items-center border rounded-lg w-28 h-10 justify-between transition-colors duration-300
+                                                ${isDarkMode
+                                                    ? 'border-gray-700 bg-gray-800'
+                                                    : 'border-gray-200 bg-white'}`}>
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, -1)}
                                                     disabled={isLoading}
-                                                    className="px-3 text-gray-400 cursor-pointer hover:text-cyan-400 transition h-full flex items-center hover:bg-gray-700 rounded-l-lg"
+                                                    className={`px-3 cursor-pointer transition h-full flex items-center rounded-l-lg
+                                                        ${isDarkMode
+                                                            ? 'text-gray-400 hover:text-cyan-400 hover:bg-gray-700'
+                                                            : 'text-gray-600 hover:text-cyan-700 hover:bg-gray-100'}`}
                                                 >
                                                     -
                                                 </button>
-                                                <span className="font-medium text-white">{item.quantity}</span>
+                                                <span className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, 1)}
                                                     disabled={isLoading || item.product.stock <= item.quantity}
-                                                    className={`px-3 cursor-pointer transition h-full flex items-center hover:bg-gray-700 rounded-r-lg ${item.product.stock <= item.quantity
-                                                        ? 'text-gray-600 cursor-not-allowed'
-                                                        : 'text-gray-400 hover:text-cyan-400'
+                                                    className={`px-3 cursor-pointer transition h-full flex items-center rounded-r-lg
+                                                        ${item.product.stock <= item.quantity
+                                                            ? 'text-gray-600 cursor-not-allowed'
+                                                            : isDarkMode
+                                                                ? 'text-gray-400 hover:text-cyan-400 hover:bg-gray-700'
+                                                                : 'text-gray-600 hover:text-cyan-700 hover:bg-gray-100'
                                                         }`}
                                                 >
                                                     +
@@ -412,11 +486,13 @@ export default function Cart() {
 
                                         {/* Subtotal and Actions */}
                                         <div className="md:col-span-2 flex items-center justify-between">
-
                                             <div className="flex gap-3 items-center">
                                                 <button
                                                     onClick={() => moveToWishlist(item.product.id)}
-                                                    className="text-gray-400 cursor-pointer hover:text-cyan-400 transition hover:scale-110"
+                                                    className={`cursor-pointer transition hover:scale-110
+                                                        ${isDarkMode
+                                                            ? 'text-gray-400 hover:text-cyan-400'
+                                                            : 'text-gray-600 hover:text-cyan-700'}`}
                                                     disabled={isLoading}
                                                     title="Move to wishlist"
                                                 >
@@ -424,15 +500,20 @@ export default function Cart() {
                                                 </button>
                                                 <button
                                                     onClick={() => removeItem(item.id)}
-                                                    className="text-gray-400 cursor-pointer hover:text-cyan-400 transition hover:scale-110"
+                                                    className={`cursor-pointer transition hover:scale-110
+                                                        ${isDarkMode
+                                                            ? 'text-gray-400 hover:text-cyan-400'
+                                                            : 'text-gray-600 hover:text-cyan-700'}`}
                                                     disabled={isLoading}
                                                     title="Remove item"
                                                 >
                                                     <FaTrash />
                                                 </button>
                                                 <div>
-                                                    <span className="text-white font-medium md:hidden">Subtotal: </span>
-                                                    <p className="text-cyan-400 font-semibold">EGP {item.subtotal.toFixed(2)}</p>
+                                                    <span className={`font-medium md:hidden transition-colors duration-300
+                                                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Subtotal: </span>
+                                                    <p className={`font-semibold transition-colors duration-300
+                                                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>EGP {item.subtotal.toFixed(2)}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -440,15 +521,24 @@ export default function Cart() {
                                 ))}
                             </motion.div>
                         ) : (
-                            <div className="bg-gray-900 rounded-xl shadow-sm p-8 text-center border border-gray-800">
-                                <div className="text-gray-600 mb-4">
+                            <div className={`rounded-xl shadow-sm p-8 text-center border transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gray-900 border-gray-800'
+                                    : 'bg-white border-gray-200'}`}>
+                                <div className={`mb-4 transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                                     <FaShoppingCart className="text-6xl" />
                                 </div>
-                                <h3 className="text-xl font-medium text-white mb-2">Your cart is empty</h3>
-                                <p className="text-gray-400 mb-6">Looks like you haven't added any SportFlex items to your cart yet.</p>
+                                <h3 className={`text-xl font-medium mb-2 transition-colors duration-300
+                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Your cart is empty</h3>
+                                <p className={`mb-6 transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Looks like you haven't added any SportFlex items to your cart yet.</p>
                                 <Link
                                     to="/products"
-                                    className="inline-flex items-center px-5 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition"
+                                    className={`inline-flex items-center px-5 py-3 text-white font-medium rounded-lg transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                                 >
                                     Browse SportFlex
                                 </Link>
@@ -462,26 +552,39 @@ export default function Cart() {
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="bg-gray-900 rounded-xl shadow-sm p-6 sticky top-6 border border-gray-800"
+                                className={`rounded-xl shadow-sm p-6 sticky top-6 border transition-colors duration-300
+                                    ${isDarkMode
+                                        ? 'bg-gray-900 border-gray-800'
+                                        : 'bg-white border-gray-200'}`}
                             >
-                                <h2 className="text-xl font-semibold text-white mb-6 pb-4 border-b border-gray-800">Order Summary</h2>
+                                <h2 className={`text-xl font-semibold mb-6 pb-4 border-b transition-colors duration-300
+                                    ${isDarkMode ? 'text-white border-gray-800' : 'text-gray-900 border-gray-200'}`}>Order Summary</h2>
 
                                 <div className="space-y-4 mb-6">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-400">Subtotal</span>
-                                        <span className="font-medium text-white">EGP {subtotal.toFixed(2)}</span>
+                                        <span className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Subtotal</span>
+                                        <span className={`font-medium transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {subtotal.toFixed(2)}</span>
                                     </div>
                                     {/* Shipping line REMOVED - Will be calculated in checkout */}
                                     {/* Tax line already removed previously */}
-                                    <div className="pt-4 border-t border-gray-800">
+                                    <div className={`pt-4 border-t transition-colors duration-300
+                                        ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                                         <div className="flex justify-between mb-2">
-                                            <span className="text-sm text-gray-500">Shipping will be calculated at checkout</span>
+                                            <span className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Shipping will be calculated at checkout</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-lg font-semibold text-white">Total</span>
-                                            <span className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">EGP {total.toFixed(2)}</span>
+                                            <span className={`text-lg font-semibold transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total</span>
+                                            <span className={`text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                                ${isDarkMode
+                                                    ? 'from-cyan-400 to-cyan-300'
+                                                    : 'from-cyan-700 to-cyan-600'}`}>EGP {total.toFixed(2)}</span>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-2">
+                                        <p className={`text-xs mt-2 transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                                             *Shipping costs vary by location and will be added during checkout
                                         </p>
                                     </div>
@@ -490,21 +593,30 @@ export default function Cart() {
                                 <div className="space-y-3">
                                     <button
                                         onClick={handleCheckout}
-                                        className="block w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-center font-semibold py-3 rounded-lg shadow-md hover:from-cyan-600 hover:to-cyan-700 transition"
+                                        className={`block w-full text-white text-center font-semibold py-3 rounded-lg shadow-md transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                                     >
                                         Proceed to Checkout
                                     </button>
 
                                     <button
                                         onClick={handleClearCart}
-                                        className="block w-full border border-gray-700 text-gray-300 text-center font-medium py-3 rounded-lg hover:bg-gray-800 transition"
+                                        className={`block w-full text-center font-medium py-3 rounded-lg border transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                                     >
                                         Clear Cart
                                     </button>
 
                                     <Link
                                         to="/products"
-                                        className="flex items-center justify-center text-cyan-400 font-medium py-2 hover:text-cyan-300 transition"
+                                        className={`flex items-center justify-center font-medium py-2 transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'text-cyan-400 hover:text-cyan-300'
+                                                : 'text-cyan-700 hover:text-cyan-800'}`}
                                     >
                                         Continue Shopping
                                     </Link>

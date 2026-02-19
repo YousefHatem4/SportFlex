@@ -49,8 +49,38 @@ export default function Checkout() {
   const [appliedPromo, setAppliedPromo] = useState(null)
   const [promoLoading, setPromoLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cash') // 'cash' or 'online'
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? savedTheme === 'dark' : true;
+  });
 
   const navigate = useNavigate();
+
+  // Listen for theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      const savedTheme = localStorage.getItem('theme');
+      setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+    };
+
+    window.addEventListener('storage', checkTheme);
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const isDark = document.documentElement.classList.contains('dark');
+          setIsDarkMode(isDark);
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => {
+      window.removeEventListener('storage', checkTheme);
+      observer.disconnect();
+    };
+  }, []);
 
   // Fetch user session, cart items, and shipping costs
   useEffect(() => {
@@ -388,46 +418,71 @@ export default function Checkout() {
 
   if (!cartItems.length) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+        ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading checkout...</p>
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4
+            ${isDarkMode ? 'border-cyan-500' : 'border-cyan-700'}`}></div>
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Loading checkout...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className={`min-h-screen transition-colors duration-300
+      ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
+
       {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center">
-          <div className="bg-gray-900/95 backdrop-blur-sm p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm mx-4 border border-gray-800">
+        <div className={`fixed inset-0 bg-opacity-40 backdrop-blur-md z-50 flex items-center justify-center
+          ${isDarkMode ? 'bg-black' : 'bg-gray-900'}`}>
+          <div className={`p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm mx-4 border transition-colors duration-300
+            ${isDarkMode
+              ? 'bg-gray-900/95 border-gray-800'
+              : 'bg-white/95 border-gray-200'}`}>
             <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500/20"></div>
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-cyan-500 absolute top-0 left-0"></div>
+              <div className={`animate-spin rounded-full h-16 w-16 border-4
+                ${isDarkMode ? 'border-cyan-500/20' : 'border-cyan-700/20'}`}></div>
+              <div className={`animate-spin rounded-full h-16 w-16 border-4 border-t-current absolute top-0 left-0
+                ${isDarkMode ? 'border-t-cyan-500' : 'border-t-cyan-700'}`}></div>
             </div>
-            <p className="text-white font-semibold mt-6 text-lg">Processing your order</p>
-            <p className="text-gray-400 text-sm mt-2 text-center">Please don't close this window<br />This may take a few moments</p>
+            <p className={`font-semibold mt-6 text-lg transition-colors duration-300
+              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Processing your order</p>
+            <p className={`text-sm mt-2 text-center transition-colors duration-300
+              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Please don't close this window<br />This may take a few moments</p>
           </div>
         </div>
       )}
 
       {/* Elegant Header */}
-      <div className="relative bg-gradient-to-r from-gray-900 to-gray-800/80 backdrop-blur-sm border-b border-gray-800/50">
+      <div className={`relative border-b transition-colors duration-300
+        ${isDarkMode
+          ? 'bg-gradient-to-r from-gray-900 to-gray-800/80 border-gray-800/50'
+          : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+
         {/* Subtle background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-cyan-500/5"></div>
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent"></div>
+        <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-cyan-500/5
+          ${isDarkMode ? 'from-cyan-500/5' : 'from-cyan-700/5'}`}></div>
+        <div className={`absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent
+          ${isDarkMode ? 'via-cyan-500/20' : 'via-cyan-700/20'}`}></div>
 
         <div className="relative max-w-6xl mx-auto px-5 lg:px-30 py-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg shadow-lg"></div>
-              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+              <div className={`w-[20px] h-[40px] rounded-lg shadow-lg transition-colors duration-300
+                ${isDarkMode
+                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                  : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}></div>
+              <h1 className={`text-3xl lg:text-4xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                ${isDarkMode
+                  ? 'from-cyan-400 to-cyan-300'
+                  : 'from-cyan-700 to-cyan-600'}`}>
                 Complete Your Order
               </h1>
             </div>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className={`text-lg max-w-2xl mx-auto leading-relaxed transition-colors duration-300
+              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               You're just one step away from getting your favorite SportFlex delivered to your doorstep
             </p>
           </div>
@@ -440,21 +495,30 @@ export default function Checkout() {
           <div className="lg:col-span-3">
             <form onSubmit={formik.handleSubmit} className="space-y-8">
               {/* Customer Information */}
-              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className={`rounded-3xl shadow-lg border p-8 lg:p-10 hover:shadow-xl transition-all duration-300
+                ${isDarkMode
+                  ? 'bg-gray-900/80 backdrop-blur-sm border-gray-800/50'
+                  : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg
+                    ${isDarkMode
+                      ? 'bg-gradient-to-br from-cyan-500 to-cyan-400'
+                      : 'bg-gradient-to-br from-cyan-700 to-cyan-600'}`}>
                     <FaUser className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Personal Information</h2>
-                    <p className="text-gray-400">Tell us who you are</p>
+                    <h2 className={`text-2xl font-bold transition-colors duration-300
+                      ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Personal Information</h2>
+                    <p className={`transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tell us who you are</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* First Name */}
                   <div className="space-y-2">
-                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-300">
+                    <label htmlFor="firstName" className={`block text-sm font-semibold transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       First Name *
                     </label>
                     <input
@@ -464,10 +528,16 @@ export default function Checkout() {
                       value={formik.values.firstName}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.firstName && formik.errors.firstName
-                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                        } focus:outline-none placeholder-gray-500`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                        ${isDarkMode
+                          ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                          : 'text-gray-900 bg-gray-50'} 
+                        ${formik.touched.firstName && formik.errors.firstName
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : isDarkMode
+                            ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                            : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                        }`}
                       placeholder="Enter your first name"
                     />
                     {formik.touched.firstName && formik.errors.firstName && (
@@ -480,7 +550,8 @@ export default function Checkout() {
 
                   {/* Last Name */}
                   <div className="space-y-2">
-                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-300">
+                    <label htmlFor="lastName" className={`block text-sm font-semibold transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Last Name *
                     </label>
                     <input
@@ -490,10 +561,16 @@ export default function Checkout() {
                       value={formik.values.lastName}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.lastName && formik.errors.lastName
-                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                        } focus:outline-none placeholder-gray-500`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                        ${isDarkMode
+                          ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                          : 'text-gray-900 bg-gray-50'} 
+                        ${formik.touched.lastName && formik.errors.lastName
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : isDarkMode
+                            ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                            : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                        }`}
                       placeholder="Enter your last name"
                     />
                     {formik.touched.lastName && formik.errors.lastName && (
@@ -506,7 +583,8 @@ export default function Checkout() {
 
                   {/* Email */}
                   <div className="md:col-span-2 space-y-2">
-                    <label htmlFor="email" className="block text-sm font-semibold text-gray-300">
+                    <label htmlFor="email" className={`block text-sm font-semibold transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Email Address *
                     </label>
                     <input
@@ -516,10 +594,16 @@ export default function Checkout() {
                       value={formik.values.email}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.email && formik.errors.email
-                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                        } focus:outline-none placeholder-gray-500`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                        ${isDarkMode
+                          ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                          : 'text-gray-900 bg-gray-50'} 
+                        ${formik.touched.email && formik.errors.email
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : isDarkMode
+                            ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                            : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                        }`}
                       placeholder="your.email@example.com"
                     />
                     {formik.touched.email && formik.errors.email && (
@@ -533,21 +617,30 @@ export default function Checkout() {
               </div>
 
               {/* Shipping Information */}
-              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className={`rounded-3xl shadow-lg border p-8 lg:p-10 hover:shadow-xl transition-all duration-300
+                ${isDarkMode
+                  ? 'bg-gray-900/80 backdrop-blur-sm border-gray-800/50'
+                  : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg
+                    ${isDarkMode
+                      ? 'bg-gradient-to-br from-cyan-500 to-cyan-400'
+                      : 'bg-gradient-to-br from-cyan-700 to-cyan-600'}`}>
                     <FaMapMarkerAlt className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Delivery Address</h2>
-                    <p className="text-gray-400">Where should we send your order?</p>
+                    <h2 className={`text-2xl font-bold transition-colors duration-300
+                      ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Delivery Address</h2>
+                    <p className={`transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Where should we send your order?</p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   {/* Address */}
                   <div className="space-y-2">
-                    <label htmlFor="details" className="block text-sm font-semibold text-gray-300">
+                    <label htmlFor="details" className={`block text-sm font-semibold transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Street Address *
                     </label>
                     <input
@@ -559,10 +652,16 @@ export default function Checkout() {
                         formik.handleChange(e);
                       }}
                       onBlur={formik.handleBlur}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.details && formik.errors.details
-                        ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                        : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                        } focus:outline-none placeholder-gray-500`}
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                        ${isDarkMode
+                          ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                          : 'text-gray-900 bg-gray-50'} 
+                        ${formik.touched.details && formik.errors.details
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : isDarkMode
+                            ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                            : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                        }`}
                       placeholder="Enter your complete address with landmarks"
                     />
                     {formik.touched.details && formik.errors.details && (
@@ -575,7 +674,8 @@ export default function Checkout() {
 
                   {/* Governorate Selection */}
                   <div className="space-y-2">
-                    <label htmlFor="governorate" className="block text-sm font-semibold text-gray-300">
+                    <label htmlFor="governorate" className={`block text-sm font-semibold transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Governorate *
                     </label>
                     <select
@@ -583,27 +683,36 @@ export default function Checkout() {
                       value={selectedGovernorate}
                       onChange={(e) => setSelectedGovernorate(e.target.value)}
                       required
-                      className="w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600 focus:outline-none"
+                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none
+                        ${isDarkMode
+                          ? 'text-white bg-gray-800/70 backdrop-blur-sm border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                          : 'text-gray-900 bg-gray-50 border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'}`}
                     >
-                      <option value="" className="bg-gray-900">Select your governorate</option>
+                      <option value="" className={isDarkMode ? 'bg-gray-900' : 'bg-white'}>Select your governorate</option>
                       {shippingCosts.map((governorate) => (
-                        <option key={governorate.id} value={governorate.governorate} className="bg-gray-900">
+                        <option key={governorate.id} value={governorate.governorate} className={isDarkMode ? 'bg-gray-900' : 'bg-white'}>
                           {governorate.governorate} - EGP {governorate.cost.toFixed(2)} ({governorate.delivery_days} days)
                         </option>
                       ))}
                     </select>
                     {selectedGovernorate && shippingCosts.find(g => g.governorate === selectedGovernorate) && (
-                      <div className="mt-2 p-3 bg-cyan-900/30 rounded-xl border border-cyan-800/50">
+                      <div className={`mt-2 p-3 rounded-xl border transition-colors duration-300
+                        ${isDarkMode
+                          ? 'bg-cyan-900/30 border-cyan-800/50'
+                          : 'bg-cyan-50 border-cyan-200'}`}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-cyan-400">
+                            <p className={`text-sm font-medium transition-colors duration-300
+                              ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                               Shipping to {selectedGovernorate}
                             </p>
-                            <p className="text-xs text-cyan-500">
+                            <p className={`text-xs transition-colors duration-300
+                              ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'}`}>
                               Delivery within {shippingCosts.find(g => g.governorate === selectedGovernorate).delivery_days} days
                             </p>
                           </div>
-                          <div className="text-cyan-400 font-bold">
+                          <div className={`font-bold transition-colors duration-300
+                            ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                             EGP {shippingCosts.find(g => g.governorate === selectedGovernorate).cost.toFixed(2)}
                           </div>
                         </div>
@@ -614,7 +723,8 @@ export default function Checkout() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* City */}
                     <div className="space-y-2">
-                      <label htmlFor="city" className="block text-sm font-semibold text-gray-300">
+                      <label htmlFor="city" className={`block text-sm font-semibold transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                         City/District *
                       </label>
                       <input
@@ -624,10 +734,16 @@ export default function Checkout() {
                         value={formik.values.city}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.city && formik.errors.city
-                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                          : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                          } focus:outline-none placeholder-gray-500`}
+                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                          ${isDarkMode
+                            ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                            : 'text-gray-900 bg-gray-50'} 
+                          ${formik.touched.city && formik.errors.city
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                            : isDarkMode
+                              ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                              : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                          }`}
                         placeholder="Enter your city or district"
                       />
                       {formik.touched.city && formik.errors.city && (
@@ -640,7 +756,8 @@ export default function Checkout() {
 
                     {/* Phone */}
                     <div className="space-y-2">
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-300">
+                      <label htmlFor="phone" className={`block text-sm font-semibold transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                         Phone Number (Egyptian) *
                       </label>
                       <input
@@ -650,10 +767,16 @@ export default function Checkout() {
                         value={formik.values.phone}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 text-white bg-gray-800/70 backdrop-blur-sm ${formik.touched.phone && formik.errors.phone
-                          ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                          : 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
-                          } focus:outline-none placeholder-gray-500`}
+                        className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 focus:outline-none placeholder-gray-500
+                          ${isDarkMode
+                            ? 'text-white bg-gray-800/70 backdrop-blur-sm'
+                            : 'text-gray-900 bg-gray-50'} 
+                          ${formik.touched.phone && formik.errors.phone
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                            : isDarkMode
+                              ? 'border-gray-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 hover:border-gray-600'
+                              : 'border-gray-200 focus:border-cyan-700 focus:ring-4 focus:ring-cyan-700/10 hover:border-gray-300'
+                          }`}
                         placeholder="01XXXXXXXXX"
                       />
                       {formik.touched.phone && formik.errors.phone && (
@@ -662,21 +785,30 @@ export default function Checkout() {
                           {formik.errors.phone}
                         </p>
                       )}
-                      <p className="text-xs text-gray-500">Must be an Egyptian number starting with 01 (11 digits)</p>
+                      <p className={`text-xs transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Must be an Egyptian number starting with 01 (11 digits)</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Payment Method Selection */}
-              <div className="bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-800/50 p-8 lg:p-10 hover:shadow-xl transition-all duration-500">
+              <div className={`rounded-3xl shadow-lg border p-8 lg:p-10 hover:shadow-xl transition-all duration-300
+                ${isDarkMode
+                  ? 'bg-gray-900/80 backdrop-blur-sm border-gray-800/50'
+                  : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg
+                    ${isDarkMode
+                      ? 'bg-gradient-to-br from-purple-600 to-blue-600'
+                      : 'bg-gradient-to-br from-purple-800 to-blue-800'}`}>
                     <FaCreditCard className="text-white text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Payment Method</h2>
-                    <p className="text-gray-400">Choose how you want to pay</p>
+                    <h2 className={`text-2xl font-bold transition-colors duration-300
+                      ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Payment Method</h2>
+                    <p className={`transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Choose how you want to pay</p>
                   </div>
                 </div>
 
@@ -686,38 +818,64 @@ export default function Checkout() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('cash')}
-                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left ${paymentMethod === 'cash'
-                      ? 'border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg'
-                      : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left 
+                      ${paymentMethod === 'cash'
+                        ? isDarkMode
+                          ? 'border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5 shadow-lg'
+                          : 'border-green-600 bg-gradient-to-br from-green-50 to-green-100/50 shadow-lg'
+                        : isDarkMode
+                          ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === 'cash'
-                        ? 'bg-green-900/30 border border-green-800/50'
-                        : 'bg-gray-800 border border-gray-700'
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center 
+                        ${paymentMethod === 'cash'
+                          ? isDarkMode
+                            ? 'bg-green-900/30 border border-green-800/50'
+                            : 'bg-green-100 border border-green-200'
+                          : isDarkMode
+                            ? 'bg-gray-800 border border-gray-700'
+                            : 'bg-gray-100 border border-gray-200'
                         }`}>
-                        <FaMoneyBill className={`text-xl ${paymentMethod === 'cash' ? 'text-green-400' : 'text-gray-400'}`} />
+                        <FaMoneyBill className={`text-xl 
+                          ${paymentMethod === 'cash'
+                            ? isDarkMode ? 'text-green-400' : 'text-green-700'
+                            : isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`} />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-white text-lg mb-1">Cash on Delivery</h3>
-                        <p className="text-sm text-gray-400 mb-2">Pay when you receive your order</p>
+                        <h3 className={`font-bold text-lg mb-1 transition-colors duration-300
+                          ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cash on Delivery</h3>
+                        <p className={`text-sm mb-2 transition-colors duration-300
+                          ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pay when you receive your order</p>
                         <div className="flex flex-wrap gap-1">
-                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'cash'
-                            ? 'bg-green-900/50 text-green-300'
-                            : 'bg-gray-700 text-gray-300'
+                          <span className={`text-xs px-2 py-1 rounded-full 
+                            ${paymentMethod === 'cash'
+                              ? isDarkMode
+                                ? 'bg-green-900/50 text-green-300'
+                                : 'bg-green-100 text-green-700'
+                              : isDarkMode
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-100 text-gray-600'
                             }`}>
                             No fees
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'cash'
-                            ? 'bg-green-900/50 text-green-300'
-                            : 'bg-gray-700 text-gray-300'
+                          <span className={`text-xs px-2 py-1 rounded-full 
+                            ${paymentMethod === 'cash'
+                              ? isDarkMode
+                                ? 'bg-green-900/50 text-green-300'
+                                : 'bg-green-100 text-green-700'
+                              : isDarkMode
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-100 text-gray-600'
                             }`}>
                             Available everywhere
                           </span>
                         </div>
                       </div>
                       {paymentMethod === 'cash' && (
-                        <div className="text-green-400">
+                        <div className={isDarkMode ? 'text-green-400' : 'text-green-700'}>
                           <FaCheckCircle className="text-xl" />
                         </div>
                       )}
@@ -728,38 +886,64 @@ export default function Checkout() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('online')}
-                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left ${paymentMethod === 'online'
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-500/5 shadow-lg'
-                      : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                    className={`p-5 rounded-2xl border-2 transition-all duration-300 text-left 
+                      ${paymentMethod === 'online'
+                        ? isDarkMode
+                          ? 'border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-500/5 shadow-lg'
+                          : 'border-blue-600 bg-gradient-to-br from-blue-50 to-blue-100/50 shadow-lg'
+                        : isDarkMode
+                          ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === 'online'
-                        ? 'bg-blue-900/30 border border-blue-800/50'
-                        : 'bg-gray-800 border border-gray-700'
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center 
+                        ${paymentMethod === 'online'
+                          ? isDarkMode
+                            ? 'bg-blue-900/30 border border-blue-800/50'
+                            : 'bg-blue-100 border border-blue-200'
+                          : isDarkMode
+                            ? 'bg-gray-800 border border-gray-700'
+                            : 'bg-gray-100 border border-gray-200'
                         }`}>
-                        <FaCreditCard className={`text-xl ${paymentMethod === 'online' ? 'text-blue-400' : 'text-gray-400'}`} />
+                        <FaCreditCard className={`text-xl 
+                          ${paymentMethod === 'online'
+                            ? isDarkMode ? 'text-blue-400' : 'text-blue-700'
+                            : isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`} />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-white text-lg mb-1">Online Payment</h3>
-                        <p className="text-sm text-gray-400 mb-2">Pay securely with card or wallet</p>
+                        <h3 className={`font-bold text-lg mb-1 transition-colors duration-300
+                          ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Online Payment</h3>
+                        <p className={`text-sm mb-2 transition-colors duration-300
+                          ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pay securely with card or wallet</p>
                         <div className="flex flex-wrap gap-1">
-                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'online'
-                            ? 'bg-blue-900/50 text-blue-300'
-                            : 'bg-gray-700 text-gray-300'
+                          <span className={`text-xs px-2 py-1 rounded-full 
+                            ${paymentMethod === 'online'
+                              ? isDarkMode
+                                ? 'bg-blue-900/50 text-blue-300'
+                                : 'bg-blue-100 text-blue-700'
+                              : isDarkMode
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-100 text-gray-600'
                             }`}>
                             Instant confirmation
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${paymentMethod === 'online'
-                            ? 'bg-blue-900/50 text-blue-300'
-                            : 'bg-gray-700 text-gray-300'
+                          <span className={`text-xs px-2 py-1 rounded-full 
+                            ${paymentMethod === 'online'
+                              ? isDarkMode
+                                ? 'bg-blue-900/50 text-blue-300'
+                                : 'bg-blue-100 text-blue-700'
+                              : isDarkMode
+                                ? 'bg-gray-700 text-gray-300'
+                                : 'bg-gray-100 text-gray-600'
                             }`}>
                             Secure payment
                           </span>
                         </div>
                       </div>
                       {paymentMethod === 'online' && (
-                        <div className="text-blue-400">
+                        <div className={isDarkMode ? 'text-blue-400' : 'text-blue-700'}>
                           <FaCheckCircle className="text-xl" />
                         </div>
                       )}
@@ -769,94 +953,118 @@ export default function Checkout() {
 
                 {/* Online Payment Instructions - Only show when selected */}
                 {paymentMethod === 'online' && (
-                  <div className="mt-6 p-6 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 rounded-2xl border border-blue-800/50">
+                  <div className={`mt-6 p-6 rounded-2xl border transition-colors duration-300
+                    ${isDarkMode
+                      ? 'bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-blue-800/50'
+                      : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'}`}>
                     <div className="flex items-center gap-3 mb-4">
-                      <FaLock className="text-blue-400 text-xl" />
-                      <h3 className="text-lg font-bold text-white">Online Payment Instructions</h3>
+                      <FaLock className={`text-xl ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`} />
+                      <h3 className={`text-lg font-bold transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Online Payment Instructions</h3>
                     </div>
 
                     <div className="space-y-4">
                       {/* Bank Transfer Option */}
-                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                      <div className={`p-4 rounded-xl border transition-colors duration-300
+                        ${isDarkMode ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200'}`}>
                         <div className="flex items-center gap-3 mb-3">
-                          <FaBuilding className="text-blue-400" />
-                          <h4 className="font-semibold text-white">Bank Transfer</h4>
+                          <FaBuilding className={isDarkMode ? 'text-blue-400' : 'text-blue-700'} />
+                          <h4 className={`font-semibold transition-colors duration-300
+                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Bank Transfer</h4>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Bank Name:</span>
-                            <span className="text-sm font-mono text-white">Commercial International Bank (CIB)</span>
+                            <span className={`text-sm transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Bank Name:</span>
+                            <span className={`text-sm font-mono transition-colors duration-300
+                              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Commercial International Bank (CIB)</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Account Name:</span>
-                            <span className="text-sm font-mono text-white">SportFlex Store</span>
+                            <span className={`text-sm transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Account Name:</span>
+                            <span className={`text-sm font-mono transition-colors duration-300
+                              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>SportFlex Store</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Account Number:</span>
-                            <span className="text-sm font-mono text-white">123-456-789-10</span>
+                            <span className={`text-sm transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Account Number:</span>
+                            <span className={`text-sm font-mono transition-colors duration-300
+                              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>123-456-789-10</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">IBAN:</span>
-                            <span className="text-sm font-mono text-blue-300">EG123456789012345678901234</span>
+                            <span className={`text-sm transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>IBAN:</span>
+                            <span className={`text-sm font-mono transition-colors duration-300
+                              ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>EG123456789012345678901234</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Mobile Wallet Option */}
-                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                      <div className={`p-4 rounded-xl border transition-colors duration-300
+                        ${isDarkMode ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200'}`}>
                         <div className="flex items-center gap-3 mb-3">
-                          <FaMobileAlt className="text-green-400" />
-                          <h4 className="font-semibold text-white">Mobile Wallet</h4>
+                          <FaMobileAlt className={isDarkMode ? 'text-green-400' : 'text-green-700'} />
+                          <h4 className={`font-semibold transition-colors duration-300
+                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Mobile Wallet</h4>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="text-center">
-                            <div className="w-12 h-12 bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-2">
-                              <FaPhone className="text-blue-400" />
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2
+                              ${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+                              <FaPhone className={isDarkMode ? 'text-blue-400' : 'text-blue-700'} />
                             </div>
-                            <p className="text-sm font-semibold text-white">Vodafone Cash</p>
-                            <p className="text-xs text-gray-400">0100 123 4567</p>
+                            <p className={`text-sm font-semibold transition-colors duration-300
+                              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Vodafone Cash</p>
+                            <p className={`text-xs transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>0100 123 4567</p>
                           </div>
                           <div className="text-center">
-                            <div className="w-12 h-12 bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-2">
-                              <FaQrcode className="text-purple-400" />
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2
+                              ${isDarkMode ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                              <FaQrcode className={isDarkMode ? 'text-purple-400' : 'text-purple-700'} />
                             </div>
-                            <p className="text-sm font-semibold text-white">InstaPay</p>
-                            <p className="text-xs text-gray-400">Scan QR Code</p>
+                            <p className={`text-sm font-semibold transition-colors duration-300
+                              ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>InstaPay</p>
+                            <p className={`text-xs transition-colors duration-300
+                              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Scan QR Code</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Payment Steps */}
-                      <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-                        <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-                          <FaReceipt className="text-yellow-400" />
+                      <div className={`p-4 rounded-xl border transition-colors duration-300
+                        ${isDarkMode ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200'}`}>
+                        <h4 className={`font-semibold mb-3 flex items-center gap-2 transition-colors duration-300
+                          ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          <FaReceipt className={isDarkMode ? 'text-yellow-400' : 'text-yellow-700'} />
                           How to Pay
                         </h4>
-                        <ol className="space-y-2 text-sm text-gray-300">
-                          <li className="flex items-start gap-2">
-                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                            <span>Transfer the exact amount: <strong className="text-blue-300">EGP {total.toFixed(2)}</strong></span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                            <span>Include your order number as reference</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                            <span>Send payment screenshot to: <span className="text-blue-300">+20 100 123 4567</span></span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-                            <span>Your order will be processed immediately after verification</span>
-                          </li>
+                        <ol className="space-y-2 text-sm">
+                          {[
+                            `Transfer the exact amount: EGP ${total.toFixed(2)}`,
+                            "Include your order number as reference",
+                            "Send payment screenshot to: +20 100 123 4567",
+                            "Your order will be processed immediately after verification"
+                          ].map((step, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className={`text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5
+                                ${isDarkMode ? 'bg-blue-500' : 'bg-blue-700'}`}>{index + 1}</span>
+                              <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{step}</span>
+                            </li>
+                          ))}
                         </ol>
                       </div>
 
                       {/* Important Notes */}
-                      <div className="p-3 bg-gradient-to-r from-blue-900/20 to-blue-800/20 rounded-xl border border-blue-800/30">
+                      <div className={`p-3 rounded-xl border transition-colors duration-300
+                        ${isDarkMode
+                          ? 'bg-gradient-to-r from-blue-900/20 to-blue-800/20 border-blue-800/30'
+                          : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'}`}>
                         <div className="flex items-start gap-2">
-                          <FaInfoCircle className="text-blue-400 mt-1 flex-shrink-0" />
-                          <p className="text-sm text-blue-300">
+                          <FaInfoCircle className={`mt-1 flex-shrink-0 ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`} />
+                          <p className={`text-sm transition-colors duration-300
+                            ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
                             <strong>Note:</strong> Please keep your payment receipt. Orders with online payment will be shipped faster.
                           </p>
                         </div>
@@ -867,12 +1075,17 @@ export default function Checkout() {
 
                 {/* Cash on Delivery Instructions - Only show when selected */}
                 {paymentMethod === 'cash' && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-green-900/30 to-green-800/30 rounded-2xl border border-green-800/50">
+                  <div className={`mt-6 p-4 rounded-2xl border transition-colors duration-300
+                    ${isDarkMode
+                      ? 'bg-gradient-to-r from-green-900/30 to-green-800/30 border-green-800/50'
+                      : 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'}`}>
                     <div className="flex items-start gap-3">
-                      <FaInfoCircle className="text-green-400 mt-1" />
+                      <FaInfoCircle className={`mt-1 ${isDarkMode ? 'text-green-400' : 'text-green-700'}`} />
                       <div>
-                        <p className="text-sm text-green-300 font-medium">Cash Payment Instructions</p>
-                        <p className="text-xs text-green-400 mt-1">
+                        <p className={`text-sm font-medium transition-colors duration-300
+                          ${isDarkMode ? 'text-green-300' : 'text-green-800'}`}>Cash Payment Instructions</p>
+                        <p className={`text-xs mt-1 transition-colors duration-300
+                          ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>
                           Please prepare exact cash amount (EGP {total.toFixed(2)}) for our delivery agent. You'll receive a confirmation email with order details.
                         </p>
                       </div>
@@ -883,12 +1096,17 @@ export default function Checkout() {
 
               {/* Error Message */}
               {apiError && (
-                <div className="bg-gradient-to-r from-red-900/30 to-pink-900/30 border-2 border-red-800/50 rounded-2xl p-6 shadow-lg">
+                <div className={`bg-gradient-to-r rounded-2xl p-6 shadow-lg border transition-colors duration-300
+                  ${isDarkMode
+                    ? 'from-red-900/30 to-pink-900/30 border-red-800/50'
+                    : 'from-red-50 to-pink-50 border-red-200'}`}>
                   <div className="flex items-center gap-3">
-                    <FaExclamationTriangle className="text-red-400 text-xl" />
+                    <FaExclamationTriangle className={`text-xl ${isDarkMode ? 'text-red-400' : 'text-red-700'}`} />
                     <div>
-                      <p className="text-red-300 font-semibold">Order Error</p>
-                      <p className="text-red-400 text-sm mt-1">{apiError}</p>
+                      <p className={`font-semibold transition-colors duration-300
+                        ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>Order Error</p>
+                      <p className={`text-sm mt-1 transition-colors duration-300
+                        ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>{apiError}</p>
                     </div>
                   </div>
                 </div>
@@ -901,30 +1119,45 @@ export default function Checkout() {
 
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <div className="bg-gray-900/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-800/50 p-8 sticky top-6">
+            <div className={`rounded-3xl shadow-xl border p-8 sticky top-6 transition-colors duration-300
+              ${isDarkMode
+                ? 'bg-gray-900/90 backdrop-blur-sm border-gray-800/50'
+                : 'bg-white border-gray-200'}`}>
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-xl flex items-center justify-center">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center
+                  ${isDarkMode
+                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                    : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                   <FaShoppingBag className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Order Summary</h2>
+                <h2 className={`text-2xl font-bold transition-colors duration-300
+                  ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Summary</h2>
               </div>
 
               {/* Cart Items */}
               <div className="space-y-4 mb-8 max-h-64 overflow-y-auto custom-scrollbar">
                 {cartItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-cyan-900/20 to-cyan-800/20 rounded-2xl border border-gray-800/50">
+                  <div key={index} className={`flex items-center gap-4 p-4 rounded-2xl border transition-colors duration-300
+                    ${isDarkMode
+                      ? 'bg-gradient-to-r from-cyan-900/20 to-cyan-800/20 border-gray-800/50'
+                      : 'bg-gradient-to-r from-cyan-50 to-blue-50 border-gray-200'}`}>
                     <img
                       src={item.product.imageCover || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
                       alt={item.product.title}
-                      className="w-16 h-16 rounded-xl object-contain border border-gray-700 bg-gray-800"
+                      className={`w-16 h-16 rounded-xl object-contain border
+                        ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-white truncate">{item.product.title}</h4>
-                      <p className="text-sm text-gray-400 mt-1">Quantity: {item.count}</p>
+                      <h4 className={`font-semibold truncate transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.product.title}</h4>
+                      <p className={`text-sm mt-1 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Quantity: {item.count}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-cyan-400">EGP {(item.price * item.count).toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">EGP {item.price.toFixed(2)} each</p>
+                      <p className={`font-bold transition-colors duration-300
+                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>EGP {(item.price * item.count).toFixed(2)}</p>
+                      <p className={`text-xs transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>EGP {item.price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}
@@ -933,16 +1166,21 @@ export default function Checkout() {
               {/* Promo Code Section - Fixed overflow issue */}
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaTag className="text-purple-400" />
-                  <h3 className="font-semibold text-gray-300">Promo Code</h3>
+                  <FaTag className={isDarkMode ? 'text-purple-400' : 'text-purple-700'} />
+                  <h3 className={`font-semibold transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Promo Code</h3>
                 </div>
 
                 {appliedPromo ? (
-                  <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-2xl p-4 border border-green-800/50">
+                  <div className={`rounded-2xl p-4 border transition-colors duration-300
+                    ${isDarkMode
+                      ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-green-800/50'
+                      : 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'}`}>
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
-                        <FaCheckCircle className="text-green-400" />
-                        <span className="font-mono font-bold text-green-300">{appliedPromo.code}</span>
+                        <FaCheckCircle className={isDarkMode ? 'text-green-400' : 'text-green-700'} />
+                        <span className={`font-mono font-bold transition-colors duration-300
+                          ${isDarkMode ? 'text-green-300' : 'text-green-800'}`}>{appliedPromo.code}</span>
                       </div>
                       <button
                         onClick={handleRemovePromoCode}
@@ -951,13 +1189,15 @@ export default function Checkout() {
                         <FaTimes />
                       </button>
                     </div>
-                    <p className="text-sm text-green-400 mb-1">
+                    <p className={`text-sm mb-1 transition-colors duration-300
+                      ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>
                       {appliedPromo.discount_type === 'percentage'
                         ? `${appliedPromo.discount_value}% discount applied`
                         : `EGP ${appliedPromo.discount_value} discount applied`
                       }
                     </p>
-                    <p className="text-lg font-bold text-green-300">
+                    <p className={`text-lg font-bold transition-colors duration-300
+                      ${isDarkMode ? 'text-green-300' : 'text-green-800'}`}>
                       - EGP {appliedPromo.discount_amount.toFixed(2)}
                     </p>
                   </div>
@@ -969,15 +1209,23 @@ export default function Checkout() {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         placeholder="Enter promo code"
-                        className="flex-1 min-w-0 px-4 py-3 border-2 border-gray-700 rounded-2xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 focus:outline-none font-mono bg-gray-800 text-white"
+                        className={`flex-1 min-w-0 px-4 py-3 border-2 rounded-2xl focus:outline-none font-mono transition-colors duration-300
+                          ${isDarkMode
+                            ? 'border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 bg-gray-800 text-white'
+                            : 'border-gray-200 focus:border-purple-700 focus:ring-2 focus:ring-purple-700/10 bg-gray-50 text-gray-900'}`}
                         disabled={promoLoading}
                       />
                       <button
                         onClick={handleApplyPromoCode}
                         disabled={promoLoading || !promoCode.trim()}
-                        className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-300 whitespace-nowrap ${promoLoading || !promoCode.trim()
-                          ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 hover:scale-105 active:scale-95'
+                        className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-300 whitespace-nowrap 
+                          ${promoLoading || !promoCode.trim()
+                            ? isDarkMode
+                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : isDarkMode
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 hover:scale-105 active:scale-95'
+                              : 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white hover:from-purple-800 hover:to-indigo-800 hover:scale-105 active:scale-95'
                           }`}
                       >
                         {promoLoading ? (
@@ -987,7 +1235,8 @@ export default function Checkout() {
                         )}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 text-center md:text-left">
+                    <p className={`text-xs text-center md:text-left transition-colors duration-300
+                      ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                       Enter your promo code and click apply to get discounts
                     </p>
                   </div>
@@ -995,62 +1244,81 @@ export default function Checkout() {
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-4 mb-8 pb-6 border-b border-gray-800">
-                <div className="flex justify-between text-gray-400">
-                  <span className="flex items-center gap-2">
+              <div className={`space-y-4 mb-8 pb-6 border-b transition-colors duration-300
+                ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                <div className="flex justify-between">
+                  <span className={`flex items-center gap-2 transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <FaShoppingCart className="text-sm" />
                     Subtotal
                   </span>
-                  <span className="font-medium text-white">EGP {subtotal.toFixed(2)}</span>
+                  <span className={`font-medium transition-colors duration-300
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {subtotal.toFixed(2)}</span>
                 </div>
 
                 {discount > 0 && (
-                  <div className="flex justify-between text-green-400">
-                    <span className="flex items-center gap-2">
+                  <div className="flex justify-between">
+                    <span className={`flex items-center gap-2 transition-colors duration-300
+                      ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>
                       <FaTag className="text-sm" />
                       Discount
                     </span>
-                    <span className="font-medium">- EGP {discount.toFixed(2)}</span>
+                    <span className={`font-medium transition-colors duration-300
+                      ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>- EGP {discount.toFixed(2)}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-gray-400">
-                  <span className="flex items-center gap-2">
+                <div className="flex justify-between">
+                  <span className={`flex items-center gap-2 transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <FaTruck className="text-sm" />
                     Shipping
                   </span>
-                  <span className="font-medium text-white">EGP {shipping.toFixed(2)}</span>
+                  <span className={`font-medium transition-colors duration-300
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {shipping.toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between text-xl font-bold text-white pt-4 border-t border-gray-800">
-                  <span>Total</span>
-                  <span className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">EGP {total.toFixed(2)}</span>
+                <div className={`flex justify-between text-xl font-bold pt-4 border-t transition-colors duration-300
+                  ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                  <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>Total</span>
+                  <span className={`bg-gradient-to-r bg-clip-text text-transparent
+                    ${isDarkMode
+                      ? 'from-cyan-400 to-cyan-300'
+                      : 'from-cyan-700 to-cyan-600'}`}>EGP {total.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Payment Method Display */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-2xl border border-gray-700">
+              <div className={`mb-6 p-4 rounded-2xl border transition-colors duration-300
+                ${isDarkMode
+                  ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
+                  : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 font-medium flex items-center gap-2">
+                  <span className={`font-medium flex items-center gap-2 transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     {paymentMethod === 'cash' ? (
                       <>
-                        <FaMoneyBill className="text-green-400" />
+                        <FaMoneyBill className={isDarkMode ? 'text-green-400' : 'text-green-700'} />
                         Cash on Delivery
                       </>
                     ) : (
                       <>
-                        <FaCreditCard className="text-blue-400" />
+                        <FaCreditCard className={isDarkMode ? 'text-blue-400' : 'text-blue-700'} />
                         Online Payment
                       </>
                     )}
                   </span>
                   {paymentMethod === 'online' && (
-                    <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded-full">
+                    <span className={`text-xs px-2 py-1 rounded-full
+                      ${isDarkMode
+                        ? 'bg-blue-900/50 text-blue-300'
+                        : 'bg-blue-100 text-blue-700'}`}>
                       Pay Now
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className={`text-xs transition-colors duration-300
+                  ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                   {paymentMethod === 'cash'
                     ? 'Pay when you receive your order'
                     : 'Complete payment to confirm order immediately'
@@ -1063,11 +1331,18 @@ export default function Checkout() {
                 type="button"
                 onClick={formik.handleSubmit}
                 disabled={loading || !formik.isValid || !selectedGovernorate}
-                className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 shadow-lg ${loading || !formik.isValid || !selectedGovernorate
-                  ? 'bg-gray-700 text-gray-300 cursor-not-allowed'
-                  : paymentMethod === 'online'
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 hover:shadow-xl active:scale-95'
-                    : 'bg-gradient-to-r from-green-600 to-cyan-600 text-white hover:from-green-700 hover:to-cyan-700 hover:scale-105 hover:shadow-xl active:scale-95'
+                className={`w-full py-5 px-6 rounded-2xl font-bold text-lg transition-all duration-300 focus:outline-none focus:ring-4 shadow-lg 
+                  ${loading || !formik.isValid || !selectedGovernorate
+                    ? isDarkMode
+                      ? 'bg-gray-700 text-gray-300 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : paymentMethod === 'online'
+                      ? isDarkMode
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 hover:shadow-xl active:scale-95 focus:ring-blue-500/20'
+                        : 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white hover:from-blue-800 hover:to-indigo-800 hover:scale-105 hover:shadow-xl active:scale-95 focus:ring-blue-700/20'
+                      : isDarkMode
+                        ? 'bg-gradient-to-r from-green-600 to-cyan-600 text-white hover:from-green-700 hover:to-cyan-700 hover:scale-105 hover:shadow-xl active:scale-95 focus:ring-cyan-500/20'
+                        : 'bg-gradient-to-r from-green-700 to-cyan-700 text-white hover:from-green-800 hover:to-cyan-800 hover:scale-105 hover:shadow-xl active:scale-95 focus:ring-cyan-700/20'
                   }`}
               >
                 {loading ? (
@@ -1094,11 +1369,13 @@ export default function Checkout() {
 
               {/* Security & Trust Badges */}
               <div className="mt-6 space-y-3">
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <FaLock className="text-green-400" />
-                  <span>100% Secure Payment</span>
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <FaLock className={isDarkMode ? 'text-green-400' : 'text-green-700'} />
+                  <span className={`transition-colors duration-300
+                    ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>100% Secure Payment</span>
                 </div>
-                <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
+                <div className={`flex items-center justify-center gap-6 text-xs transition-colors duration-300
+                  ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   <span className="flex items-center gap-1">
                     <FaTruck />
                     Fast Delivery
@@ -1125,15 +1402,15 @@ export default function Checkout() {
             width: 6px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1f2937;
+            background: ${isDarkMode ? '#1f2937' : '#f1f1f1'};
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: ${isDarkMode ? '#374151' : '#c1c1c1'};
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
+            background: ${isDarkMode ? '#4b5563' : '#a1a1a1'};
           }
           .font-arabic {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

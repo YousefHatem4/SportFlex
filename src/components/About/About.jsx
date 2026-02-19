@@ -1,5 +1,4 @@
-// About.jsx - Highly Optimized for Performance, Accessibility & SEO
-import React, { useMemo, lazy, Suspense } from 'react';
+import React, { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     FaUserCheck,
@@ -31,7 +30,7 @@ const MotionH1 = lazy(() => import('framer-motion').then(mod => ({ default: mod.
 const MotionP = lazy(() => import('framer-motion').then(mod => ({ default: mod.motion.p })));
 
 // Loading fallback for lazy components
-const LoadingFallback = () => <div className="min-h-screen bg-black" />;
+const LoadingFallback = () => <div className="min-h-screen bg-white dark:bg-black" />;
 
 // Static animation configuration objects to prevent recreation
 const ANIMATION_CONFIG = {
@@ -57,6 +56,37 @@ const ANIMATION_CONFIG = {
  * Maintains exact design and functionality while implementing best practices
  */
 function About() {
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
+
+    // Listen for theme changes
+    useEffect(() => {
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+        };
+
+        window.addEventListener('storage', checkTheme);
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setIsDarkMode(isDark);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => {
+            window.removeEventListener('storage', checkTheme);
+            observer.disconnect();
+        };
+    }, []);
+
     // Static data arrays with stable references
     const STATS_DATA = useMemo(() => [
         { id: 'stats-1', number: "50K+", label: "Happy Customers", icon: FaUserCheck },
@@ -71,30 +101,30 @@ function About() {
             icon: FaHeart,
             title: "Customer First",
             description: "Every decision we make is guided by what's best for our customers.",
-            color: "from-cyan-500 to-cyan-600"
+            color: isDarkMode ? "from-cyan-500 to-cyan-600" : "from-cyan-700 to-cyan-800"
         },
         {
             id: 'value-2',
             icon: FaShieldAlt,
             title: "Trust & Security",
             description: "We prioritize security and transparency in all our interactions.",
-            color: "from-cyan-500 to-cyan-600"
+            color: isDarkMode ? "from-cyan-500 to-cyan-600" : "from-cyan-700 to-cyan-800"
         },
         {
             id: 'value-3',
             icon: FaRocket,
             title: "Innovation",
             description: "We continuously evolve to bring you the latest in e-commerce.",
-            color: "from-cyan-500 to-cyan-600"
+            color: isDarkMode ? "from-cyan-500 to-cyan-600" : "from-cyan-700 to-cyan-800"
         },
         {
             id: 'value-4',
             icon: FaGlobe,
             title: "Sustainability",
             description: "Building a better future through responsible business practices.",
-            color: "from-cyan-500 to-cyan-600"
+            color: isDarkMode ? "from-cyan-500 to-cyan-600" : "from-cyan-700 to-cyan-800"
         }
-    ], []);
+    ], [isDarkMode]);
 
     const JOURNEY_DATA = useMemo(() => [
         { id: 'journey-1', year: "2020", title: "The Beginning", description: "Started with a vision to revolutionize online shopping", icon: FaSeedling },
@@ -105,29 +135,40 @@ function About() {
 
     // Memoized color classes to prevent re-evaluation
     const statColors = useMemo(() => [
-        ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400'],
-        ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400'],
-        ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400'],
-        ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400']
-    ], []);
+        isDarkMode
+            ? ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400']
+            : ['from-cyan-200/60 to-cyan-100/60', 'text-cyan-700'],
+        isDarkMode
+            ? ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400']
+            : ['from-cyan-200/60 to-cyan-100/60', 'text-cyan-700'],
+        isDarkMode
+            ? ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400']
+            : ['from-cyan-200/60 to-cyan-100/60', 'text-cyan-700'],
+        isDarkMode
+            ? ['from-cyan-900/30 to-cyan-800/30', 'text-cyan-400']
+            : ['from-cyan-200/60 to-cyan-100/60', 'text-cyan-700']
+    ], [isDarkMode]);
 
     return (
         <Suspense fallback={<LoadingFallback />}>
-            <main id="main-content" className="bg-black">
+            <main id="main-content" className={`transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 {/* Hero Section with Company Story */}
                 <section
-                    className="relative py-20 lg:py-28 px-5 lg:px-30 overflow-hidden bg-black"
+                    className={`relative py-20 lg:py-28 px-5 lg:px-30 overflow-hidden transition-colors duration-300
+                        ${isDarkMode ? 'bg-black' : 'bg-white'}`}
                     aria-labelledby="hero-title"
                     role="region"
                 >
-                    {/* Background decorative shapes - simplified for performance */}
+                    {/* Background decorative shapes */}
                     <div
-                        className="absolute top-0 left-0 w-72 h-72 bg-cyan-900/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+                        className={`absolute top-0 left-0 w-72 h-72 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 transition-colors duration-300
+                            ${isDarkMode ? 'bg-cyan-900/20' : 'bg-cyan-200/40'}`}
                         aria-hidden="true"
                         role="presentation"
                     />
                     <div
-                        className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-800/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
+                        className={`absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 transition-colors duration-300
+                            ${isDarkMode ? 'bg-cyan-800/20' : 'bg-cyan-200/40'}`}
                         aria-hidden="true"
                         role="presentation"
                     />
@@ -136,21 +177,34 @@ function About() {
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center justify-center gap-3 mb-8">
                                 <div className="flex items-center gap-2" aria-hidden="true">
-                                    <span className="w-3 h-3 bg-cyan-500 rounded-full" />
-                                    <span className="w-3 h-3 bg-cyan-400 rounded-full" />
-                                    <span className="w-3 h-3 bg-cyan-500 rounded-full" />
+                                    <span className={`w-3 h-3 rounded-full transition-colors duration-300
+                                        ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`} />
+                                    <span className={`w-3 h-3 rounded-full transition-colors duration-300
+                                        ${isDarkMode ? 'bg-cyan-400' : 'bg-cyan-600'}`} />
+                                    <span className={`w-3 h-3 rounded-full transition-colors duration-300
+                                        ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`} />
                                 </div>
-                                <span className="text-cyan-400 font-semibold tracking-wider">OUR STORY</span>
+                                <span className={`font-semibold tracking-wider transition-colors duration-300
+                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                    OUR STORY
+                                </span>
                             </div>
 
                             <h1 id="hero-title" className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8">
-                                <span className="block mb-2 text-white">Where Innovation</span>
-                                <span className="bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 bg-clip-text text-transparent">
+                                <span className={`block mb-2 transition-colors duration-300
+                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    Where Innovation
+                                </span>
+                                <span className={`bg-gradient-to-r bg-clip-text text-transparent
+                                    ${isDarkMode
+                                        ? 'from-cyan-400 via-cyan-300 to-cyan-400'
+                                        : 'from-cyan-700 via-cyan-600 to-cyan-700'}`}>
                                     Meets Excellence
                                 </span>
                             </h1>
 
-                            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12">
+                            <p className={`text-xl max-w-3xl mx-auto leading-relaxed mb-12 transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 We're revolutionizing e-commerce by creating meaningful connections between customers and premium brands through seamless technology and exceptional service.
                             </p>
 
@@ -158,7 +212,10 @@ function About() {
                                 <div>
                                     <Link
                                         to="/products"
-                                        className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-xl hover:shadow-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-cyan-700 focus:ring-offset-2 focus:ring-offset-black"
+                                        className={`inline-flex items-center gap-3 px-8 py-4 text-white rounded-xl hover:shadow-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-offset-2
+                                            ${isDarkMode
+                                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 focus:ring-cyan-700 focus:ring-offset-black'
+                                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900 focus:ring-cyan-600 focus:ring-offset-white'}`}
                                         aria-label="Start shopping our premium products"
                                     >
                                         <FaShoppingBag aria-hidden="true" />
@@ -168,7 +225,10 @@ function About() {
                                 <div>
                                     <Link
                                         to="/contact"
-                                        className="inline-flex items-center gap-3 px-8 py-4 bg-gray-900 border-2 border-cyan-500 text-cyan-400 rounded-xl hover:bg-gray-800 transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-cyan-700 focus:ring-offset-2 focus:ring-offset-black"
+                                        className={`inline-flex items-center gap-3 px-8 py-4 border-2 rounded-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-offset-2
+                                            ${isDarkMode
+                                                ? 'bg-gray-900 border-cyan-500 text-cyan-400 hover:bg-gray-800 focus:ring-cyan-700 focus:ring-offset-black'
+                                                : 'bg-white border-cyan-700 text-cyan-700 hover:bg-cyan-50 focus:ring-cyan-600 focus:ring-offset-white'}`}
                                         aria-label="Contact our customer support team"
                                     >
                                         <FaEnvelope aria-hidden="true" />
@@ -178,7 +238,7 @@ function About() {
                             </div>
                         </div>
 
-                        {/* Statistics Cards - Performance optimized */}
+                        {/* Statistics Cards */}
                         <div
                             className="grid grid-cols-2 lg:grid-cols-4 gap-6"
                             role="list"
@@ -189,11 +249,14 @@ function About() {
                                 return (
                                     <div key={stat.id} className="group" role="listitem">
                                         <div
-                                            className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-gray-800/50"
+                                            className={`backdrop-blur-sm rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border
+                                                ${isDarkMode
+                                                    ? 'bg-gray-900/80 border-gray-800/50'
+                                                    : 'bg-white/80 border-gray-200'}`}
                                             aria-labelledby={`stat-${stat.id}`}
                                         >
                                             <div
-                                                className={`w-14 h-14 rounded-xl ${statColors[index][0]} flex items-center justify-center mb-4 transition-transform duration-300 bg-gradient-to-br`}
+                                                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${statColors[index][0]} flex items-center justify-center mb-4 transition-transform duration-300`}
                                                 aria-hidden="true"
                                             >
                                                 <IconComponent
@@ -203,11 +266,13 @@ function About() {
                                             </div>
                                             <div
                                                 id={`stat-${stat.id}`}
-                                                className="text-3xl font-bold text-white mb-2 transition-transform duration-300"
+                                                className={`text-3xl font-bold mb-2 transition-transform duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
                                             >
                                                 {stat.number}
                                             </div>
-                                            <div className="text-gray-400 font-medium">
+                                            <div className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                 {stat.label}
                                             </div>
                                         </div>
@@ -220,7 +285,8 @@ function About() {
 
                 {/* Mission & Vision Section */}
                 <section
-                    className="py-20 px-5 lg:px-30 bg-gray-900/50"
+                    className={`py-20 px-5 lg:px-30 transition-colors duration-300
+                        ${isDarkMode ? 'bg-gray-900/50' : 'bg-gray-100/50'}`}
                     aria-labelledby="mission-vision-heading"
                     role="region"
                 >
@@ -229,32 +295,52 @@ function About() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                             {/* Mission Statement */}
                             <article
-                                className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-700"
+                                className={`rounded-3xl p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700'
+                                        : 'bg-gradient-to-br from-white to-gray-100 border-gray-200'}`}
                                 aria-labelledby="mission-title"
                             >
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         <FaBullseye className="text-white text-xl" aria-hidden="true" />
                                     </div>
-                                    <h3 id="mission-title" className="text-2xl lg:text-3xl font-bold text-white">Our Mission</h3>
+                                    <h3 id="mission-title" className={`text-2xl lg:text-3xl font-bold transition-colors duration-300
+                                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        Our Mission
+                                    </h3>
                                 </div>
-                                <p className="text-gray-300 text-lg leading-relaxed">
+                                <p className={`text-lg leading-relaxed transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                     To democratize access to premium products by connecting customers worldwide with trusted brands through a seamless, secure, and delightful shopping experience that exceeds expectations at every touchpoint.
                                 </p>
                             </article>
 
                             {/* Vision Statement */}
                             <article
-                                className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-700"
+                                className={`rounded-3xl p-8 lg:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700'
+                                        : 'bg-gradient-to-br from-white to-gray-100 border-gray-200'}`}
                                 aria-labelledby="vision-title"
                             >
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         <FaEye className="text-white text-xl" aria-hidden="true" />
                                     </div>
-                                    <h3 id="vision-title" className="text-2xl lg:text-3xl font-bold text-white">Our Vision</h3>
+                                    <h3 id="vision-title" className={`text-2xl lg:text-3xl font-bold transition-colors duration-300
+                                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        Our Vision
+                                    </h3>
                                 </div>
-                                <p className="text-gray-300 text-lg leading-relaxed">
+                                <p className={`text-lg leading-relaxed transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                     To become the world's most trusted e-commerce platform, where quality meets convenience, innovation drives growth, and every customer feels valued, heard, and empowered in their shopping journey.
                                 </p>
                             </article>
@@ -264,19 +350,25 @@ function About() {
 
                 {/* Core Values Section */}
                 <section
-                    className="py-20 px-5 lg:px-30 bg-black"
+                    className={`py-20 px-5 lg:px-30 transition-colors duration-300
+                        ${isDarkMode ? 'bg-black' : 'bg-white'}`}
                     aria-labelledby="core-values-heading"
                     role="region"
                 >
                     <div className="max-w-6xl mx-auto">
                         <header className="text-center mb-16">
-                            <div className="inline-block px-4 py-2 bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 rounded-full text-sm font-semibold mb-4">
+                            <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
+                                    : 'bg-gradient-to-r from-cyan-200/60 to-cyan-100/60 text-cyan-800'}`}>
                                 CORE VALUES
                             </div>
-                            <h2 id="core-values-heading" className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                            <h2 id="core-values-heading" className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 The Principles That Guide Us
                             </h2>
-                            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                            <p className={`text-lg max-w-2xl mx-auto transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 These foundational beliefs shape our culture and drive our decisions
                             </p>
                         </header>
@@ -287,7 +379,10 @@ function About() {
                                 return (
                                     <article
                                         key={value.id}
-                                        className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 h-full shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-800"
+                                        className={`rounded-2xl p-8 h-full shadow-sm hover:shadow-2xl transition-all duration-500 border
+                                            ${isDarkMode
+                                                ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-gray-800'
+                                                : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'}`}
                                         aria-labelledby={`value-title-${value.id}`}
                                         role="listitem"
                                     >
@@ -297,10 +392,12 @@ function About() {
                                         >
                                             <IconComponent className="text-white text-2xl" aria-hidden="true" />
                                         </div>
-                                        <h3 id={`value-title-${value.id}`} className="text-xl font-bold text-white mb-4 transition-colors duration-300">
+                                        <h3 id={`value-title-${value.id}`} className={`text-xl font-bold mb-4 transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                             {value.title}
                                         </h3>
-                                        <p className="text-gray-400 leading-relaxed">
+                                        <p className={`leading-relaxed transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                             {value.description}
                                         </p>
                                     </article>
@@ -312,24 +409,34 @@ function About() {
 
                 {/* Company Journey Timeline */}
                 <section
-                    className="py-20 px-5 lg:px-30 bg-gradient-to-b from-gray-900/30 to-gray-800/30"
+                    className={`py-20 px-5 lg:px-30 transition-colors duration-300
+                        ${isDarkMode
+                            ? 'bg-gradient-to-b from-gray-900/30 to-gray-800/30'
+                            : 'bg-gradient-to-b from-gray-100/50 to-gray-200/50'}`}
                     aria-labelledby="journey-heading"
                     role="region"
                 >
                     <div className="max-w-4xl mx-auto">
                         <header className="text-center mb-16">
-                            <div className="inline-block px-4 py-2 bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 rounded-full text-sm font-semibold mb-4">
+                            <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
+                                    : 'bg-gradient-to-r from-cyan-200/60 to-cyan-100/60 text-cyan-800'}`}>
                                 OUR JOURNEY
                             </div>
-                            <h2 id="journey-heading" className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                            <h2 id="journey-heading" className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 Milestones of Growth
                             </h2>
                         </header>
 
                         <div className="relative">
-                            {/* Timeline vertical line - simplified for performance */}
+                            {/* Timeline vertical line */}
                             <div
-                                className="absolute left-6 lg:left-1/2 lg:-translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-700 via-cyan-600 to-cyan-700"
+                                className={`absolute left-6 lg:left-1/2 lg:-translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b transition-colors duration-300
+                                    ${isDarkMode
+                                        ? 'from-cyan-700 via-cyan-600 to-cyan-700'
+                                        : 'from-cyan-500 via-cyan-600 to-cyan-500'}`}
                                 aria-hidden="true"
                             />
 
@@ -343,21 +450,37 @@ function About() {
                                     >
                                         {/* Timeline marker */}
                                         <div
-                                            className="absolute left-6 lg:left-1/2 w-12 h-12 -translate-x-1/2 bg-gray-900 rounded-full border-4 border-cyan-500 flex items-center justify-center z-10"
+                                            className={`absolute left-6 lg:left-1/2 w-12 h-12 -translate-x-1/2 rounded-full border-4 flex items-center justify-center z-10 transition-colors duration-300
+                                                ${isDarkMode
+                                                    ? 'bg-gray-900 border-cyan-500'
+                                                    : 'bg-white border-cyan-600'}`}
                                             aria-hidden="true"
                                         >
-                                            <IconComponent className="text-cyan-500" aria-hidden="true" />
+                                            <IconComponent className={`text-lg transition-colors duration-300
+                                                ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'}`} aria-hidden="true" />
                                         </div>
 
                                         <div className={`ml-20 lg:ml-0 ${index % 2 === 0 ? 'lg:mr-8' : 'lg:ml-8'}`}>
-                                            <div className="bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-800">
+                                            <div className={`rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border
+                                                ${isDarkMode
+                                                    ? 'bg-gray-900 border-gray-800'
+                                                    : 'bg-white border-gray-200'}`}>
                                                 <div className="inline-flex items-center gap-3 mb-4">
-                                                    <time dateTime={step.year} className="px-4 py-1 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-full text-sm font-bold">
+                                                    <time dateTime={step.year} className={`px-4 py-1 text-white rounded-full text-sm font-bold transition-colors duration-300
+                                                        ${isDarkMode
+                                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                                         {step.year}
                                                     </time>
-                                                    <h3 id={`journey-step-${step.id}`} className="text-xl font-bold text-white">{step.title}</h3>
+                                                    <h3 id={`journey-step-${step.id}`} className={`text-xl font-bold transition-colors duration-300
+                                                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                        {step.title}
+                                                    </h3>
                                                 </div>
-                                                <p className="text-gray-400">{step.description}</p>
+                                                <p className={`transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                    {step.description}
+                                                </p>
                                             </div>
                                         </div>
                                     </article>
@@ -369,49 +492,84 @@ function About() {
 
                 {/* Business Philosophy Section */}
                 <section
-                    className="py-20 px-5 lg:px-30 bg-black"
+                    className={`py-20 px-5 lg:px-30 transition-colors duration-300
+                        ${isDarkMode ? 'bg-black' : 'bg-white'}`}
                     aria-labelledby="philosophy-heading"
                     role="region"
                 >
                     <div className="max-w-4xl mx-auto">
                         <header className="text-center mb-16">
-                            <div className="inline-block px-4 py-2 bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400 rounded-full text-sm font-semibold mb-4">
+                            <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
+                                    : 'bg-gradient-to-r from-cyan-200/60 to-cyan-100/60 text-cyan-800'}`}>
                                 OUR PHILOSOPHY
                             </div>
-                            <h2 id="philosophy-heading" className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                            <h2 id="philosophy-heading" className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 Simple Principles, Extraordinary Results
                             </h2>
                         </header>
 
-                        <article className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 shadow-xl border border-gray-700">
+                        <article className={`rounded-3xl p-12 shadow-xl border transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700'
+                                : 'bg-gradient-to-br from-white to-gray-100 border-gray-200'}`}>
                             <div className="space-y-8">
                                 <div className="flex items-start gap-6">
-                                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center">
+                                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         <FaCheck className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-3">Quality Over Quantity</h3>
-                                        <p className="text-gray-300">We carefully curate every product to ensure it meets our high standards of quality, durability, and design.</p>
+                                        <h3 className={`text-xl font-bold mb-3 transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            Quality Over Quantity
+                                        </h3>
+                                        <p className={`leading-relaxed transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            We carefully curate every product to ensure it meets our high standards of quality, durability, and design.
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-6">
-                                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center">
+                                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         <FaHandshake className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-3">Transparency First</h3>
-                                        <p className="text-gray-300">We believe in clear communication, honest pricing, and building trust through complete transparency.</p>
+                                        <h3 className={`text-xl font-bold mb-3 transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            Transparency First
+                                        </h3>
+                                        <p className={`leading-relaxed transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            We believe in clear communication, honest pricing, and building trust through complete transparency.
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-6">
-                                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center">
+                                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         <FaLightbulb className="text-white text-xl" aria-hidden="true" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-3">Continuous Innovation</h3>
-                                        <p className="text-gray-300">We're always looking for new ways to improve our platform and enhance your shopping experience.</p>
+                                        <h3 className={`text-xl font-bold mb-3 transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            Continuous Innovation
+                                        </h3>
+                                        <p className={`leading-relaxed transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            We're always looking for new ways to improve our platform and enhance your shopping experience.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -426,7 +584,11 @@ function About() {
                     role="region"
                 >
                     <div className="max-w-4xl mx-auto text-center">
-                        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-cyan-500 to-cyan-600 p-12 lg:p-16">
+                        <div className={`relative overflow-hidden rounded-3xl p-12 lg:p-16 transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
+
                             {/* Decorative background elements */}
                             <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
                             <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2" aria-hidden="true" />

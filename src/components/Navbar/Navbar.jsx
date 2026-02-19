@@ -1,9 +1,8 @@
-// src/components/Navbar/Navbar.jsx
 import React, { useContext, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { userContext } from '../../Context/userContext'
 import { supabase } from '../../supabaseClient'
-import { FaHeart, FaRegHeart, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaHeart, FaRegHeart, FaShoppingCart, FaChevronLeft, FaChevronRight, FaMoon, FaSun } from 'react-icons/fa'
 
 export default function Navbar() {
     const location = useLocation();
@@ -11,29 +10,41 @@ export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
     const navigate = useNavigate();
 
-    // Get user data from context
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
+
+    useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    }, [isDarkMode]);
+
+    const toggleTheme = () => {
+        setIsDarkMode(!isDarkMode);
+    };
+
     const { userToken, user, isAdmin, setUserToken, setUser } = useContext(userContext);
 
-    // State for cart items count
     const [cartItemsCount, setCartItemsCount] = useState(0);
     const [isLoadingCart, setIsLoadingCart] = useState(false);
-
-    // State for special offers slider
     const [specialOffers, setSpecialOffers] = useState([]);
     const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    // Check if user is logged in
     const isUserLoggedIn = userToken !== null;
 
-    // Fetch special offers
     useEffect(() => {
         fetchSpecialOffers();
 
-        // Set up auto-rotation for offers
         const interval = setInterval(() => {
             nextOffer();
-        }, 5000); // Change offer every 5 seconds
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [specialOffers.length, currentOfferIndex]);
@@ -51,7 +62,6 @@ export default function Navbar() {
             if (data && data.length > 0) {
                 setSpecialOffers(data.map(item => item.banner_text));
             } else {
-                // Fallback to default offers
                 setSpecialOffers([
                     'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
                     'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!',
@@ -68,7 +78,6 @@ export default function Navbar() {
         }
     };
 
-    // Slider navigation functions
     const nextOffer = () => {
         if (specialOffers.length <= 1) return;
 
@@ -93,7 +102,6 @@ export default function Navbar() {
         }, 300);
     };
 
-    // Manual navigation for dots
     const goToOffer = (index) => {
         if (index === currentOfferIndex || specialOffers.length <= 1) return;
 
@@ -104,7 +112,6 @@ export default function Navbar() {
         }, 300);
     };
 
-    // Fetch cart items count - useCallback to memoize the function
     const fetchCartCount = useCallback(async (userId) => {
         if (!userId) {
             setCartItemsCount(0);
@@ -129,7 +136,6 @@ export default function Navbar() {
         }
     }, []);
 
-    // Fetch cart count when user changes or on mount
     useEffect(() => {
         if (isUserLoggedIn && user?.id) {
             fetchCartCount(user.id);
@@ -138,7 +144,6 @@ export default function Navbar() {
         }
     }, [isUserLoggedIn, user?.id, fetchCartCount]);
 
-    // Set up a custom event listener for cart updates
     useEffect(() => {
         const handleCartUpdate = () => {
             if (isUserLoggedIn && user?.id) {
@@ -146,17 +151,13 @@ export default function Navbar() {
             }
         };
 
-        // Listen for custom cart update events
         window.addEventListener('cartUpdated', handleCartUpdate);
-
-        // Also listen for storage events (if cart updates use localStorage)
         window.addEventListener('storage', (event) => {
             if (event.key === 'cart_updated') {
                 handleCartUpdate();
             }
         });
 
-        // Subscribe to real-time database changes
         let subscription;
         if (isUserLoggedIn && user?.id) {
             subscription = supabase
@@ -170,8 +171,6 @@ export default function Navbar() {
                         filter: `user_id=eq.${user.id}`
                     },
                     (payload) => {
-                        console.log('Cart change detected:', payload.eventType);
-                        // Debounce the fetch to avoid multiple rapid calls
                         clearTimeout(window.cartUpdateTimeout);
                         window.cartUpdateTimeout = setTimeout(() => {
                             fetchCartCount(user.id);
@@ -181,7 +180,6 @@ export default function Navbar() {
                 .subscribe();
         }
 
-        // Cleanup
         return () => {
             window.removeEventListener('cartUpdated', handleCartUpdate);
             window.removeEventListener('storage', handleCartUpdate);
@@ -193,18 +191,15 @@ export default function Navbar() {
         };
     }, [isUserLoggedIn, user?.id, fetchCartCount]);
 
-    // Create a function to manually trigger cart refresh
     const refreshCartCount = useCallback(() => {
         if (isUserLoggedIn && user?.id) {
             fetchCartCount(user.id);
         }
     }, [isUserLoggedIn, user?.id, fetchCartCount]);
 
-    // Listen for page focus/blur events to refresh cart
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (!document.hidden && isUserLoggedIn && user?.id) {
-                // Refresh cart when page becomes visible again
                 refreshCartCount();
             }
         };
@@ -218,28 +213,21 @@ export default function Navbar() {
         };
     }, [isUserLoggedIn, user?.id, refreshCartCount]);
 
-    // Listen for route changes to refresh cart
     useEffect(() => {
         refreshCartCount();
     }, [location.pathname, refreshCartCount]);
 
     async function logOut() {
         try {
-            // Sign out from Supabase
             await supabase.auth.signOut();
 
-            // Clear local state
             setUserToken(null);
             setUser(null);
             localStorage.removeItem('userToken');
 
-            // Reset cart count
             setCartItemsCount(0);
 
-            // Navigate to home
             navigate('/');
-
-            // Close mobile menu if open
             setMenuOpen(false);
         } catch (error) {
             console.error('Logout error:', error);
@@ -247,22 +235,32 @@ export default function Navbar() {
     }
 
     return <>
-        {/* Special Offers Slider */}
         {specialOffers.length > 0 && (
-            <div className='bg-gradient-to-r from-gray-900 via-black to-gray-900 py-3 text-center border-b-2 border-cyan-500 relative overflow-hidden'>
-                {/* Navigation Buttons - Only show if there are multiple offers */}
+            <div className={`bg-gradient-to-r ${isDarkMode
+                ? 'from-gray-900 via-black to-gray-900 border-cyan-500'
+                : 'from-gray-100 via-white to-gray-100 border-cyan-600'} 
+                py-3 text-center border-b-2 relative overflow-hidden transition-colors duration-300`}>
+
                 {specialOffers.length > 1 && (
                     <>
                         <button
                             onClick={prevOffer}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors duration-200 z-10 bg-black/50 rounded-full p-1"
+                            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 
+                                ${isDarkMode
+                                    ? 'text-cyan-400 hover:text-cyan-300 bg-black/50'
+                                    : 'text-cyan-700 hover:text-cyan-600 bg-white/80'} 
+                                rounded-full p-1 transition-colors duration-200 shadow-md`}
                             disabled={isAnimating}
                         >
                             <FaChevronLeft />
                         </button>
                         <button
                             onClick={nextOffer}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors duration-200 z-10 bg-black/50 rounded-full p-1"
+                            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 
+                                ${isDarkMode
+                                    ? 'text-cyan-400 hover:text-cyan-300 bg-black/50'
+                                    : 'text-cyan-700 hover:text-cyan-600 bg-white/80'} 
+                                rounded-full p-1 transition-colors duration-200 shadow-md`}
                             disabled={isAnimating}
                         >
                             <FaChevronRight />
@@ -271,43 +269,47 @@ export default function Navbar() {
                 )}
 
                 <div className="relative max-w-4xl mx-auto px-8">
-                    {/* Animated Offer Text */}
                     <div className={`transition-all duration-500 ease-in-out ${isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
-                        <p className='font-bold text-white text-sm md:text-base'>
+                        <p className={`font-bold text-sm md:text-base ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                             {specialOffers[currentOfferIndex]}
                             <Link
                                 to={'products'}
-                                className='ms-2 text-cyan-400 hover:text-cyan-300 font-extrabold transition-colors duration-200 inline-flex items-center gap-1'
+                                className={`ms-2 font-extrabold transition-colors duration-200 inline-flex items-center gap-1
+                                    ${isDarkMode
+                                        ? 'text-cyan-400 hover:text-cyan-300'
+                                        : 'text-cyan-700 hover:text-cyan-800'}`}
                             >
                                 SHOP NOW <span className="text-lg">→</span>
                             </Link>
                         </p>
                     </div>
 
-                    {/* Dots Indicator - Only show if there are multiple offers */}
                     {specialOffers.length > 1 && (
                         <div className="flex justify-center items-center gap-2 mt-2">
                             {specialOffers.map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => goToOffer(index)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentOfferIndex
-                                            ? 'bg-cyan-500 w-6'
-                                            : 'bg-gray-600 hover:bg-gray-500'
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 
+                                        ${index === currentOfferIndex
+                                            ? isDarkMode
+                                                ? 'bg-cyan-500 w-6'
+                                                : 'bg-cyan-600 w-6'
+                                            : isDarkMode
+                                                ? 'bg-gray-600 hover:bg-gray-500'
+                                                : 'bg-gray-300 hover:bg-gray-400'
                                         }`}
                                     disabled={isAnimating}
-                                    aria-label={`Go to offer ${index + 1}`}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* Progress Bar for Auto-Sliding */}
                 {specialOffers.length > 1 && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800">
+                    <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                         <div
-                            className="h-full bg-cyan-500 transition-all duration-5000 ease-linear"
+                            className={`h-full ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-600'} transition-all duration-5000 ease-linear`}
                             style={{
                                 width: isAnimating ? '100%' : '0%',
                                 animation: isAnimating ? 'none' : 'progress 5s linear'
@@ -326,107 +328,154 @@ export default function Navbar() {
             </div>
         )}
 
-        <nav className="bg-black sticky w-full z-30 top-0 start-0 border-b-2 border-gray-800 shadow-2xl">
+        <nav className={`sticky w-full z-30 top-0 start-0 border-b-2 shadow-xl transition-colors duration-300
+            ${isDarkMode
+                ? 'bg-black border-gray-800'
+                : 'bg-white border-gray-200'}`}>
+
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to={''} className="flex items-center space-x-3 rtl:space-x-reverse">
-                    <span className="self-center text-2xl font-extrabold whitespace-nowrap text-white hover:text-cyan-400 transition-colors duration-300">SPORTFLEX</span>
+                    <span className={`self-center text-2xl font-extrabold whitespace-nowrap transition-colors duration-300
+                        ${isDarkMode
+                            ? 'text-white hover:text-cyan-400'
+                            : 'text-gray-900 hover:text-cyan-700'}`}>
+                        SPORTFLEX
+                    </span>
                 </Link>
 
-                <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                <div className="flex items-center md:order-2 space-x-4 md:space-x-3 rtl:space-x-reverse">
+                    <button
+                        onClick={toggleTheme}
+                        className={`p-2 rounded-full transition-all duration-300 transform hover:scale-110
+                            ${isDarkMode
+                                ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                                : 'bg-gray-100 text-cyan-700 hover:bg-gray-200'}`}
+                        aria-label="Toggle theme"
+                    >
+                        {isDarkMode ? <FaSun className="text-xl" /> : <FaMoon className="text-xl" />}
+                    </button>
+
                     {isUserLoggedIn && <>
                         <Link to={'wishlist'} className="relative group">
-                            <FaRegHeart className="text-2xl cursor-pointer transition-all duration-300 text-white group-hover:opacity-0" />
-                            <FaRegHeart className="text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-cyan-400" />
+                            <FaRegHeart className={`text-2xl cursor-pointer transition-all duration-300 
+                                ${isDarkMode
+                                    ? 'text-white group-hover:opacity-0'
+                                    : 'text-gray-700 group-hover:opacity-0'}`} />
+                            <FaRegHeart className={`text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300
+                                ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                             {currentPath === '/wishlist' && (
-                                <FaHeart className="text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300 text-cyan-400" />
+                                <FaHeart className={`text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300
+                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                             )}
                         </Link>
+
                         <Link to={'cart'} className="relative group">
-                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer transition-all duration-300 text-white group-hover:opacity-0" />
-                            <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300 text-cyan-400" />
+                            <FaShoppingCart className={`md:ms-2 text-2xl cursor-pointer transition-all duration-300
+                                ${isDarkMode
+                                    ? 'text-white group-hover:opacity-0'
+                                    : 'text-gray-700 group-hover:opacity-0'}`} />
+                            <FaShoppingCart className={`md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-all duration-300
+                                ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                             {currentPath === '/cart' && (
-                                <FaShoppingCart className="md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300 text-cyan-400" />
+                                <FaShoppingCart className={`md:ms-2 text-2xl cursor-pointer absolute top-0 left-0 transition-all duration-300
+                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                             )}
                             {cartItemsCount > 0 && (
-                                <span className='absolute -top-2 -right-2 bg-cyan-500 text-black font-extrabold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full shadow-lg ring-2 ring-black'>
+                                <span className={`absolute -top-2 -right-2 font-extrabold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full shadow-lg ring-2
+                                    ${isDarkMode
+                                        ? 'bg-cyan-500 text-black ring-black'
+                                        : 'bg-cyan-700 text-white ring-white'}`}>
                                     {isLoadingCart ? (
-                                        <div className="animate-spin rounded-full h-2 w-2 border-b-1 border-black"></div>
+                                        <div className={`animate-spin rounded-full h-2 w-2 border-b-1 
+                                            ${isDarkMode ? 'border-black' : 'border-white'}`}></div>
                                     ) : (
                                         cartItemsCount > 99 ? '99+' : cartItemsCount
                                     )}
                                 </span>
                             )}
                             {cartItemsCount === 0 && !isLoadingCart && isUserLoggedIn && (
-                                <span className='absolute -top-2 -right-2 bg-gray-800 text-gray-300 font-bold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full ring-1 ring-gray-700'>
+                                <span className={`absolute -top-2 -right-2 font-bold text-xs min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full ring-1
+                                    ${isDarkMode
+                                        ? 'bg-gray-800 text-gray-300 ring-gray-700'
+                                        : 'bg-gray-200 text-gray-600 ring-gray-300'}`}>
                                     0
                                 </span>
                             )}
                         </Link>
                     </>}
 
-                    <button onClick={() => setMenuOpen(!menuOpen)} data-collapse-toggle="navbar-sticky" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors duration-200 ring-1 ring-gray-800">
+                    <button onClick={() => setMenuOpen(!menuOpen)}
+                        type="button"
+                        className={`inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg md:hidden 
+                            focus:outline-none focus:ring-2 transition-colors duration-200 ring-1
+                            ${isDarkMode
+                                ? 'text-white hover:bg-gray-900 focus:ring-cyan-500 focus:ring-offset-black ring-gray-800'
+                                : 'text-gray-700 hover:bg-gray-100 focus:ring-cyan-600 focus:ring-offset-white ring-gray-200'}`}>
                         <span className="sr-only">Open main menu</span>
-                        {menuOpen ? <><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                        </svg></> : <> <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M1 1h15M1 7h15M1 13h15" />
-                        </svg></>}
+                        {menuOpen ? (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M1 1h15M1 7h15M1 13h15" />
+                            </svg>
+                        )}
                     </button>
                 </div>
 
                 <div className={`items-center ${menuOpen ? 'block' : 'hidden'} justify-between w-full md:flex md:w-auto md:order-1`} id="navbar-sticky">
-                    <ul className="flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-bold rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left">
-                        <li>
-                            <Link to={''} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                HOME
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to={'products'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/products' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                PRODUCTS
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
-                            </Link>
-                        </li>
+                    <ul className={`flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-bold rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left
+                        ${isDarkMode ? 'bg-black md:bg-transparent' : 'bg-white md:bg-transparent'}`}>
 
-                        <li>
-                            <Link to={'category'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/category' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                CATEGORIES
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to={'about'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/about' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                ABOUT
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to={'contact'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/contact' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                CONTACT
-                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
-                            </Link>
-                        </li>
-
-                        {/* Show Admin link only for admin users */}
-                        {isAdmin && (
-                            <li>
-                                <Link to={'admin'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/admin' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
-                                    ADMIN PANEL
-                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                        {[
+                            { path: '', label: 'HOME' },
+                            { path: 'products', label: 'PRODUCTS' },
+                            { path: 'category', label: 'CATEGORIES' },
+                            { path: 'about', label: 'ABOUT' },
+                            { path: 'contact', label: 'CONTACT' },
+                            ...(isAdmin ? [{ path: 'admin', label: 'ADMIN PANEL' }] : [])
+                        ].map((item) => (
+                            <li key={item.path}>
+                                <Link
+                                    to={item.path}
+                                    onClick={() => setMenuOpen(false)}
+                                    className={`block py-2 px-3 rounded md:p-0 relative group transition-all duration-300
+                                        ${currentPath === `/${item.path}` || (item.path === '' && currentPath === '/')
+                                            ? isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                                            : isDarkMode ? 'text-white hover:text-cyan-400' : 'text-gray-700 hover:text-cyan-700'
+                                        }`}
+                                >
+                                    {item.label}
+                                    <span className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 transition-all duration-600 md:duration-300 group-hover:w-full
+                                        ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}></span>
                                 </Link>
                             </li>
-                        )}
+                        ))}
 
                         <li>
-                            {!isUserLoggedIn && (
-                                <Link to={'login'} onClick={() => setMenuOpen(false)} className={`block py-2 px-3 ${currentPath === '/login' ? 'text-cyan-400' : 'text-white hover:text-cyan-400'} rounded md:p-0 relative group transition-all duration-300`}>
+                            {!isUserLoggedIn ? (
+                                <Link
+                                    to={'login'}
+                                    onClick={() => setMenuOpen(false)}
+                                    className={`block py-2 px-3 rounded md:p-0 relative group transition-all duration-300
+                                        ${currentPath === '/login'
+                                            ? isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                                            : isDarkMode ? 'text-white hover:text-cyan-400' : 'text-gray-700 hover:text-cyan-700'
+                                        }`}
+                                >
                                     SIGN IN
-                                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-cyan-500 transition-all duration-600 md:duration-300 group-hover:w-full"></span>
+                                    <span className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 transition-all duration-600 md:duration-300 group-hover:w-full
+                                        ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}></span>
                                 </Link>
-                            )}
-                            {isUserLoggedIn && (
-                                <span onClick={logOut} className="cursor-pointer font-extrabold text-white hover:text-cyan-400 text-sm transition-all duration-300 uppercase">
+                            ) : (
+                                <span
+                                    onClick={logOut}
+                                    className={`cursor-pointer font-extrabold text-sm transition-all duration-300 uppercase
+                                        ${isDarkMode
+                                            ? 'text-white hover:text-cyan-400'
+                                            : 'text-gray-700 hover:text-cyan-700'}`}
+                                >
                                     LOGOUT
                                 </span>
                             )}

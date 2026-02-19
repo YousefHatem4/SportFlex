@@ -1,4 +1,3 @@
-// orderdetails.jsx - UPDATED WITH COMPLETE STOCK MANAGEMENT & CYAN THEME
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabaseClient'
@@ -40,7 +39,37 @@ export default function OrderDetails() {
     const [updatingStatus, setUpdatingStatus] = useState(false)
     const [savingNotes, setSavingNotes] = useState(false)
     const [notes, setNotes] = useState('')
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
     const printRef = useRef()
+
+    // Listen for theme changes
+    useEffect(() => {
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+        };
+
+        window.addEventListener('storage', checkTheme);
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setIsDarkMode(isDark);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => {
+            window.removeEventListener('storage', checkTheme);
+            observer.disconnect();
+        };
+    }, []);
 
     useEffect(() => {
         document.title = 'Order Details - Admin Panel'
@@ -383,36 +412,53 @@ SportFlex Store Team
     }
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Pending':
-                return 'bg-yellow-900/30 text-yellow-400 border-yellow-500'
-            case 'Processing':
-                return 'bg-blue-900/30 text-blue-400 border-blue-500'
-            case 'Shipped':
-                return 'bg-purple-900/30 text-purple-400 border-purple-500'
-            case 'Delivered':
-                return 'bg-green-900/30 text-green-400 border-green-500'
-            case 'Cancelled':
-                return 'bg-red-900/30 text-red-400 border-red-500'
-            default:
-                return 'bg-gray-900/30 text-gray-400 border-gray-500'
+        if (isDarkMode) {
+            switch (status) {
+                case 'Pending':
+                    return 'bg-yellow-900/30 text-yellow-400 border-yellow-500'
+                case 'Processing':
+                    return 'bg-blue-900/30 text-blue-400 border-blue-500'
+                case 'Shipped':
+                    return 'bg-purple-900/30 text-purple-400 border-purple-500'
+                case 'Delivered':
+                    return 'bg-green-900/30 text-green-400 border-green-500'
+                case 'Cancelled':
+                    return 'bg-red-900/30 text-red-400 border-red-500'
+                default:
+                    return 'bg-gray-900/30 text-gray-400 border-gray-500'
+            }
+        } else {
+            switch (status) {
+                case 'Pending':
+                    return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                case 'Processing':
+                    return 'bg-blue-100 text-blue-800 border-blue-300'
+                case 'Shipped':
+                    return 'bg-purple-100 text-purple-800 border-purple-300'
+                case 'Delivered':
+                    return 'bg-green-100 text-green-800 border-green-300'
+                case 'Cancelled':
+                    return 'bg-red-100 text-red-800 border-red-300'
+                default:
+                    return 'bg-gray-100 text-gray-800 border-gray-300'
+            }
         }
     }
 
     const getStatusIcon = (status) => {
         switch (status) {
             case 'Pending':
-                return <FaExclamationTriangle className="text-yellow-400" />
+                return <FaExclamationTriangle className={isDarkMode ? 'text-yellow-400' : 'text-yellow-600'} />
             case 'Processing':
-                return <FaCheck className="text-blue-400" />
+                return <FaCheck className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
             case 'Shipped':
-                return <FaShippingFast className="text-purple-400" />
+                return <FaShippingFast className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
             case 'Delivered':
-                return <FaCheckCircle className="text-green-400" />
+                return <FaCheckCircle className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
             case 'Cancelled':
-                return <FaTimesCircle className="text-red-400" />
+                return <FaTimesCircle className={isDarkMode ? 'text-red-400' : 'text-red-600'} />
             default:
-                return <FaCheck className="text-gray-400" />
+                return <FaCheck className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
         }
     }
 
@@ -437,10 +483,12 @@ SportFlex Store Team
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                    <p className="text-white">Loading order details...</p>
+                    <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4
+                        ${isDarkMode ? 'border-cyan-500' : 'border-cyan-700'}`}></div>
+                    <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>Loading order details...</p>
                 </div>
             </div>
         )
@@ -448,14 +496,20 @@ SportFlex Store Team
 
     if (!order) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
                 <div className="text-center">
-                    <FaTimesCircle className="text-red-500 text-6xl mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Order Not Found</h3>
-                    <p className="text-gray-400 mb-6">The order you're looking for doesn't exist.</p>
+                    <FaTimesCircle className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-red-500' : 'text-red-600'}`} />
+                    <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Not Found</h3>
+                    <p className={`mb-6 transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>The order you're looking for doesn't exist.</p>
                     <button
                         onClick={handleGoBack}
-                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition"
+                        className={`px-6 py-3 text-white font-medium rounded-lg transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                     >
                         Back to Orders
                     </button>
@@ -465,7 +519,8 @@ SportFlex Store Team
     }
 
     return (
-        <div className="min-h-screen bg-black py-8" ref={printRef}>
+        <div className={`min-h-screen py-8 transition-colors duration-300
+            ${isDarkMode ? 'bg-black' : 'bg-white'}`} ref={printRef}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <motion.div
@@ -476,16 +531,20 @@ SportFlex Store Team
                     <div>
                         <button
                             onClick={handleGoBack}
-                            className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 no-print"
+                            className={`flex items-center gap-2 mb-4 no-print transition-colors duration-300
+                                ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'}`}
                         >
                             <FaArrowLeft /> Back to Orders
                         </button>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">Order Details</h1>
-                        <p className="text-gray-400">Order #{order.order_number}</p>
+                        <h1 className={`text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                            ${isDarkMode ? 'from-cyan-400 to-cyan-300' : 'from-cyan-700 to-cyan-600'}`}>Order Details</h1>
+                        <p className={`transition-colors duration-300
+                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Order #{order.order_number}</p>
                         {order.discount_amount > 0 && (
                             <div className="flex items-center gap-2 mt-2">
-                                <FaTags className="text-green-400" />
-                                <span className="text-sm text-green-400 font-medium">
+                                <FaTags className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
+                                <span className={`text-sm font-medium transition-colors duration-300
+                                    ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
                                     Promo code applied: EGP {parseFloat(order.discount_amount).toFixed(2)} discount
                                 </span>
                             </div>
@@ -498,13 +557,19 @@ SportFlex Store Team
                                 const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(order.customer_email)}&su=${encodeURIComponent(`Regarding Your Order #${order.order_number}`)}`;
                                 window.open(gmailUrl, '_blank');
                             }}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition"
+                            className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                                    : 'bg-gradient-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900'}`}
                         >
                             <FaEnvelope /> Email Customer
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-cyan-500 text-cyan-400 rounded-lg hover:bg-gray-800 transition"
+                            className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gray-900 border-cyan-500 text-cyan-400 hover:bg-gray-800'
+                                    : 'bg-white border-cyan-700 text-cyan-700 hover:bg-gray-50'}`}
                         >
                             <FaPrint /> Print
                         </button>
@@ -520,17 +585,20 @@ SportFlex Store Team
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-gray-900 rounded-2xl shadow-lg p-6 print-container border border-gray-800"
+                            className={`rounded-2xl shadow-lg p-6 print-container border transition-colors duration-300
+                                ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                         >
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                 <div>
-                                    <h2 className="text-xl font-bold text-white mb-2">Order Status</h2>
+                                    <h2 className={`text-xl font-bold mb-2 transition-colors duration-300
+                                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Status</h2>
                                     <div className="flex items-center gap-3">
-                                        <span className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(order.status)} flex items-center gap-2`}>
+                                        <span className={`px-4 py-2 rounded-full text-sm font-medium border flex items-center gap-2 ${getStatusColor(order.status)}`}>
                                             {getStatusIcon(order.status)}
                                             {order.status}
                                         </span>
-                                        <span className="text-gray-400 text-sm">
+                                        <span className={`text-sm transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                             Last updated: {formatDate(order.updated_at)}
                                         </span>
                                     </div>
@@ -541,7 +609,10 @@ SportFlex Store Team
                                         value={order.status}
                                         onChange={(e) => updateOrderStatus(e.target.value)}
                                         disabled={updatingStatus}
-                                        className="px-4 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50"
+                                        className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 disabled:opacity-50 transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'bg-gray-800 border-gray-700 text-white focus:ring-cyan-500'
+                                                : 'bg-white border-gray-200 text-gray-900 focus:ring-cyan-700'}`}
                                     >
                                         <option value="Pending">⏳ Pending</option>
                                         <option value="Processing">🔧 Processing</option>
@@ -550,14 +621,15 @@ SportFlex Store Team
                                         <option value="Cancelled">❌ Cancelled</option>
                                     </select>
                                     {updatingStatus && (
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
+                                        <div className={`animate-spin rounded-full h-6 w-6 border-b-2 ${isDarkMode ? 'border-cyan-500' : 'border-cyan-700'}`}></div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Status Timeline */}
                             <div className="relative no-print">
-                                <div className="absolute left-0 top-0 h-full w-0.5 bg-gray-700"></div>
+                                <div className={`absolute left-0 top-0 h-full w-0.5 transition-colors duration-300
+                                    ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
                                 {[
                                     { status: 'Pending', icon: <FaExclamationTriangle /> },
                                     { status: 'Processing', icon: <FaCheck /> },
@@ -573,14 +645,23 @@ SportFlex Store Team
 
                                     return (
                                         <div key={step.status} className="relative pl-8 pb-8 last:pb-0">
-                                            <div className={`absolute -left-3 top-0 w-6 h-6 rounded-full flex items-center justify-center ${isActive ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                                            <div className={`absolute -left-3 top-0 w-6 h-6 rounded-full flex items-center justify-center
+                                                ${isActive
+                                                    ? isDarkMode ? 'bg-cyan-500 text-white' : 'bg-cyan-700 text-white'
+                                                    : isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+                                                }`}>
                                                 {step.icon}
                                             </div>
                                             <div>
-                                                <p className={`font-medium ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isActive
+                                                        ? isDarkMode ? 'text-white' : 'text-gray-900'
+                                                        : isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                                    }`}>
                                                     {step.status}
                                                 </p>
-                                                <p className="text-sm text-gray-400">
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                     {step.status === 'Pending' && 'Order received'}
                                                     {step.status === 'Processing' && 'Preparing order'}
                                                     {step.status === 'Shipped' && 'Shipped to customer'}
@@ -598,41 +679,57 @@ SportFlex Store Team
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-gray-900 rounded-2xl shadow-lg overflow-hidden print-container border border-gray-800"
+                            className={`rounded-2xl shadow-lg overflow-hidden print-container border transition-colors duration-300
+                                ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                         >
-                            <div className="p-6 border-b border-gray-800">
-                                <h2 className="text-xl font-bold text-white">Order Items</h2>
-                                <p className="text-gray-400 text-sm">{orderItems.length} items</p>
+                            <div className={`p-6 border-b transition-colors duration-300
+                                ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                                <h2 className={`text-xl font-bold transition-colors duration-300
+                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Items</h2>
+                                <p className={`text-sm transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{orderItems.length} items</p>
                             </div>
 
-                            <div className="divide-y divide-gray-800">
+                            <div className={`divide-y transition-colors duration-300
+                                ${isDarkMode ? 'divide-gray-800' : 'divide-gray-200'}`}>
                                 {orderItems.map((item, index) => (
                                     <motion.div
                                         key={item.id}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
-                                        className="p-6 hover:bg-gray-800/50 transition-colors"
+                                        className={`p-6 transition-colors
+                                            ${isDarkMode ? 'hover:bg-gray-800/50' : 'hover:bg-gray-50'}`}
                                     >
                                         <div className="flex gap-4">
                                             <img
                                                 src={item.products?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
                                                 alt={item.product_title}
-                                                className="w-20 h-20 object-cover rounded-lg border border-gray-700 no-print"
+                                                className={`w-20 h-20 object-cover rounded-lg border no-print transition-colors duration-300
+                                                    ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-start justify-between">
                                                     <div>
-                                                        <h4 className="font-medium text-white">{item.product_title}</h4>
-                                                        <p className="text-sm text-gray-400">{item.products?.category || 'Uncategorized'}</p>
+                                                        <h4 className={`font-medium transition-colors duration-300
+                                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.product_title}</h4>
+                                                        <p className={`text-sm transition-colors duration-300
+                                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{item.products?.category || 'Uncategorized'}</p>
                                                     </div>
                                                     {/* Stock Level Indicator */}
                                                     {item.products?.stock !== undefined && (
-                                                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${item.products.stock < 5
-                                                            ? 'bg-red-900/30 text-red-400 border border-red-500'
-                                                            : item.products.stock < 10
-                                                                ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-500'
-                                                                : 'bg-green-900/30 text-green-400 border border-green-500'
+                                                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border
+                                                            ${item.products.stock < 5
+                                                                ? isDarkMode
+                                                                    ? 'bg-red-900/30 text-red-400 border-red-500'
+                                                                    : 'bg-red-100 text-red-700 border-red-300'
+                                                                : item.products.stock < 10
+                                                                    ? isDarkMode
+                                                                        ? 'bg-yellow-900/30 text-yellow-400 border-yellow-500'
+                                                                        : 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                                                                    : isDarkMode
+                                                                        ? 'bg-green-900/30 text-green-400 border-green-500'
+                                                                        : 'bg-green-100 text-green-700 border-green-300'
                                                             }`}>
                                                             {item.products.stock < 5 && <FaExclamationCircle className="text-xs" />}
                                                             <span>Stock: {item.products.stock}</span>
@@ -640,13 +737,17 @@ SportFlex Store Team
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-4 mt-2">
-                                                    <span className="text-gray-400">Qty: {item.quantity}</span>
-                                                    <span className="text-gray-400">Price: EGP {item.price.toFixed(2)}</span>
+                                                    <span className={`transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Qty: {item.quantity}</span>
+                                                    <span className={`transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Price: EGP {item.price.toFixed(2)}</span>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-cyan-400">EGP {(item.price * item.quantity).toFixed(2)}</p>
-                                                <p className="text-sm text-gray-400">Subtotal</p>
+                                                <p className={`font-bold transition-colors duration-300
+                                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>EGP {(item.price * item.quantity).toFixed(2)}</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Subtotal</p>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -654,27 +755,35 @@ SportFlex Store Team
                             </div>
 
                             {/* Order Summary */}
-                            <div className="p-6 border-t border-gray-800 bg-gray-800/50">
+                            <div className={`p-6 border-t transition-colors duration-300
+                                ${isDarkMode ? 'border-gray-800 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between text-gray-400">
-                                        <span>Subtotal</span>
-                                        <span>EGP {subtotal.toFixed(2)}</span>
+                                    <div className="flex justify-between">
+                                        <span className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Subtotal</span>
+                                        <span className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {subtotal.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-gray-400">
-                                        <span>Shipping</span>
-                                        <span>EGP {shipping.toFixed(2)}</span>
+                                    <div className="flex justify-between">
+                                        <span className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Shipping</span>
+                                        <span className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {shipping.toFixed(2)}</span>
                                     </div>
                                     {discount > 0 && (
-                                        <div className="flex justify-between text-green-400">
-                                            <span className="flex items-center gap-2">
+                                        <div className="flex justify-between">
+                                            <span className={`flex items-center gap-2 transition-colors duration-300
+                                                ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>
                                                 <FaTags /> Discount
                                             </span>
-                                            <span>-EGP {discount.toFixed(2)}</span>
+                                            <span className={`transition-colors duration-300
+                                                ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>-EGP {discount.toFixed(2)}</span>
                                         </div>
                                     )}
-                                    <div className="flex justify-between text-lg font-bold text-white pt-3 border-t border-gray-700">
+                                    <div className={`flex justify-between text-lg font-bold pt-3 border-t transition-colors duration-300
+                                        ${isDarkMode ? 'text-white border-gray-700' : 'text-gray-900 border-gray-200'}`}>
                                         <span>Total</span>
-                                        <span className="text-cyan-400">EGP {total.toFixed(2)}</span>
+                                        <span className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}>EGP {total.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -688,66 +797,81 @@ SportFlex Store Team
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-gray-900 rounded-2xl shadow-lg p-6 print-container border border-gray-800"
+                            className={`rounded-2xl shadow-lg p-6 print-container border transition-colors duration-300
+                                ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                         >
-                            <h2 className="text-xl font-bold text-white mb-6">Customer Information</h2>
+                            <h2 className={`text-xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Customer Information</h2>
 
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-lg no-print">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg no-print
+                                        ${isDarkMode ? 'bg-gradient-to-r from-cyan-500 to-cyan-600' : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                         {order.customer_name?.charAt(0) || customer?.full_name?.charAt(0) || 'C'}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-white">{order.customer_name}</h3>
-                                        <p className="text-gray-400 text-sm">{order.customer_email}</p>
+                                        <h3 className={`font-bold transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{order.customer_name}</h3>
+                                        <p className={`text-sm transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{order.customer_email}</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <FaEnvelope className="text-gray-500" />
+                                        <FaEnvelope className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Email</p>
-                                            <p className="font-medium text-white">{order.customer_email}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Email</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{order.customer_email}</p>
                                         </div>
                                     </div>
 
                                     {order.shipping_phone && (
                                         <div className="flex items-center gap-3">
-                                            <FaPhone className="text-gray-500" />
+                                            <FaPhone className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                             <div>
-                                                <p className="text-sm text-gray-400">Phone (Shipping)</p>
-                                                <p className="font-medium text-white">{order.shipping_phone}</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Phone (Shipping)</p>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{order.shipping_phone}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {customer?.phone && (
                                         <div className="flex items-center gap-3">
-                                            <FaPhone className="text-gray-500" />
+                                            <FaPhone className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                             <div>
-                                                <p className="text-sm text-gray-400">Phone (Account)</p>
-                                                <p className="font-medium text-white">{customer.phone}</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Phone (Account)</p>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{customer.phone}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {customer?.full_name && (
                                         <div className="flex items-center gap-3">
-                                            <FaUser className="text-gray-500" />
+                                            <FaUser className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                             <div>
-                                                <p className="text-sm text-gray-400">Full Name</p>
-                                                <p className="font-medium text-white">{customer.full_name}</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Full Name</p>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{customer.full_name}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {order.user_id && (
                                         <div className="flex items-center gap-3">
-                                            <FaIdCard className="text-gray-500" />
+                                            <FaIdCard className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                             <div>
-                                                <p className="text-sm text-gray-400">Customer ID</p>
-                                                <p className="font-medium text-cyan-400">{order.user_id.substring(0, 8)}...</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Customer ID</p>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>{order.user_id.substring(0, 8)}...</p>
                                             </div>
                                         </div>
                                     )}
@@ -760,34 +884,43 @@ SportFlex Store Team
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-gray-900 rounded-2xl shadow-lg p-6 print-container border border-gray-800"
+                            className={`rounded-2xl shadow-lg p-6 print-container border transition-colors duration-300
+                                ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                         >
-                            <h2 className="text-xl font-bold text-white mb-6">Shipping Information</h2>
+                            <h2 className={`text-xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shipping Information</h2>
 
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <FaMapMarkerAlt className="text-gray-500 mt-1" />
+                                    <FaMapMarkerAlt className={`mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
                                     <div>
-                                        <p className="font-medium text-white">Shipping Address</p>
-                                        <p className="text-gray-400 mt-1">{order.shipping_address}</p>
-                                        <p className="text-gray-400">{order.shipping_city}</p>
+                                        <p className={`font-medium transition-colors duration-300
+                                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shipping Address</p>
+                                        <p className={`mt-1 transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{order.shipping_address}</p>
+                                        <p className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{order.shipping_city}</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <FaTruck className="text-gray-500" />
+                                        <FaTruck className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Shipping Method</p>
-                                            <p className="font-medium text-white">Standard Shipping</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Shipping Method</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Standard Shipping</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <FaTruck className="text-gray-500" />
+                                        <FaTruck className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Shipping Cost</p>
-                                            <p className="font-medium text-white">EGP {(order.shipping_cost || 0).toFixed(2)}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Shipping Cost</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>EGP {(order.shipping_cost || 0).toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -799,66 +932,81 @@ SportFlex Store Team
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-gray-900 rounded-2xl shadow-lg p-6 print-container border border-gray-800"
+                            className={`rounded-2xl shadow-lg p-6 print-container border transition-colors duration-300
+                                ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                         >
-                            <h2 className="text-xl font-bold text-white mb-6">Order Information</h2>
+                            <h2 className={`text-xl font-bold mb-6 transition-colors duration-300
+                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Information</h2>
 
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
-                                        <FaIdCard className="text-gray-500" />
+                                        <FaIdCard className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Order Number</p>
-                                            <p className="font-medium text-cyan-400">{order.order_number}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Order Number</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>{order.order_number}</p>
                                         </div>
                                     </div>
                                     {order.discount_amount > 0 && (
-                                        <div className="flex items-center gap-2 bg-green-900/30 px-3 py-1 rounded-lg border border-green-500">
-                                            <FaTags className="text-green-400 text-sm" />
-                                            <span className="text-green-400 text-sm font-medium">Discount Applied</span>
+                                        <div className={`flex items-center gap-2 px-3 py-1 rounded-lg border
+                                            ${isDarkMode ? 'bg-green-900/30 border-green-500' : 'bg-green-100 border-green-300'}`}>
+                                            <FaTags className={`text-sm ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+                                            <span className={`text-sm font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>Discount Applied</span>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <FaCalendar className="text-gray-500" />
+                                        <FaCalendar className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Order Date</p>
-                                            <p className="font-medium text-white">{formatDate(order.created_at)}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Order Date</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{formatDate(order.created_at)}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <FaCreditCard className="text-gray-500" />
+                                        <FaCreditCard className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Payment Method</p>
-                                            <p className="font-medium text-white capitalize">{order.payment_method}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Payment Method</p>
+                                            <p className={`font-medium capitalize transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{order.payment_method}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <FaShoppingBag className="text-gray-500" />
+                                        <FaShoppingBag className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Items</p>
-                                            <p className="font-medium text-white">{orderItems.length} products</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Items</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{orderItems.length} products</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <FaBox className="text-gray-500" />
+                                        <FaBox className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                         <div>
-                                            <p className="text-sm text-gray-400">Order Source</p>
-                                            <p className="font-medium text-white">{order.user_id ? 'Registered User' : 'Guest Checkout'}</p>
+                                            <p className={`text-sm transition-colors duration-300
+                                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Order Source</p>
+                                            <p className={`font-medium transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{order.user_id ? 'Registered User' : 'Guest Checkout'}</p>
                                         </div>
                                     </div>
 
                                     {order.discount_amount > 0 && (
                                         <div className="flex items-center gap-3">
-                                            <FaPercent className="text-gray-500" />
+                                            <FaPercent className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
                                             <div>
-                                                <p className="text-sm text-gray-400">Discount Applied</p>
-                                                <p className="font-medium text-green-400">-EGP {order.discount_amount.toFixed(2)}</p>
+                                                <p className={`text-sm transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Discount Applied</p>
+                                                <p className={`font-medium transition-colors duration-300
+                                                    ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>-EGP {order.discount_amount.toFixed(2)}</p>
                                             </div>
                                         </div>
                                     )}
@@ -873,12 +1021,15 @@ SportFlex Store Team
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="mt-8 bg-gray-900 rounded-2xl shadow-lg p-6 no-print border border-gray-800"
+                    className={`mt-8 rounded-2xl shadow-lg p-6 no-print border transition-colors duration-300
+                        ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
                 >
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-white">Order Notes</h2>
+                        <h2 className={`text-xl font-bold transition-colors duration-300
+                            ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Order Notes</h2>
                         {order.notes && (
-                            <span className="text-sm text-gray-400">
+                            <span className={`text-sm transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 Last updated: {formatDate(order.updated_at)}
                             </span>
                         )}
@@ -886,7 +1037,10 @@ SportFlex Store Team
 
                     <textarea
                         placeholder="Add notes about this order (e.g., special instructions, customer requests, issues, etc.)..."
-                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 min-h-[120px] placeholder-gray-500"
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 min-h-[120px] transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gray-800 border-gray-700 text-white focus:ring-cyan-500 placeholder-gray-500'
+                                : 'bg-white border-gray-200 text-gray-900 focus:ring-cyan-700 placeholder-gray-400'}`}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                     />
@@ -896,14 +1050,20 @@ SportFlex Store Team
                             <button
                                 onClick={() => setNotes('')}
                                 disabled={savingNotes || notes.length === 0}
-                                className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`px-4 py-2 border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                                    ${isDarkMode
+                                        ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                                        : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
                             >
                                 Clear
                             </button>
                             <button
                                 onClick={saveNotes}
                                 disabled={savingNotes || notes === order.notes}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                        : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                             >
                                 {savingNotes ? (
                                     <>
@@ -934,7 +1094,7 @@ SportFlex Store Team
               display: block !important;
             }
             
-            body, .bg-black, .min-h-screen {
+            body, .min-h-screen {
               background: white !important;
               color: black !important;
             }
@@ -963,6 +1123,19 @@ SportFlex Store Team
             .print-container {
               page-break-inside: avoid;
               break-inside: avoid;
+            }
+            
+            /* Force light theme for print regardless of current theme */
+            .bg-black, .bg-gray-900, .bg-gray-800, .bg-gray-700 {
+              background: white !important;
+            }
+            
+            .text-white, .text-gray-400, .text-cyan-400 {
+              color: black !important;
+            }
+            
+            .border-gray-800, .border-gray-700 {
+              border-color: #e5e7eb !important;
             }
           }
         `}

@@ -37,16 +37,43 @@ export default function Home() {
     const [wishlistItems, setWishlistItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : true;
+    });
     const navigate = useNavigate();
 
-    // Check user session
+    // Listen for theme changes
+    useEffect(() => {
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
+        };
+
+        window.addEventListener('storage', checkTheme);
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setIsDarkMode(isDark);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => {
+            window.removeEventListener('storage', checkTheme);
+            observer.disconnect();
+        };
+    }, []);
+
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user || null);
 
             if (session?.user) {
-                // Load user's cart and wishlist
                 fetchUserCart(session.user.id);
                 fetchUserWishlist(session.user.id);
             }
@@ -54,7 +81,6 @@ export default function Home() {
 
         checkUser();
 
-        // Set up auth state listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 setUser(session?.user || null);
@@ -71,12 +97,10 @@ export default function Home() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // Fetch products from database with feedback counts
     const fetchProducts = async () => {
         try {
             setLoading(true);
 
-            // Try to fetch from the view first
             const { data: viewData, error: viewError } = await supabase
                 .from('products_with_feedback')
                 .select('*')
@@ -90,12 +114,10 @@ export default function Home() {
                     ...product,
                     ratingsAverage: parseFloat(product.actual_rating) || 4.5,
                     feedbackCount: product.feedback_count || 0,
-                    // Maintain backward compatibility
                     ratingsCount: product.feedback_count || 0
                 }));
             }
 
-            // Fallback to original query if view doesn't exist
             console.log('View not found, using original query:', viewError);
             const { data, error } = await supabase
                 .from('products')
@@ -112,7 +134,6 @@ export default function Home() {
 
             if (error) throw error;
 
-            // Fetch feedback counts separately
             const productIds = data?.map(p => p.id) || [];
             let feedbackCounts = {};
 
@@ -123,7 +144,6 @@ export default function Home() {
                     .in('product_id', productIds);
 
                 if (!feedbackError && feedbackData) {
-                    // Calculate counts and averages
                     feedbackData.forEach(fb => {
                         if (!feedbackCounts[fb.product_id]) {
                             feedbackCounts[fb.product_id] = {
@@ -160,7 +180,6 @@ export default function Home() {
         }
     };
 
-    // Fetch categories from database
     const fetchCategories = async () => {
         try {
             const { data, error } = await supabase
@@ -181,7 +200,6 @@ export default function Home() {
         }
     };
 
-    // Fetch user's cart items
     const fetchUserCart = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -198,7 +216,6 @@ export default function Home() {
         }
     };
 
-    // Fetch user's wishlist items
     const fetchUserWishlist = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -215,7 +232,6 @@ export default function Home() {
         }
     };
 
-    // Helper function to render star ratings
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 >= 0.5;
@@ -224,18 +240,17 @@ export default function Home() {
             <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                     if (i < fullStars) {
-                        return <i key={i} className="fas fa-star text-cyan-500 text-xs"></i>;
+                        return <i key={i} className={`fas fa-star ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} text-xs`}></i>;
                     } else if (i === fullStars && hasHalfStar) {
-                        return <i key={i} className="fas fa-star-half-alt text-cyan-500 text-xs"></i>;
+                        return <i key={i} className={`fas fa-star-half-alt ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} text-xs`}></i>;
                     } else {
-                        return <i key={i} className="far fa-star text-cyan-500 text-xs"></i>;
+                        return <i key={i} className={`far fa-star ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} text-xs`}></i>;
                     }
                 })}
             </div>
         );
     };
 
-    // Load initial data
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -266,7 +281,6 @@ export default function Home() {
                 return;
             }
 
-            // Check if product is already in cart
             const { data: existingItem, error: checkError } = await supabase
                 .from('cart_items')
                 .select('*')
@@ -274,12 +288,11 @@ export default function Home() {
                 .eq('product_id', productId)
                 .single();
 
-            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+            if (checkError && checkError.code !== 'PGRST116') {
                 throw checkError;
             }
 
             if (existingItem) {
-                // Update quantity
                 const { error: updateError } = await supabase
                     .from('cart_items')
                     .update({ quantity: existingItem.quantity + 1 })
@@ -288,7 +301,6 @@ export default function Home() {
                 if (updateError) throw updateError;
                 toast.success("Product quantity updated in cart!");
             } else {
-                // Add new item to cart
                 const { error: insertError } = await supabase
                     .from('cart_items')
                     .insert({
@@ -301,10 +313,7 @@ export default function Home() {
                 toast.success("Product added to cart!");
             }
 
-            // Update local state
             setCartItems((prev) => [...prev, productId]);
-
-            // Refresh cart count
             fetchUserCart(session.user.id);
 
         } catch (error) {
@@ -323,7 +332,6 @@ export default function Home() {
                 return;
             }
 
-            // Check if product is already in wishlist
             const { data: existingItem, error: checkError } = await supabase
                 .from('wishlist_items')
                 .select('*')
@@ -336,7 +344,6 @@ export default function Home() {
             }
 
             if (existingItem) {
-                // Remove from wishlist
                 const { error: deleteError } = await supabase
                     .from('wishlist_items')
                     .delete()
@@ -347,7 +354,6 @@ export default function Home() {
                 setWishlistItems(wishlistItems.filter(id => id !== productId));
                 toast.success("Product removed from wishlist!");
             } else {
-                // Add to wishlist
                 const { error: insertError } = await supabase
                     .from('wishlist_items')
                     .insert({
@@ -361,7 +367,6 @@ export default function Home() {
                 toast.success("Product added to wishlist!");
             }
 
-            // Refresh wishlist
             fetchUserWishlist(session.user.id);
 
         } catch (error) {
@@ -370,31 +375,28 @@ export default function Home() {
         }
     };
 
-    // Check if product is in wishlist
     const isInWishlist = (productId) => {
         return wishlistItems.includes(productId);
     };
 
-    // Check if product is in cart
     const isInCart = (productId) => {
         return cartItems.includes(productId);
     };
 
-    // Handle category click to navigate to products with filter
     const handleCategoryClick = (categoryId) => {
         navigate(`/products?category=${categoryId}`);
     };
 
-    // Get cart items count
     const cartItemsCount = cartItems.length;
 
-    // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                    <p className="text-white">Loading products...</p>
+                    <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4
+                        ${isDarkMode ? 'border-cyan-500' : 'border-cyan-600'}`}></div>
+                    <p className={isDarkMode ? 'text-white' : 'text-gray-800'}>Loading products...</p>
                 </div>
             </div>
         );
@@ -402,54 +404,88 @@ export default function Home() {
 
     return (
         <>
-            {/* ========== UPDATED HEADER SECTION ========== */}
-            <section className="relative overflow-hidden bg-black">
-                {/* Background decorative elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
-                <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-cyan-900/20 to-cyan-700/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-                <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-cyan-800/30 to-cyan-600/30 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+            {/* Header Section */}
+            <section className={`relative overflow-hidden transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
 
-                {/* Main Header Container */}
+                <div className={`absolute inset-0 transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-br from-gray-900 via-black to-gray-900'
+                        : 'bg-gradient-to-br from-gray-100 via-white to-gray-100'}`}>
+                </div>
+
+                <div className={`absolute top-0 left-0 w-72 h-72 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-br from-cyan-900/20 to-cyan-700/20'
+                        : 'bg-gradient-to-br from-cyan-200/40 to-cyan-100/40'}`}>
+                </div>
+
+                <div className={`absolute bottom-0 right-0 w-96 h-96 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-tr from-cyan-800/30 to-cyan-600/30'
+                        : 'bg-gradient-to-tr from-cyan-200/50 to-cyan-100/50'}`}>
+                </div>
+
                 <div className="relative px-4 sm:px-6 lg:px-8 py-12 lg:py-24 max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-                        {/* Left Column - Hero Content */}
+                        {/* Left Column */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                             className="text-center lg:text-left"
                         >
-                            {/* Badge */}
-                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 rounded-full px-4 py-2 mb-6 backdrop-blur-sm border border-cyan-700/50">
-                                <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full animate-pulse"></div>
-                                <span className="text-sm font-medium bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                            <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 backdrop-blur-sm border transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 border-cyan-700/50'
+                                    : 'bg-gradient-to-r from-cyan-100 to-cyan-50 border-cyan-200'}`}>
+                                <div className={`w-2 h-2 rounded-full animate-pulse
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                        : 'bg-gradient-to-r from-cyan-600 to-cyan-500'}`}>
+                                </div>
+                                <span className={`text-sm font-medium transition-colors duration-300
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent'
+                                        : 'bg-gradient-to-r from-cyan-700 to-cyan-600 bg-clip-text text-transparent'}`}>
                                     Premium SportFlex Collection
                                 </span>
                             </div>
 
-                            {/* Main Heading */}
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                                <span className="block text-white">Elevate Your</span>
-                                <span className="bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 bg-clip-text text-transparent animate-gradient">
+                                <span className={`block transition-colors duration-300
+                                    ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    Elevate Your
+                                </span>
+                                <span className={`bg-gradient-to-r bg-clip-text text-transparent animate-gradient
+                                    ${isDarkMode
+                                        ? 'from-cyan-400 via-cyan-300 to-cyan-400'
+                                        : 'from-cyan-700 via-cyan-600 to-cyan-700'}`}>
                                     Athletic Performance
                                 </span>
                             </h1>
 
-                            {/* Description */}
-                            <p className="text-lg text-gray-300 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                            <p className={`text-lg mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 Discover premium sportswear that combines cutting-edge technology with stylish design. Perfect for athletes who demand excellence in every move.
                             </p>
 
-                            {/* CTA Buttons */}
                             <div className="flex flex-col sm:flex-row gap-4 mb-10">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/products')}
-                                    className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                    className={`group relative overflow-hidden text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                            : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-600 to-cyan-700'
+                                            : 'bg-gradient-to-r from-cyan-800 to-cyan-900'}`}>
+                                    </div>
                                     <span className="relative flex items-center justify-center gap-3">
                                         <FaBolt className="text-lg" />
                                         Shop Now
@@ -461,82 +497,130 @@ export default function Home() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/category')}
-                                    className="group bg-gray-900 text-white font-semibold py-4 px-8 rounded-xl border-2 border-gray-800 hover:border-cyan-500 shadow-sm hover:shadow-lg transition-all duration-300"
+                                    className={`group font-semibold py-4 px-8 rounded-xl border-2 shadow-sm hover:shadow-lg transition-all duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gray-900 text-white border-gray-800 hover:border-cyan-500'
+                                            : 'bg-white text-gray-800 border-gray-200 hover:border-cyan-600'}`}
                                 >
                                     <span className="flex items-center justify-center gap-3">
-                                        <FaLayerGroup className="text-cyan-400" />
+                                        <FaLayerGroup className={`transition-colors duration-300
+                                            ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                                         Browse Categories
                                     </span>
                                 </motion.button>
                             </div>
 
-                            {/* Stats */}
                             <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">500+</div>
-                                    <div className="text-sm text-gray-400">Premium Products</div>
+                                    <div className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                        ${isDarkMode
+                                            ? 'from-cyan-400 to-cyan-300'
+                                            : 'from-cyan-700 to-cyan-600'}`}>
+                                        500+
+                                    </div>
+                                    <div className={`text-sm transition-colors duration-300
+                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        Premium Products
+                                    </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">24/7</div>
-                                    <div className="text-sm text-gray-400">Customer Support</div>
+                                    <div className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                        ${isDarkMode
+                                            ? 'from-cyan-400 to-cyan-300'
+                                            : 'from-cyan-700 to-cyan-600'}`}>
+                                        24/7
+                                    </div>
+                                    <div className={`text-sm transition-colors duration-300
+                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        Customer Support
+                                    </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">30-Day</div>
-                                    <div className="text-sm text-gray-400">Returns</div>
+                                    <div className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                        ${isDarkMode
+                                            ? 'from-cyan-400 to-cyan-300'
+                                            : 'from-cyan-700 to-cyan-600'}`}>
+                                        30-Day
+                                    </div>
+                                    <div className={`text-sm transition-colors duration-300
+                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        Returns
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
 
-                        {/* Right Column - Visual Elements */}
+                        {/* Right Column */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="relative"
                         >
-                            {/* Main Image/Visual Container */}
                             <div className="relative">
-                                {/* Floating Elements */}
                                 <motion.div
                                     animate={{ y: [-10, 10, -10] }}
                                     transition={{ duration: 3, repeat: Infinity }}
-                                    className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-2xl backdrop-blur-sm border border-cyan-700/30 shadow-lg"
+                                    className={`absolute -top-6 -left-6 w-24 h-24 rounded-2xl backdrop-blur-sm border shadow-lg transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 border-cyan-700/30'
+                                            : 'bg-gradient-to-br from-cyan-200/40 to-cyan-100/40 border-cyan-200'}`}
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <FaRunning className="text-3xl bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
+                                        <FaRunning className={`text-3xl bg-gradient-to-r bg-clip-text text-transparent
+                                            ${isDarkMode
+                                                ? 'from-cyan-400 to-cyan-300'
+                                                : 'from-cyan-700 to-cyan-600'}`} />
                                     </div>
                                 </motion.div>
 
                                 <motion.div
                                     animate={{ y: [10, -10, 10] }}
                                     transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-                                    className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-cyan-300/20 rounded-full backdrop-blur-sm border border-cyan-600/30 shadow-lg"
+                                    className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full backdrop-blur-sm border shadow-lg transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-300/20 border-cyan-600/30'
+                                            : 'bg-gradient-to-br from-cyan-200/40 to-cyan-100/40 border-cyan-200'}`}
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <FaMedal className="text-2xl bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
+                                        <FaMedal className={`text-2xl bg-gradient-to-r bg-clip-text text-transparent
+                                            ${isDarkMode
+                                                ? 'from-cyan-400 to-cyan-300'
+                                                : 'from-cyan-700 to-cyan-600'}`} />
                                     </div>
                                 </motion.div>
 
-                                {/* Main Card */}
-                                <div className="relative bg-gray-900/80 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-gray-800/50 overflow-hidden">
-                                    {/* Animated Gradient Border */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-cyan-400/10 to-cyan-500/10 animate-gradient-x rounded-3xl"></div>
+                                <div className={`relative backdrop-blur-lg rounded-3xl p-8 shadow-2xl border overflow-hidden transition-colors duration-300
+                                    ${isDarkMode
+                                        ? 'bg-gray-900/80 border-gray-800/50'
+                                        : 'bg-white/80 border-gray-200'}`}>
 
-                                    {/* Card Content */}
+                                    <div className={`absolute inset-0 animate-gradient-x rounded-3xl transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500/10 via-cyan-400/10 to-cyan-500/10'
+                                            : 'bg-gradient-to-r from-cyan-200/20 via-cyan-100/20 to-cyan-200/20'}`}>
+                                    </div>
+
                                     <div className="relative z-10">
-                                        {/* Featured Categories */}
                                         <div className="mb-8">
-                                            <h3 className="text-lg font-semibold text-white mb-4">Featured Categories</h3>
+                                            <h3 className={`text-lg font-semibold mb-4 transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                Featured Categories
+                                            </h3>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {categories.slice(0, 4).map((category, index) => (
                                                     <motion.div
                                                         key={category.id}
                                                         whileHover={{ scale: 1.05 }}
                                                         onClick={() => handleCategoryClick(category.id)}
-                                                        className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border border-gray-700 hover:border-cyan-600 cursor-pointer transition-all duration-300"
+                                                        className={`rounded-xl p-3 border cursor-pointer transition-all duration-300
+                                                            ${isDarkMode
+                                                                ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 hover:border-cyan-600'
+                                                                : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 hover:border-cyan-600'}`}
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-medium text-white truncate">
+                                                            <span className={`text-sm font-medium truncate transition-colors duration-300
+                                                                ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                                                                 {category.name}
                                                             </span>
                                                         </div>
@@ -545,87 +629,130 @@ export default function Home() {
                                             </div>
                                         </div>
 
-                                        {/* Quick Stats */}
-                                        <div className="bg-gradient-to-r from-cyan-500/5 to-cyan-400/5 rounded-2xl p-6 mb-6">
-                                            <h4 className="font-semibold text-white mb-3">Today's Deals</h4>
+                                        <div className={`rounded-2xl p-6 mb-6 transition-colors duration-300
+                                            ${isDarkMode
+                                                ? 'bg-gradient-to-r from-cyan-500/5 to-cyan-400/5'
+                                                : 'bg-gradient-to-r from-cyan-100/30 to-cyan-50/30'}`}>
+                                            <h4 className={`font-semibold mb-3 transition-colors duration-300
+                                                ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                Today's Deals
+                                            </h4>
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-gray-300">Flash Sale</span>
-                                                    <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                                                    <span className={`text-sm transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        Flash Sale
+                                                    </span>
+                                                    <span className={`text-sm font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                                        ${isDarkMode
+                                                            ? 'from-cyan-400 to-cyan-300'
+                                                            : 'from-cyan-700 to-cyan-600'}`}>
                                                         Up to 50% OFF
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-gray-300">New Arrivals</span>
-                                                    <span className="text-sm font-bold text-cyan-400">+25 Items</span>
+                                                    <span className={`text-sm transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        New Arrivals
+                                                    </span>
+                                                    <span className={`text-sm font-bold
+                                                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                                        +25 Items
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* CTA Button */}
                                         <button
                                             onClick={() => navigate('/products')}
-                                            className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                            className={`w-full text-white font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2
+                                                ${isDarkMode
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
                                         >
                                             <FaFire />
                                             View Hot Deals
                                         </button>
                                     </div>
 
-                                    {/* Decorative Corner Accents */}
-                                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-cyan-500/10 to-cyan-400/10 rounded-bl-3xl"></div>
-                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-cyan-500/10 to-cyan-400/10 rounded-tr-3xl"></div>
+                                    <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-3xl transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-br from-cyan-500/10 to-cyan-400/10'
+                                            : 'bg-gradient-to-br from-cyan-200/30 to-cyan-100/30'}`}>
+                                    </div>
+                                    <div className={`absolute bottom-0 left-0 w-16 h-16 rounded-tr-3xl transition-colors duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-tr from-cyan-500/10 to-cyan-400/10'
+                                            : 'bg-gradient-to-tr from-cyan-200/30 to-cyan-100/30'}`}>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Trust Badges */}
                             <div className="flex flex-wrap justify-center gap-4 mt-8">
-                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                    <FaShippingFast className="text-cyan-400" />
+                                <div className="flex items-center gap-2 text-sm transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}">
+                                    <FaShippingFast className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'} />
                                     <span>Free Shipping</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                    <FaShieldAlt className="text-cyan-400" />
+                                <div className="flex items-center gap-2 text-sm transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}">
+                                    <FaShieldAlt className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'} />
                                     <span>Secure Payment</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                    <FaCheckCircle className="text-cyan-400" />
+                                <div className="flex items-center gap-2 text-sm transition-colors duration-300
+                                    ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}">
+                                    <FaCheckCircle className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'} />
                                     <span>Quality Guarantee</span>
                                 </div>
                             </div>
                         </motion.div>
                     </div>
 
-                    {/* Scroll Indicator */}
                     <motion.div
                         animate={{ y: [0, 10, 0] }}
                         transition={{ duration: 2, repeat: Infinity }}
                         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block"
                     >
-                        <div className="w-6 h-10 border-2 border-gray-700 rounded-full flex justify-center">
-                            <div className="w-1 h-3 bg-gradient-to-b from-cyan-500 to-cyan-400 rounded-full mt-2 animate-bounce"></div>
+                        <div className={`w-6 h-10 border-2 rounded-full flex justify-center transition-colors duration-300
+                            ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
+                            <div className={`w-1 h-3 rounded-full mt-2 animate-bounce transition-colors duration-300
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-b from-cyan-500 to-cyan-400'
+                                    : 'bg-gradient-to-b from-cyan-700 to-cyan-600'}`}>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
             </section>
-            {/* ========== END OF UPDATED HEADER SECTION ========== */}
 
             {/* Products Section */}
-            <section className='py-10 px-4 sm:px-6 lg:px-30 bg-black'>
-                {/* Title */}
+            <section className={`py-10 px-4 sm:px-6 lg:px-30 transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
+
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className='px-2 sm:px-0'
                 >
                     <div className='flex items-center gap-5'>
-                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Our Products</h1>
+                        <div className={`w-[20px] h-[40px] rounded-lg transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                        </div>
+                        <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                            ${isDarkMode
+                                ? 'from-cyan-400 to-cyan-300'
+                                : 'from-cyan-700 to-cyan-600'}`}>
+                            Our Products
+                        </h1>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 text-white'>Explore Our SportFlex</h1>
+                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Explore Our SportFlex
+                    </h1>
                 </motion.div>
 
-                {/* Products Grid - Enhanced for Mobile & Tablet */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                     {products.length > 0 ? (
                         products.map((product, index) => (
@@ -636,9 +763,11 @@ export default function Home() {
                                 transition={{ delay: index * 0.1 }}
                                 className='group'
                             >
-                                {/* Enhanced Product Card for Mobile/Tablet */}
-                                <div className='cursor-pointer product bg-gray-900 rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border border-gray-800 hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden'>
-                                    {/* Product Image Container */}
+                                <div className={`cursor-pointer rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full border hover:-translate-y-1 lg:hover:-translate-y-2 overflow-hidden
+                                    ${isDarkMode
+                                        ? 'bg-gray-900 border-gray-800'
+                                        : 'bg-white border-gray-200'}`}>
+
                                     <Link to={`/productdetails/${product.id}`} className='block relative'>
                                         <div className="relative overflow-hidden rounded-t-xl lg:rounded-t-2xl">
                                             <div className="aspect-square w-full relative">
@@ -651,20 +780,24 @@ export default function Home() {
                                                     }}
                                                 />
 
-                                                {/* Mobile-optimized Stock Badge */}
                                                 <div className="absolute top-2 left-2">
                                                     {product.stock <= 10 && product.stock > 0 ? (
-                                                        <div className="bg-gradient-to-r from-cyan-700 to-cyan-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        <div className={`text-white text-xs font-bold px-2 py-1 rounded-full shadow-md
+                                                            ${isDarkMode
+                                                                ? 'bg-gradient-to-r from-cyan-700 to-cyan-600'
+                                                                : 'bg-gradient-to-r from-cyan-800 to-cyan-700'}`}>
                                                             <span className="hidden sm:inline">Only </span>{product.stock} left
                                                         </div>
                                                     ) : product.stock === 0 ? (
-                                                        <div className="bg-gradient-to-r from-red-700 to-rose-700 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                                        <div className={`text-white text-xs font-bold px-2 py-1 rounded-full shadow-md
+                                                            ${isDarkMode
+                                                                ? 'bg-gradient-to-r from-red-700 to-rose-700'
+                                                                : 'bg-gradient-to-r from-red-800 to-rose-800'}`}>
                                                             Sold Out
                                                         </div>
                                                     ) : null}
                                                 </div>
 
-                                                {/* Mobile-only Quick Action Overlay */}
                                                 <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
                                                     <span className="text-white text-xs font-medium bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
                                                         Quick View
@@ -672,99 +805,117 @@ export default function Home() {
                                                 </div>
                                             </div>
 
-                                            {/* Mobile-only Floating Wishlist Button */}
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
                                                     handleWishlistAction(product.id);
                                                 }}
-                                                className="lg:hidden absolute top-2 right-2 w-8 h-8 bg-gray-900/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 border border-gray-700"
+                                                className={`lg:hidden absolute top-2 right-2 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 border
+                                                    ${isDarkMode
+                                                        ? 'bg-gray-900/90 border-gray-700'
+                                                        : 'bg-white/90 border-gray-200'}`}
                                             >
                                                 {isInWishlist(product.id) ? (
-                                                    <FaHeart className="text-sm text-cyan-400" />
+                                                    <FaHeart className={`text-sm ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                                                 ) : (
-                                                    <FaRegHeart className="text-sm text-gray-400" />
+                                                    <FaRegHeart className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                                                 )}
                                             </button>
                                         </div>
 
-                                        {/* Product Info - Enhanced for Mobile */}
                                         <div className="p-3 sm:p-4 space-y-2">
-                                            {/* Category Badge - Mobile Optimized */}
                                             <div className="flex items-center justify-between">
-                                                <span className="inline-block text-xs font-medium text-gray-400 uppercase tracking-wide truncate max-w-[70%]">
+                                                <span className={`inline-block text-xs font-medium uppercase tracking-wide truncate max-w-[70%] transition-colors duration-300
+                                                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                     {product.categories?.name || product.category || product.category_name || 'Uncategorized'}
                                                 </span>
 
-                                                {/* Mobile-only Rating */}
-                                                <div className="lg:hidden flex items-center text-cyan-500 text-xs">
+                                                <div className="lg:hidden flex items-center text-xs">
                                                     {renderStars(product.ratingsAverage || 4.5)}
-                                                    <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
+                                                    <span className={`font-medium ml-1 transition-colors duration-300
+                                                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                                        {(product.ratingsAverage || 4.5).toFixed(1)}
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            {/* Product Title - Better Mobile Typography */}
-                                            <h3 className="text-sm sm:text-base font-semibold text-white leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-cyan-400 transition-colors duration-300">
+                                            <h3 className={`text-sm sm:text-base font-semibold leading-tight line-clamp-2 min-h-[2.5rem] group-hover:transition-colors duration-300
+                                                ${isDarkMode
+                                                    ? 'text-white group-hover:text-cyan-400'
+                                                    : 'text-gray-900 group-hover:text-cyan-700'}`}>
                                                 {product.title}
                                             </h3>
 
-                                            {/* Price & Rating - Enhanced Layout */}
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
                                                 <div className="flex items-baseline gap-1">
-                                                    <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                                                    <span className={`text-base sm:text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent
+                                                        ${isDarkMode
+                                                            ? 'from-cyan-400 to-cyan-300'
+                                                            : 'from-cyan-700 to-cyan-600'}`}>
                                                         EGP {parseFloat(product.price).toFixed(2)}
                                                     </span>
-                                                    {/* Original Price if on sale */}
                                                     {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
-                                                        <span className="text-xs text-gray-500 line-through">
+                                                        <span className={`text-xs line-through transition-colors duration-300
+                                                            ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                                                             EGP {parseFloat(product.originalPrice).toFixed(2)}
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                {/* Desktop-only Rating with REAL feedback count */}
                                                 <div className="hidden lg:flex items-center">
-                                                    <div className="flex items-center text-cyan-500 text-sm">
+                                                    <div className="flex items-center text-sm">
                                                         {renderStars(product.ratingsAverage || 4.5)}
-                                                        <span className="font-medium ml-1">{(product.ratingsAverage || 4.5).toFixed(1)}</span>
+                                                        <span className={`font-medium ml-1 transition-colors duration-300
+                                                            ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                                                            {(product.ratingsAverage || 4.5).toFixed(1)}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-gray-400 text-xs ml-1">
+                                                    <span className={`text-xs ml-1 transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                         ({product.feedbackCount || product.ratingsCount || 0})
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            {/* Mobile-only Stock Indicator */}
                                             <div className="lg:hidden">
                                                 {product.stock > 0 ? (
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-full bg-gray-800 rounded-full h-1.5">
+                                                        <div className={`w-full rounded-full h-1.5 transition-colors duration-300
+                                                            ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                                                             <div
-                                                                className="bg-cyan-500 h-1.5 rounded-full"
+                                                                className={`h-1.5 rounded-full transition-colors duration-300
+                                                                    ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}
                                                                 style={{ width: `${Math.min((product.stock / 100) * 100, 100)}%` }}
                                                             ></div>
                                                         </div>
-                                                        <span className="text-xs text-gray-400">{product.stock} in stock</span>
+                                                        <span className={`text-xs transition-colors duration-300
+                                                            ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                            {product.stock} in stock
+                                                        </span>
                                                     </div>
                                                 ) : null}
                                             </div>
                                         </div>
                                     </Link>
 
-                                    {/* Enhanced Action Buttons for Mobile/Tablet */}
                                     <div className="px-3 pb-3 sm:px-4 sm:pb-4 pt-0">
                                         <div className="flex items-center gap-2">
-                                            {/* Mobile: Full width button, Tablet+: Flex layout */}
                                             <button
                                                 onClick={() => handleAddToCart(product.id)}
                                                 disabled={isInCart(product.id) || product.stock <= 0}
                                                 className={`cursor-pointer flex-1 py-3 sm:py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-sm font-medium 
-                                                        ${isInCart(product.id)
-                                                        ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white cursor-not-allowed shadow-md"
+                                                    ${isInCart(product.id)
+                                                        ? isDarkMode
+                                                            ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white cursor-not-allowed shadow-md"
+                                                            : "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 cursor-not-allowed shadow-md"
                                                         : product.stock <= 0
-                                                            ? "bg-gradient-to-r from-gray-800 to-gray-900 text-gray-400 cursor-not-allowed"
-                                                            : "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"}`}
+                                                            ? isDarkMode
+                                                                ? "bg-gradient-to-r from-gray-800 to-gray-900 text-gray-400 cursor-not-allowed"
+                                                                : "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-500 cursor-not-allowed"
+                                                            : isDarkMode
+                                                                ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"
+                                                                : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 hover:shadow-lg active:scale-95"}`}
                                             >
                                                 <div className="flex items-center justify-center gap-2">
                                                     {isInCart(product.id) ? (
@@ -789,41 +940,51 @@ export default function Home() {
                                                 </div>
                                             </button>
 
-                                            {/* Desktop-only Wishlist Button */}
                                             <button
                                                 onClick={() => handleWishlistAction(product.id)}
-                                                className="hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                                                style={{
-                                                    background: isInWishlist(product.id)
-                                                        ? 'linear-gradient(135deg, rgba(8, 145, 178, 0.2), rgba(6, 182, 212, 0.2))'
-                                                        : 'rgb(17, 24, 39)',
-                                                    borderColor: isInWishlist(product.id) ? '#06b6d4' : '#374151'
-                                                }}
+                                                className={`hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1
+                                                    ${isDarkMode
+                                                        ? isInWishlist(product.id)
+                                                            ? 'bg-gradient-to-r from-cyan-500/20 to-cyan-400/20 border-cyan-500'
+                                                            : 'bg-gray-900 border-gray-700'
+                                                        : isInWishlist(product.id)
+                                                            ? 'bg-gradient-to-r from-cyan-200/40 to-cyan-100/40 border-cyan-600'
+                                                            : 'bg-white border-gray-200'}`}
                                                 title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                             >
                                                 {isInWishlist(product.id) ? (
-                                                    <FaHeart className="text-lg text-cyan-400 animate-pulse" />
+                                                    <FaHeart className={`text-lg animate-pulse transition-colors duration-300
+                                                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                                                 ) : (
-                                                    <FaRegHeart className="text-lg text-gray-400 hover:text-cyan-400" />
+                                                    <FaRegHeart className={`text-lg transition-colors duration-300
+                                                        ${isDarkMode ? 'text-gray-400 hover:text-cyan-400' : 'text-gray-600 hover:text-cyan-700'}`} />
                                                 )}
                                             </button>
                                         </div>
-
-
                                     </div>
 
-                                    {/* Decorative Bottom Accent - Mobile Only */}
-                                    <div className="lg:hidden absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></div>
+                                    <div className={`lg:hidden absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500'
+                                            : 'bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-700'}`}>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-12">
-                            <div className="text-gray-600 mb-4">
+                            <div className={`mb-4 transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                                 <FaBoxOpen className="text-4xl" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Products Available</h3>
-                            <p className="text-gray-400">Check back soon for new arrivals!</p>
+                            <h3 className={`text-lg font-semibold mb-2 transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                No Products Available
+                            </h3>
+                            <p className={`transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Check back soon for new arrivals!
+                            </p>
                         </div>
                     )}
                 </div>
@@ -831,7 +992,10 @@ export default function Home() {
                 {products.length > 0 && (
                     <div className='flex justify-center mt-8 lg:mt-10'>
                         <Link to={'/products'}
-                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300"
+                            className={`w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 focus:ring-cyan-500 focus:ring-offset-black'
+                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900 focus:ring-cyan-700 focus:ring-offset-white'}`}
                         >
                             <FaEye className="inline mr-2" /> View All Products
                         </Link>
@@ -839,27 +1003,51 @@ export default function Home() {
                 )}
             </section>
 
-            {/* Category Section - Enhanced for Mobile & Tablet */}
-            <section className='px-4 sm:px-6 lg:px-30 py-12 sm:py-16 bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden'>
-                {/* Background decorative elements */}
-                <div className='absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-cyan-900/20 to-cyan-700/20 rounded-full blur-xl'></div>
-                <div className='absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-cyan-800/10 to-cyan-600/10 rounded-full blur-2xl'></div>
+            {/* Category Section */}
+            <section className={`px-4 sm:px-6 lg:px-30 py-12 sm:py-16 relative overflow-hidden transition-colors duration-300
+                ${isDarkMode
+                    ? 'bg-gradient-to-b from-gray-900 via-black to-gray-900'
+                    : 'bg-gradient-to-b from-gray-50 via-white to-gray-50'}`}>
 
-                {/* Title */}
+                <div className={`absolute top-10 left-10 w-20 h-20 rounded-full blur-xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-r from-cyan-900/20 to-cyan-700/20'
+                        : 'bg-gradient-to-r from-cyan-200/40 to-cyan-100/40'}`}>
+                </div>
+                <div className={`absolute bottom-10 right-10 w-32 h-32 rounded-full blur-2xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-r from-cyan-800/10 to-cyan-600/10'
+                        : 'bg-gradient-to-r from-cyan-200/30 to-cyan-100/30'}`}>
+                </div>
+
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className='px-2 sm:px-0 mb-8 sm:mb-12'
                 >
                     <div className='flex items-center gap-5 mb-4'>
-                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h1 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Categories</h1>
+                        <div className={`w-[20px] h-[40px] rounded-lg transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                        </div>
+                        <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                            ${isDarkMode
+                                ? 'from-cyan-400 to-cyan-300'
+                                : 'from-cyan-700 to-cyan-600'}`}>
+                            Categories
+                        </h1>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-white'>Browse SportFlex Categories</h1>
-                    <p className='text-gray-400 text-base lg:text-lg max-w-xl'>Discover our premium SportFlex collections</p>
+                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Browse SportFlex Categories
+                    </h1>
+                    <p className={`text-base lg:text-lg max-w-xl transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Discover our premium SportFlex collections
+                    </p>
                 </motion.div>
 
-                {/* Enhanced Categories Grid for Mobile/Tablet */}
                 <div className='grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-8'>
                     {categories.length > 0 ? (
                         categories.map((category, index) => (
@@ -871,16 +1059,23 @@ export default function Home() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => handleCategoryClick(category.id)}
-                                className='group relative overflow-hidden rounded-xl lg:rounded-2xl bg-gray-900 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 lg:hover:-translate-y-2 cursor-pointer border border-gray-800 active:scale-95 lg:active:scale-100'
+                                className={`group relative overflow-hidden rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 lg:hover:-translate-y-2 cursor-pointer border active:scale-95 lg:active:scale-100
+                                    ${isDarkMode
+                                        ? 'bg-gray-900 border-gray-800'
+                                        : 'bg-white border-gray-200'}`}
                             >
-                                {/* Mobile-optimized Background gradient overlay */}
-                                <div className='absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-br from-transparent via-transparent to-cyan-500/5'
+                                        : 'bg-gradient-to-br from-transparent via-transparent to-cyan-200/30'}`}>
+                                </div>
 
-                                {/* Enhanced Content container for Mobile */}
                                 <div className='relative p-4 sm:p-5 lg:p-8 flex flex-col items-center text-center'>
-                                    {/* Mobile-optimized Image container */}
-                                    <div className='relative mb-4 sm:mb-5 lg:mb-6 overflow-hidden rounded-lg lg:rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 sm:p-4 group-hover:from-gray-700 group-hover:to-gray-800 transition-all duration-300'>
-                                        {/* Image with Mobile Optimization */}
+                                    <div className={`relative mb-4 sm:mb-5 lg:mb-6 overflow-hidden rounded-lg lg:rounded-xl p-3 sm:p-4 group-hover:transition-all duration-300
+                                        ${isDarkMode
+                                            ? 'bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-gray-700 group-hover:to-gray-800'
+                                            : 'bg-gradient-to-br from-gray-100 to-gray-50 group-hover:from-gray-200 group-hover:to-gray-100'}`}>
+
                                         <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mx-auto">
                                             <img
                                                 src={category.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
@@ -891,67 +1086,89 @@ export default function Home() {
                                                 }}
                                             />
 
-                                            {/* Mobile-only Decorative circle */}
-                                            <div className='absolute -top-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                                            <div className={`absolute -top-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                                                ${isDarkMode
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                                            </div>
 
-                                            {/* Mobile-only Floating Icon */}
-                                            <div className="lg:hidden absolute -bottom-2 -left-2 w-8 h-8 bg-gray-800 rounded-full shadow-md flex items-center justify-center">
-                                                <FaChevronRight className="text-xs text-cyan-400" />
+                                            <div className={`lg:hidden absolute -bottom-2 -left-2 w-8 h-8 rounded-full shadow-md flex items-center justify-center transition-colors duration-300
+                                                ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                                                <FaChevronRight className={`text-xs ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
                                             </div>
                                         </div>
 
-                                        {/* Mobile-only Product Count Badge */}
                                         <div className="lg:hidden absolute -bottom-2 -right-2">
-                                            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                            <div className={`text-white text-xs font-bold px-2 py-1 rounded-full shadow-md
+                                                ${isDarkMode
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
+                                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
                                                 {Math.floor(Math.random() * 50) + 10}+
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Category name - Mobile Optimized */}
-                                    <h3 className='font-semibold text-base sm:text-lg lg:text-xl text-white group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-cyan-300 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 mb-1'>
+                                    <h3 className={`font-semibold text-base sm:text-lg lg:text-xl mb-1 group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300
+                                        ${isDarkMode
+                                            ? 'text-white group-hover:from-cyan-400 group-hover:to-cyan-300'
+                                            : 'text-gray-900 group-hover:from-cyan-700 group-hover:to-cyan-600'}`}>
                                         {category.name}
                                     </h3>
 
-                                    {/* Mobile-only Subtitle */}
-                                    <p className='lg:hidden text-xs text-gray-400 mt-1 line-clamp-1'>
+                                    <p className={`lg:hidden text-xs mt-1 line-clamp-1 transition-colors duration-300
+                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                         Explore collection
                                     </p>
 
-                                    {/* Desktop-only Subtle description */}
-                                    <p className='hidden lg:block text-sm text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 line-clamp-2'>
+                                    <p className={`hidden lg:block text-sm mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 line-clamp-2
+                                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                         {category.description || 'Explore premium collection'}
                                     </p>
 
-                                    {/* Enhanced Click hint for Mobile */}
                                     <div className="mt-3 lg:mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-400 bg-cyan-900/30 px-2 py-1 sm:px-3 sm:py-1 rounded-full">
+                                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 sm:px-3 sm:py-1 rounded-full
+                                            ${isDarkMode
+                                                ? 'text-cyan-400 bg-cyan-900/30'
+                                                : 'text-cyan-700 bg-cyan-100'}`}>
                                             <FaArrowRight className="text-xs" />
                                             <span className="hidden sm:inline">Click to explore</span>
                                             <span className="sm:hidden">Explore</span>
                                         </span>
                                     </div>
 
-                                    {/* Mobile-only Touch Indicator */}
-                                    <div className="lg:hidden absolute bottom-2 right-2 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div className={`lg:hidden absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                                        ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                                         <FaHandPointer className="text-sm" />
                                     </div>
                                 </div>
 
-                                {/* Bottom border accent - Enhanced for Mobile */}
-                                <div className='absolute bottom-0 left-0 right-0 h-0.5 lg:h-1 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left'></div>
+                                <div className={`absolute bottom-0 left-0 right-0 h-0.5 lg:h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500'
+                                        : 'bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-700'}`}>
+                                </div>
 
-                                {/* Mobile-only Top Accent */}
-                                <div className='lg:hidden absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left delay-100'></div>
+                                <div className={`lg:hidden absolute top-0 left-0 right-0 h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left delay-100
+                                    ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                        : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                                </div>
                             </motion.div>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-12">
-                            <div className="text-gray-600 mb-4">
+                            <div className={`mb-4 transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                                 <FaTags className="text-4xl" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Categories Available</h3>
-                            <p className="text-gray-400">Categories will be added soon!</p>
+                            <h3 className={`text-lg font-semibold mb-2 transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                No Categories Available
+                            </h3>
+                            <p className={`transition-colors duration-300
+                                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Categories will be added soon!
+                            </p>
                         </div>
                     )}
                 </div>
@@ -959,7 +1176,10 @@ export default function Home() {
                 {categories.length > 0 && (
                     <div className='flex justify-center mt-8 lg:mt-10'>
                         <Link to={'/category'}
-                            className="w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300"
+                            className={`w-full sm:w-1/2 md:w-1/3 lg:w-[15%] py-3 px-4 text-center border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2
+                                ${isDarkMode
+                                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 focus:ring-cyan-500 focus:ring-offset-black'
+                                    : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900 focus:ring-cyan-700 focus:ring-offset-white'}`}
                         >
                             <FaList className="inline mr-2" /> View All Categories
                         </Link>
@@ -968,45 +1188,87 @@ export default function Home() {
             </section>
 
             {/* Features Section */}
-            <section className='py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-30 bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden'>
-                {/* Background decorative elements */}
-                <div className='absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-cyan-900/20 to-cyan-700/20 rounded-full blur-xl'></div>
-                <div className='absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-cyan-800/10 to-cyan-600/10 rounded-full blur-2xl'></div>
+            <section className={`py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-30 relative overflow-hidden transition-colors duration-300
+                ${isDarkMode
+                    ? 'bg-gradient-to-br from-gray-900 via-black to-gray-900'
+                    : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'}`}>
 
-                {/* Section header */}
+                <div className={`absolute top-10 left-10 w-20 h-20 rounded-full blur-xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-r from-cyan-900/20 to-cyan-700/20'
+                        : 'bg-gradient-to-r from-cyan-200/40 to-cyan-100/40'}`}>
+                </div>
+                <div className={`absolute bottom-10 right-10 w-32 h-32 rounded-full blur-2xl transition-colors duration-300
+                    ${isDarkMode
+                        ? 'bg-gradient-to-r from-cyan-800/10 to-cyan-600/10'
+                        : 'bg-gradient-to-r from-cyan-200/30 to-cyan-100/30'}`}>
+                </div>
+
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className='text-center mb-12 lg:mb-16'
                 >
                     <div className="inline-flex items-center gap-3 mb-4">
-                        <div className='bg-gradient-to-r from-cyan-500 to-cyan-400 w-[20px] h-[40px] rounded-lg'></div>
-                        <h2 className='bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-bold text-sm sm:text-base'>Why Choose Us</h2>
+                        <div className={`w-[20px] h-[40px] rounded-lg transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                                : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
+                        </div>
+                        <h2 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                            ${isDarkMode
+                                ? 'from-cyan-400 to-cyan-300'
+                                : 'from-cyan-700 to-cyan-600'}`}>
+                            Why Choose Us
+                        </h2>
                     </div>
-                    <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white'>Premium SportFlex Experience</h1>
-                    <p className='text-gray-400 text-base lg:text-lg max-w-2xl mx-auto'>We're committed to providing exceptional service and support at every step of your fitness journey</p>
+                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 transition-colors duration-300
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Premium SportFlex Experience
+                    </h1>
+                    <p className={`text-base lg:text-lg max-w-2xl mx-auto transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        We're committed to providing exceptional service and support at every step of your fitness journey
+                    </p>
                 </motion.div>
 
-                {/* Optional: Additional trust indicators */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className='mt-12 lg:mt-16 text-center'
                 >
-                    <div className='inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-gray-400 text-sm'>
+                    <div className={`inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-sm transition-colors duration-300
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         <div className='flex items-center gap-2'>
-                            <FaShieldAlt className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
+                            <FaShieldAlt className={`bg-gradient-to-r bg-clip-text text-transparent
+                                ${isDarkMode
+                                    ? 'from-cyan-400 to-cyan-300'
+                                    : 'from-cyan-700 to-cyan-600'}`} />
                             <span>Secure Payment</span>
                         </div>
-                        <div className='hidden sm:block w-px h-4 bg-gradient-to-b from-cyan-700 to-cyan-500'></div>
+                        <div className={`hidden sm:block w-px h-4 transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-b from-cyan-700 to-cyan-500'
+                                : 'bg-gradient-to-b from-cyan-400 to-cyan-300'}`}>
+                        </div>
                         <div className='flex items-center gap-2'>
-                            <FaUsers className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
+                            <FaUsers className={`bg-gradient-to-r bg-clip-text text-transparent
+                                ${isDarkMode
+                                    ? 'from-cyan-400 to-cyan-300'
+                                    : 'from-cyan-700 to-cyan-600'}`} />
                             <span>10k+ Happy Customers</span>
                         </div>
-                        <div className="hidden sm:block w-px h-4 bg-gradient-to-b from-cyan-700 to-cyan-500"></div>
+                        <div className={`hidden sm:block w-px h-4 transition-colors duration-300
+                            ${isDarkMode
+                                ? 'bg-gradient-to-b from-cyan-700 to-cyan-500'
+                                : 'bg-gradient-to-b from-cyan-400 to-cyan-300'}`}>
+                        </div>
                         <div className="flex items-center gap-2">
-                            <FaAward className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent" />
+                            <FaAward className={`bg-gradient-to-r bg-clip-text text-transparent
+                                ${isDarkMode
+                                    ? 'from-cyan-400 to-cyan-300'
+                                    : 'from-cyan-700 to-cyan-600'}`} />
                             <span>Premium Quality</span>
                         </div>
                     </div>

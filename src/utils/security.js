@@ -224,7 +224,7 @@ export const loginValidationSchema = yup.object({
   password: yup
     .string()
     .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
+    .min(6, "Password must be at least 6 characters")
     .max(128, "Password is too long"),
 });
 
@@ -267,7 +267,7 @@ export const registerValidationSchema = yup.object({
   password: yup
     .string()
     .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
+    .min(6, "Password must be at least 6 characters")
     .max(128, "Password is too long")
     .test(
       "password-strength",
