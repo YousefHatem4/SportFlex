@@ -72,7 +72,7 @@ export default function Login() {
     }, []);
 
     let navigate = useNavigate();
-    let { setUserToken, setUser } = useContext(userContext);
+    let { setUserToken, setUser, checkAdminStatus } = useContext(userContext);
 
     async function signIn(values) {
         try {
@@ -132,7 +132,11 @@ export default function Login() {
 
                 sessionStorage.setItem('sessionTimeout', timeoutId.toString());
 
-                if (sanitizedEmail === 'yousef.hatem.developer@gmail.com') {
+                // Check if user is admin from Supabase
+                const isUserAdmin = await checkAdminStatus(data.user.id);
+
+                // Navigate based on admin status from server
+                if (isUserAdmin) {
                     navigate('/admin');
                 } else {
                     navigate('/');

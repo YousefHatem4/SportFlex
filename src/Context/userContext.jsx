@@ -8,6 +8,7 @@ export default function UserContextProvider({ children }) {
     const [userToken, setUserToken] = useState(null);
     const [user, setUser] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [adminData, setAdminData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sessionExpiry, setSessionExpiry] = useState(null);
     const [lastActivity, setLastActivity] = useState(Date.now());
@@ -25,6 +26,7 @@ export default function UserContextProvider({ children }) {
             setUserToken(null);
             setUser(null);
             setIsAdmin(false);
+            setAdminData(null);
             localStorage.removeItem('userToken');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('loginTime');
@@ -52,23 +54,44 @@ export default function UserContextProvider({ children }) {
         setLastActivity(Date.now());
     }, []);
 
-    // Check admin status with additional validation
-    const checkAdminStatus = useCallback((email) => {
-        // Secure admin check with additional validation
-        const adminEmail = 'yousef.hatem.developer@gmail.com';
+    // Check admin status with Supabase
+    const checkAdminStatus = useCallback(async (userId) => {
+        try {
+            if (!userId) {
+                setIsAdmin(false);
+                setAdminData(null);
+                return false;
+            }
 
-        // Check if email matches admin
-        if (email === adminEmail) {
-            setIsAdmin(true);
-            // Log admin access for security
-            console.log('Admin access granted:', email, new Date().toISOString());
+            const { data, error } = await supabase
+                .rpc('get_admin_status');
 
-            // You could implement additional admin verification here
-            // For example, checking against a secure database table
-            sessionStorage.setItem('isAdmin', 'true');
-        } else {
+            if (error) {
+                console.error('Error checking admin status:', error);
+                setIsAdmin(false);
+                setAdminData(null);
+                return false;
+            }
+
+            const isUserAdmin = data?.is_admin || false;
+            setIsAdmin(isUserAdmin);
+            setAdminData(data);
+
+            if (isUserAdmin) {
+                sessionStorage.setItem('isAdmin', 'true');
+                sessionStorage.setItem('adminEmail', data?.email);
+                console.log('Admin access granted:', data?.email);
+            } else {
+                sessionStorage.removeItem('isAdmin');
+                sessionStorage.removeItem('adminEmail');
+            }
+
+            return isUserAdmin; // Return the admin status
+        } catch (error) {
+            console.error('Admin check error:', error);
             setIsAdmin(false);
-            sessionStorage.removeItem('isAdmin');
+            setAdminData(null);
+            return false;
         }
     }, []);
 
@@ -104,6 +127,9 @@ export default function UserContextProvider({ children }) {
                 const expiresAt = new Date(data.session.expires_at * 1000);
                 setSessionExpiry(expiresAt);
 
+                // Re-check admin status
+                await checkAdminStatus(data.session.user.id);
+
                 return true;
             }
         } catch (error) {
@@ -111,7 +137,7 @@ export default function UserContextProvider({ children }) {
             handleLogout('Session refresh failed');
             return false;
         }
-    }, [handleLogout]);
+    }, [handleLogout, checkAdminStatus]);
 
     useEffect(() => {
         // Set up activity monitoring
@@ -134,7 +160,9 @@ export default function UserContextProvider({ children }) {
                     if (expiresAt > new Date()) {
                         setUserToken(session.access_token);
                         setUser(session.user);
-                        checkAdminStatus(session.user.email);
+
+                        // Check admin status from Supabase
+                        await checkAdminStatus(session.user.id);
 
                         // Securely store with encryption (basic encoding for demo)
                         const encryptedToken = btoa(session.access_token);
@@ -192,7 +220,9 @@ export default function UserContextProvider({ children }) {
                     if (session) {
                         setUserToken(session.access_token);
                         setUser(session.user);
-                        checkAdminStatus(session.user.email);
+
+                        // Check admin status from Supabase
+                        await checkAdminStatus(session.user.id);
 
                         // Secure storage
                         localStorage.setItem('userToken', session.access_token);
@@ -224,13 +254,15 @@ export default function UserContextProvider({ children }) {
                     if (session) {
                         setUserToken(session.access_token);
                         localStorage.setItem('userToken', session.access_token);
+                        // Re-check admin status on token refresh
+                        await checkAdminStatus(session.user.id);
                     }
                     break;
 
                 case 'USER_UPDATED':
                     if (session) {
                         setUser(session.user);
-                        checkAdminStatus(session.user.email);
+                        await checkAdminStatus(session.user.id);
                     }
                     break;
 
@@ -301,12 +333,13 @@ export default function UserContextProvider({ children }) {
         return {
             isAuthenticated: !!userToken,
             isAdmin,
+            adminData,
             sessionExpiry,
             lastActivity,
             loginTime: localStorage.getItem('loginTime'),
             userEmail: user?.email || localStorage.getItem('userEmail')
         };
-    }, [userToken, isAdmin, sessionExpiry, lastActivity, user]);
+    }, [userToken, isAdmin, adminData, sessionExpiry, lastActivity, user]);
 
     return (
         <userContext.Provider value={{
@@ -315,13 +348,15 @@ export default function UserContextProvider({ children }) {
             user,
             setUser,
             isAdmin,
+            adminData,
             loading,
             logout: handleLogout,
             validateSession,
             refreshSession,
             isAuthenticated,
             getUserRole,
-            getSecurityInfo
+            getSecurityInfo,
+            checkAdminStatus
         }}>
             {children}
         </userContext.Provider>
