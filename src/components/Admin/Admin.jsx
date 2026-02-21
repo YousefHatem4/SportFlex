@@ -1,4 +1,4 @@
-// Admin.jsx - COMPLETE UPDATED VERSION WITH STOCK MANAGEMENT, RESPONSIVE DESIGN & LIGHT THEME
+// Admin.jsx - COMPLETE UPDATED VERSION WITH IMAGE UPLOAD AND STOCK MANAGEMENT
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -13,7 +13,7 @@ import {
     FaBell, FaHome, FaStore, FaShippingFast, FaReceipt,
     FaCalendar, FaMoneyBill, FaShoppingBasket, FaListAlt,
     FaGift, FaTicketAlt, FaPercent, FaExclamationCircle,
-    FaExclamationTriangle, FaWarehouse
+    FaExclamationTriangle, FaWarehouse, FaUpload
 } from 'react-icons/fa';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -50,6 +50,12 @@ export default function Admin() {
         orders: 'all',
         users: 'all'
     });
+
+    // Image upload states
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const fileInputRef = useRef(null);
+    const additionalFileInputRef = useRef(null);
 
     // Listen for theme changes
     useEffect(() => {
@@ -140,6 +146,113 @@ export default function Admin() {
 
     const navigate = useNavigate();
     const sidebarRef = useRef(null);
+
+    // =========== IMAGE UPLOAD FUNCTIONS ===========
+    const uploadImage = async (file, folder = 'products') => {
+        try {
+            if (!file) return null;
+
+            // Validate file type
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            if (!allowedTypes.includes(fileExt)) {
+                toast.error('Please upload an image file (jpg, png, gif, webp)');
+                return null;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size must be less than 5MB');
+                return null;
+            }
+
+            setUploading(true);
+            setUploadProgress(0);
+
+            // Create a unique file name
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${folder}/${fileName}`;
+
+            // Upload to Supabase Storage
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            // Simulate progress (since Supabase doesn't provide progress events)
+            setUploadProgress(100);
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('images')
+                .getPublicUrl(filePath);
+
+            toast.success('Image uploaded successfully!');
+            return publicUrl;
+
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            toast.error('Failed to upload image. Please try again.');
+            return null;
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
+    const handleMainImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const url = await uploadImage(file, 'products');
+            if (url) {
+                setProductForm({ ...productForm, image_url: url });
+            }
+        }
+    };
+
+    const handleAdditionalImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const url = await uploadImage(file, 'products/additional');
+            if (url) {
+                setProductForm({
+                    ...productForm,
+                    additionalImages: [...productForm.additionalImages, url]
+                });
+            }
+        }
+    };
+
+    const handleCategoryImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const url = await uploadImage(file, 'categories');
+            if (url) {
+                setCategoryForm({ ...categoryForm, image_url: url });
+            }
+        }
+    };
+
+    const removeMainImage = () => {
+        setProductForm({ ...productForm, image_url: '' });
+    };
+
+    const removeAdditionalImage = (index) => {
+        const newImages = [...productForm.additionalImages];
+        newImages.splice(index, 1);
+        setProductForm({
+            ...productForm,
+            additionalImages: newImages
+        });
+    };
+
+    const removeCategoryImage = () => {
+        setCategoryForm({ ...categoryForm, image_url: '' });
+    };
 
     // Check screen size for responsive sidebar
     useEffect(() => {
@@ -641,6 +754,7 @@ export default function Admin() {
                         product_id: productId,
                         image_url: productForm.image_url,
                         display_order: 0,
+                        is_primary: true,
                         alt_text: productForm.title
                     });
 
@@ -652,6 +766,7 @@ export default function Admin() {
                     product_id: productId,
                     image_url: imageUrl,
                     display_order: index + 1,
+                    is_primary: false,
                     alt_text: productForm.title
                 }));
 
@@ -1376,26 +1491,6 @@ SportFlex Store Team
         setEditingPromoCode(null);
     };
 
-    // IMAGE HANDLING FUNCTIONS
-    const addAdditionalImage = () => {
-        const newImage = prompt('Enter image URL:');
-        if (newImage && newImage.trim() !== '') {
-            setProductForm({
-                ...productForm,
-                additionalImages: [...productForm.additionalImages, newImage.trim()]
-            });
-        }
-    };
-
-    const removeAdditionalImage = (index) => {
-        const newImages = [...productForm.additionalImages];
-        newImages.splice(index, 1);
-        setProductForm({
-            ...productForm,
-            additionalImages: newImages
-        });
-    };
-
     const handleLogout = async () => {
         try {
             const { error } = await supabase.auth.signOut();
@@ -1624,7 +1719,7 @@ Generated by SportFlex Admin Panel
                 </div>
             </div>
 
-            {/* UPDATED Stats Cards - Modern Attractive Design with Light/Dark Support */}
+            {/* Stats Cards - Modern Attractive Design with Light/Dark Support */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     {
@@ -1863,6 +1958,9 @@ Generated by SportFlex Admin Panel
                                             src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop'}
                                             alt={product.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            onError={(e) => {
+                                                e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop';
+                                            }}
                                         />
                                     </div>
                                     <div className="min-w-0">
@@ -2343,22 +2441,75 @@ Generated by SportFlex Admin Panel
                                     </div>
                                 </div>
 
+                                {/* Main Image Upload - REPLACED URL INPUT WITH UPLOADER */}
                                 <div>
                                     <label className={`block text-sm font-medium mb-2 transition-colors duration-300
                                         ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Main Image URL *
+                                        Main Image *
                                     </label>
-                                    <input
-                                        type="url"
-                                        required
-                                        value={productForm.image_url}
-                                        onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 transition-all duration-300
-                                            ${isDarkMode
-                                                ? 'border-gray-700 bg-gray-800 text-white focus:ring-cyan-500 focus:border-cyan-500'
-                                                : 'border-gray-200 bg-gray-50 text-gray-900 focus:ring-cyan-700 focus:border-cyan-700'}`}
-                                        placeholder="https://example.com/image.jpg"
-                                    />
+                                    <div className="space-y-4">
+                                        {productForm.image_url ? (
+                                            <div className="relative group">
+                                                <img
+                                                    src={productForm.image_url}
+                                                    alt="Main product"
+                                                    className="w-full h-48 object-cover rounded-lg border-2 border-cyan-500"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={removeMainImage}
+                                                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                >
+                                                    <FaTimes />
+                                                </button>
+                                                <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                                                    Main Image
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                                                    ${isDarkMode
+                                                        ? 'border-gray-600 hover:border-cyan-500 bg-gray-800'
+                                                        : 'border-gray-300 hover:border-cyan-700 bg-gray-50'}`}
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    accept="image/*"
+                                                    onChange={handleMainImageUpload}
+                                                    className="hidden"
+                                                />
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <FaUpload className={`text-4xl ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        Click to upload main product image
+                                                    </p>
+                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                        PNG, JPG, GIF, WEBP (max. 5MB)
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {uploading && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <FaSpinner className="animate-spin text-cyan-500" />
+                                                    <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        Uploading... {Math.round(uploadProgress)}%
+                                                    </span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div
+                                                        className="bg-cyan-600 h-2.5 rounded-full transition-all duration-300"
+                                                        style={{ width: `${uploadProgress}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div>
@@ -2378,6 +2529,7 @@ Generated by SportFlex Admin Panel
                                     />
                                 </div>
 
+                                {/* Additional Images Upload - REPLACED URL INPUTS WITH UPLOADER */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className={`block text-sm font-medium transition-colors duration-300
@@ -2386,37 +2538,36 @@ Generated by SportFlex Admin Panel
                                         </label>
                                         <button
                                             type="button"
-                                            onClick={addAdditionalImage}
-                                            className={`text-sm transition-colors duration-300
+                                            onClick={() => additionalFileInputRef.current?.click()}
+                                            className={`text-sm transition-colors duration-300 flex items-center gap-1
                                                 ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'}`}
                                         >
-                                            + Add Image URL
+                                            <FaUpload /> Add Image
                                         </button>
                                     </div>
-                                    <div className="space-y-2">
+
+                                    <input
+                                        type="file"
+                                        ref={additionalFileInputRef}
+                                        accept="image/*"
+                                        onChange={handleAdditionalImageUpload}
+                                        className="hidden"
+                                    />
+
+                                    <div className="grid grid-cols-3 gap-2 mt-2">
                                         {productForm.additionalImages.map((image, index) => (
-                                            <div key={index} className="flex gap-2 items-center">
-                                                <input
-                                                    type="url"
-                                                    value={image}
-                                                    onChange={(e) => {
-                                                        const newImages = [...productForm.additionalImages];
-                                                        newImages[index] = e.target.value;
-                                                        setProductForm({ ...productForm, additionalImages: newImages });
-                                                    }}
-                                                    className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 transition-all duration-300
-                                                        ${isDarkMode
-                                                            ? 'border-gray-700 bg-gray-800 text-white focus:ring-cyan-500 focus:border-cyan-500'
-                                                            : 'border-gray-200 bg-gray-50 text-gray-900 focus:ring-cyan-700 focus:border-cyan-700'}`}
-                                                    placeholder="https://example.com/image.jpg"
+                                            <div key={index} className="relative group">
+                                                <img
+                                                    src={image}
+                                                    alt={`Additional ${index + 1}`}
+                                                    className="w-full h-20 object-cover rounded-lg border"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => removeAdditionalImage(index)}
-                                                    className={`p-2 rounded-lg transition-colors
-                                                        ${isDarkMode ? 'text-red-400 hover:bg-red-900/30' : 'text-red-700 hover:bg-red-100'}`}
+                                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                                                 >
-                                                    <FaTimesCircle />
+                                                    <FaTimes />
                                                 </button>
                                             </div>
                                         ))}
@@ -2439,7 +2590,7 @@ Generated by SportFlex Admin Panel
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={isLoading}
+                                        disabled={isLoading || uploading}
                                         className={`px-6 py-2 text-white rounded-lg disabled:opacity-50 flex items-center gap-2
                                             ${isDarkMode
                                                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
@@ -2553,6 +2704,9 @@ Generated by SportFlex Admin Panel
                                     src={category.image_url || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=400&fit=crop'}
                                     alt={category.name}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    onError={(e) => {
+                                        e.target.src = 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=400&fit=crop';
+                                    }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                                 <div className="absolute top-3 right-3">
@@ -2664,21 +2818,52 @@ Generated by SportFlex Admin Panel
                                     />
                                 </div>
 
+                                {/* Category Image Upload */}
                                 <div>
                                     <label className={`block text-sm font-medium mb-2 transition-colors duration-300
                                         ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        Image URL
+                                        Category Image
                                     </label>
-                                    <input
-                                        type="url"
-                                        value={categoryForm.image_url}
-                                        onChange={(e) => setCategoryForm({ ...categoryForm, image_url: e.target.value })}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 transition-all duration-300
-                                            ${isDarkMode
-                                                ? 'border-gray-700 bg-gray-800 text-white focus:ring-purple-500 focus:border-purple-500'
-                                                : 'border-gray-200 bg-gray-50 text-gray-900 focus:ring-purple-700 focus:border-purple-700'}`}
-                                        placeholder="https://example.com/image.jpg"
-                                    />
+                                    <div className="space-y-4">
+                                        {categoryForm.image_url ? (
+                                            <div className="relative group">
+                                                <img
+                                                    src={categoryForm.image_url}
+                                                    alt="Category"
+                                                    className="w-full h-32 object-cover rounded-lg border-2 border-purple-500"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={removeCategoryImage}
+                                                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                >
+                                                    <FaTimes />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                                                    ${isDarkMode
+                                                        ? 'border-gray-600 hover:border-purple-500 bg-gray-800'
+                                                        : 'border-gray-300 hover:border-purple-700 bg-gray-50'}`}
+                                                onClick={() => document.getElementById('category-image-upload').click()}
+                                            >
+                                                <input
+                                                    type="file"
+                                                    id="category-image-upload"
+                                                    accept="image/*"
+                                                    onChange={handleCategoryImageUpload}
+                                                    className="hidden"
+                                                />
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <FaUpload className={`text-2xl ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        Click to upload category image
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">

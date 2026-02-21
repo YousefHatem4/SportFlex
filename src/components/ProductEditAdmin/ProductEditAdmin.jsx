@@ -1,4 +1,3 @@
-// ProductEditAdmin.jsx - UPDATED VERSION WITH EXACT WISHLIST THEME
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -24,6 +23,12 @@ import {
 export default function ProductEditAdmin() {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    // Theme state (copied from navbar)
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme ? savedTheme === 'dark' : false;
+    });
 
     // Product form state
     const [productForm, setProductForm] = useState({
@@ -337,17 +342,17 @@ export default function ProductEditAdmin() {
 
     if (isLoadingProduct) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className={`min-h-screen ${isDarkMode ? 'bg-black' : 'bg-gray-50'} flex items-center justify-center`}>
                 <div className="text-center">
-                    <FaSpinner className="animate-spin text-4xl text-cyan-500 mx-auto mb-4" />
-                    <p className="text-white font-medium">Loading product data...</p>
+                    <FaSpinner className={`animate-spin text-4xl ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} mx-auto mb-4`} />
+                    <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Loading product data...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black py-8">
+        <div className={`min-h-screen py-8 transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -355,17 +360,26 @@ export default function ProductEditAdmin() {
                         <div>
                             <button
                                 onClick={handleBackToAdmin}
-                                className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors mb-3"
+                                className={`flex items-center gap-2 transition-colors mb-3 ${isDarkMode
+                                        ? 'text-cyan-400 hover:text-cyan-300'
+                                        : 'text-cyan-700 hover:text-cyan-800'
+                                    }`}
                             >
                                 <FaArrowLeft /> Back to Admin Panel
                             </button>
-                            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">Edit Product</h1>
-                            <p className="text-gray-400 mt-1">Update product details and images</p>
+                            <h1 className={`text-2xl md:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${isDarkMode
+                                    ? 'from-cyan-400 to-cyan-300'
+                                    : 'from-cyan-700 to-cyan-600'
+                                }`}>Edit Product</h1>
+                            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Update product details and images</p>
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={handleViewProduct}
-                                className="flex items-center gap-2 px-4 py-2 border border-cyan-500 text-cyan-400 rounded-lg hover:bg-cyan-900/30 transition-colors"
+                                className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDarkMode
+                                        ? 'border-cyan-500 text-cyan-400 hover:bg-cyan-900/30'
+                                        : 'border-cyan-600 text-cyan-700 hover:bg-cyan-100'
+                                    }`}
                             >
                                 <FaEye /> View Product
                             </button>
@@ -380,29 +394,34 @@ export default function ProductEditAdmin() {
                     </div>
 
                     {/* Navigation */}
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                         <span
                             onClick={handleBackToAdmin}
-                            className="hover:text-cyan-400 transition-colors cursor-pointer"
+                            className={`transition-colors cursor-pointer ${isDarkMode ? 'hover:text-cyan-400' : 'hover:text-cyan-700'
+                                }`}
                         >
                             Admin Panel
                         </span>
-                        <span className="text-cyan-500">›</span>
+                        <span className={isDarkMode ? 'text-cyan-500' : 'text-cyan-700'}>›</span>
                         <span
                             onClick={() => navigate('/admin')}
-                            className="hover:text-cyan-400 transition-colors cursor-pointer"
+                            className={`transition-colors cursor-pointer ${isDarkMode ? 'hover:text-cyan-400' : 'hover:text-cyan-700'
+                                }`}
                         >
                             Products
                         </span>
-                        <span className="text-cyan-500">›</span>
+                        <span className={isDarkMode ? 'text-cyan-500' : 'text-cyan-700'}>›</span>
                         <span
                             onClick={handleViewProduct}
-                            className="hover:text-cyan-400 transition-colors cursor-pointer"
+                            className={`transition-colors cursor-pointer ${isDarkMode ? 'hover:text-cyan-400' : 'hover:text-cyan-700'
+                                }`}
                         >
                             {product?.title || 'Product'}
                         </span>
-                        <span className="text-cyan-500">›</span>
-                        <span className="text-cyan-300 font-medium">Edit</span>
+                        <span className={isDarkMode ? 'text-cyan-500' : 'text-cyan-700'}>›</span>
+                        <span className={`font-medium ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                            }`}>Edit</span>
                     </div>
                 </div>
 
@@ -411,19 +430,24 @@ export default function ProductEditAdmin() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-gray-800"
+                    className={`rounded-2xl shadow-xl overflow-hidden border transition-colors duration-300 ${isDarkMode
+                            ? 'bg-gray-900 border-gray-800'
+                            : 'bg-white border-gray-200'
+                        }`}
                 >
                     <form onSubmit={handleProductSubmit} className="p-6 md:p-8">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* Left Column - Product Info */}
                             <div className="space-y-6">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                    <FaBox className="text-cyan-400" /> Product Information
+                                <h2 className={`text-xl font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-800'
+                                    }`}>
+                                    <FaBox className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'} /> Product Information
                                 </h2>
 
                                 {/* Product Title */}
                                 <div>
-                                    <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                        }`}>
                                         Product Title *
                                     </label>
                                     <input
@@ -431,7 +455,10 @@ export default function ProductEditAdmin() {
                                         required
                                         value={productForm.title}
                                         onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500"
+                                        className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 ${isDarkMode
+                                                ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                            }`}
                                         placeholder="Enter product title"
                                     />
                                 </div>
@@ -439,7 +466,8 @@ export default function ProductEditAdmin() {
                                 {/* Price and Stock */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                            }`}>
                                             <FaMoneyBill className="inline mr-2" /> Price (EGP) *
                                         </label>
                                         <input
@@ -449,13 +477,17 @@ export default function ProductEditAdmin() {
                                             required
                                             value={productForm.price}
                                             onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500"
+                                            className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 ${isDarkMode
+                                                    ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                    : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                                }`}
                                             placeholder="Enter price"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                            }`}>
                                             <FaBoxOpen className="inline mr-2" /> Stock Quantity *
                                         </label>
                                         <input
@@ -464,7 +496,10 @@ export default function ProductEditAdmin() {
                                             required
                                             value={productForm.stock}
                                             onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500"
+                                            className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 ${isDarkMode
+                                                    ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                    : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                                }`}
                                             placeholder="Enter stock quantity"
                                         />
                                     </div>
@@ -472,17 +507,21 @@ export default function ProductEditAdmin() {
 
                                 {/* Category */}
                                 <div>
-                                    <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                        }`}>
                                         <FaTag className="inline mr-2" /> Category
                                     </label>
                                     <select
                                         value={productForm.category_id}
                                         onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                                        className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors ${isDarkMode
+                                                ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                            }`}
                                     >
-                                        <option value="" className="text-gray-500">Select Category</option>
+                                        <option value="" className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Select Category</option>
                                         {categories.map((category) => (
-                                            <option key={category.id} value={category.id} className="bg-gray-800">
+                                            <option key={category.id} value={category.id} className={isDarkMode ? 'bg-gray-800' : 'bg-white'}>
                                                 {category.name}
                                             </option>
                                         ))}
@@ -491,14 +530,18 @@ export default function ProductEditAdmin() {
 
                                 {/* Description */}
                                 <div>
-                                    <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                        }`}>
                                         <FaListAlt className="inline mr-2" /> Description
                                     </label>
                                     <textarea
                                         value={productForm.description}
                                         onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                                         rows="5"
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500"
+                                        className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 ${isDarkMode
+                                                ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                            }`}
                                         placeholder="Enter product description"
                                     />
                                 </div>
@@ -506,13 +549,15 @@ export default function ProductEditAdmin() {
 
                             {/* Right Column - Images */}
                             <div className="space-y-6">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                    <FaCamera className="text-cyan-400" /> Product Images
+                                <h2 className={`text-xl font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-800'
+                                    }`}>
+                                    <FaCamera className={isDarkMode ? 'text-cyan-400' : 'text-cyan-700'} /> Product Images
                                 </h2>
 
                                 {/* Main Image */}
                                 <div>
-                                    <label className="block text-sm font-medium text-cyan-300 mb-2">
+                                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                        }`}>
                                         Main Image URL *
                                     </label>
                                     <input
@@ -520,22 +565,27 @@ export default function ProductEditAdmin() {
                                         required
                                         value={productForm.image_url}
                                         onChange={handleMainImageChange}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500 mb-3"
+                                        className={`w-full px-4 py-3 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 mb-3 ${isDarkMode
+                                                ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                            }`}
                                         placeholder="https://example.com/main-image.jpg"
                                     />
 
                                     {/* Main Image Preview */}
                                     {mainImagePreview && (
                                         <div className="mt-3">
-                                            <p className="text-sm text-cyan-300 mb-2">Main Image Preview:</p>
-                                            <div className="relative h-48 rounded-lg overflow-hidden border border-cyan-500">
+                                            <p className={`text-sm mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                                }`}>Main Image Preview:</p>
+                                            <div className={`relative h-48 rounded-lg overflow-hidden border ${isDarkMode ? 'border-cyan-500' : 'border-cyan-600'
+                                                }`}>
                                                 <img
                                                     src={mainImagePreview}
                                                     alt="Main product preview"
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
                                                         e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop';
-                                                        e.target.className = 'w-full h-full object-cover bg-gray-800';
+                                                        e.target.className = `w-full h-full object-cover ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`;
                                                     }}
                                                 />
                                             </div>
@@ -546,13 +596,17 @@ export default function ProductEditAdmin() {
                                 {/* Additional Images */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <label className="block text-sm font-medium text-cyan-300">
+                                        <label className={`block text-sm font-medium ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                            }`}>
                                             Additional Images
                                         </label>
                                         <button
                                             type="button"
                                             onClick={addAdditionalImage}
-                                            className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                                            className={`text-sm flex items-center gap-1 transition-colors ${isDarkMode
+                                                    ? 'text-cyan-400 hover:text-cyan-300'
+                                                    : 'text-cyan-700 hover:text-cyan-800'
+                                                }`}
                                         >
                                             <FaPlus /> Add Image URL
                                         </button>
@@ -567,13 +621,19 @@ export default function ProductEditAdmin() {
                                                         type="url"
                                                         value={image}
                                                         onChange={(e) => handleAdditionalImageChange(index, e.target.value)}
-                                                        className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-gray-500"
+                                                        className={`flex-1 px-4 py-2 rounded-lg focus:ring-2 transition-colors placeholder-gray-500 ${isDarkMode
+                                                                ? 'bg-gray-800 border border-gray-700 text-white focus:ring-cyan-500 focus:border-cyan-500'
+                                                                : 'bg-white border border-gray-300 text-gray-900 focus:ring-cyan-600 focus:border-cyan-600'
+                                                            }`}
                                                         placeholder="https://example.com/additional-image.jpg"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => removeAdditionalImage(index)}
-                                                        className="p-2 text-red-400 hover:bg-red-900/30 rounded-lg transition-colors border border-red-500"
+                                                        className={`p-2 rounded-lg transition-colors border ${isDarkMode
+                                                                ? 'text-red-400 hover:bg-red-900/30 border-red-500'
+                                                                : 'text-red-600 hover:bg-red-100 border-red-400'
+                                                            }`}
                                                         title="Remove image"
                                                     >
                                                         <FaTrash />
@@ -583,14 +643,15 @@ export default function ProductEditAdmin() {
                                                 {/* Additional Image Preview */}
                                                 {additionalPreviews[index] && (
                                                     <div className="ml-1">
-                                                        <div className="relative h-32 rounded-lg overflow-hidden border border-cyan-500">
+                                                        <div className={`relative h-32 rounded-lg overflow-hidden border ${isDarkMode ? 'border-cyan-500' : 'border-cyan-600'
+                                                            }`}>
                                                             <img
                                                                 src={additionalPreviews[index]}
                                                                 alt={`Additional preview ${index + 1}`}
                                                                 className="w-full h-full object-cover"
                                                                 onError={(e) => {
                                                                     e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop';
-                                                                    e.target.className = 'w-full h-full object-cover bg-gray-800';
+                                                                    e.target.className = `w-full h-full object-cover ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`;
                                                                 }}
                                                             />
                                                         </div>
@@ -602,9 +663,14 @@ export default function ProductEditAdmin() {
                                 </div>
 
                                 {/* Image Tips */}
-                                <div className="bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border border-cyan-500 rounded-lg p-4">
-                                    <h3 className="text-sm font-medium text-cyan-300 mb-2">Image Guidelines</h3>
-                                    <ul className="text-xs text-cyan-400 space-y-1">
+                                <div className={`rounded-lg p-4 border ${isDarkMode
+                                        ? 'bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border-cyan-500'
+                                        : 'bg-gradient-to-r from-cyan-100 to-cyan-50 border-cyan-300'
+                                    }`}>
+                                    <h3 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-cyan-300' : 'text-cyan-800'
+                                        }`}>Image Guidelines</h3>
+                                    <ul className={`text-xs space-y-1 ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                                        }`}>
                                         <li>• Use high-quality images (minimum 800x600 pixels)</li>
                                         <li>• Supported formats: JPG, PNG, WebP</li>
                                         <li>• Main image should be the primary product view</li>
@@ -616,24 +682,34 @@ export default function ProductEditAdmin() {
                         </div>
 
                         {/* Form Actions */}
-                        <div className="mt-8 pt-6 border-t border-gray-700">
+                        <div className={`mt-8 pt-6 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                            }`}>
                             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <div className="text-sm text-gray-400">
-                                    <p>Product ID: <span className="font-mono text-cyan-400">{id}</span></p>
-                                    <p>Editing: <span className="font-medium text-cyan-300">{product?.title}</span></p>
+                                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                    }`}>
+                                    <p>Product ID: <span className={`font-mono ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                                        }`}>{id}</span></p>
+                                    <p>Editing: <span className={`font-medium ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                                        }`}>{product?.title}</span></p>
                                 </div>
                                 <div className="flex gap-3 w-full sm:w-auto">
                                     <button
                                         type="button"
                                         onClick={handleCancel}
-                                        className="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
+                                        className={`px-6 py-3 border rounded-lg transition-colors w-full sm:w-auto ${isDarkMode
+                                                ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                                                : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                                            }`}
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 disabled:opacity-50 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto"
+                                        className={`px-6 py-3 text-white rounded-lg disabled:opacity-50 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto ${isDarkMode
+                                                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
+                                                : 'bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800'
+                                            }`}
                                     >
                                         {isLoading ? (
                                             <>
@@ -655,20 +731,38 @@ export default function ProductEditAdmin() {
 
                 {/* Quick Stats */}
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gray-900 rounded-xl shadow p-4 border border-gray-800">
-                        <p className="text-sm text-cyan-300">Current Price</p>
-                        <p className="text-xl font-bold text-cyan-400">EGP {parseFloat(productForm.price || 0).toFixed(2)}</p>
+                    <div className={`rounded-xl shadow p-4 border transition-colors duration-300 ${isDarkMode
+                            ? 'bg-gray-900 border-gray-800'
+                            : 'bg-white border-gray-200'
+                        }`}>
+                        <p className={`text-sm ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                            }`}>Current Price</p>
+                        <p className={`text-xl font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                            }`}>EGP {parseFloat(productForm.price || 0).toFixed(2)}</p>
                     </div>
-                    <div className="bg-gray-900 rounded-xl shadow p-4 border border-gray-800">
-                        <p className="text-sm text-cyan-300">Current Stock</p>
-                        <p className={`text-xl font-bold ${parseInt(productForm.stock || 0) > 10 ? 'text-green-400' :
-                            parseInt(productForm.stock || 0) > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                    <div className={`rounded-xl shadow p-4 border transition-colors duration-300 ${isDarkMode
+                            ? 'bg-gray-900 border-gray-800'
+                            : 'bg-white border-gray-200'
+                        }`}>
+                        <p className={`text-sm ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                            }`}>Current Stock</p>
+                        <p className={`text-xl font-bold ${parseInt(productForm.stock || 0) > 10
+                                ? (isDarkMode ? 'text-green-400' : 'text-green-600')
+                                : parseInt(productForm.stock || 0) > 0
+                                    ? (isDarkMode ? 'text-amber-400' : 'text-amber-600')
+                                    : (isDarkMode ? 'text-red-400' : 'text-red-600')
+                            }`}>
                             {productForm.stock || 0} units
                         </p>
                     </div>
-                    <div className="bg-gray-900 rounded-xl shadow p-4 border border-gray-800">
-                        <p className="text-sm text-cyan-300">Images Count</p>
-                        <p className="text-xl font-bold text-purple-400">
+                    <div className={`rounded-xl shadow p-4 border transition-colors duration-300 ${isDarkMode
+                            ? 'bg-gray-900 border-gray-800'
+                            : 'bg-white border-gray-200'
+                        }`}>
+                        <p className={`text-sm ${isDarkMode ? 'text-cyan-300' : 'text-cyan-700'
+                            }`}>Images Count</p>
+                        <p className={`text-xl font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                            }`}>
                             {1 + (productForm.additionalImages?.length || 0)} images
                         </p>
                     </div>
@@ -678,15 +772,17 @@ export default function ProductEditAdmin() {
                 <div className="mt-6 flex flex-wrap gap-4 justify-center">
                     <button
                         onClick={handleBackToAdmin}
-                        className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className={`inline-flex items-center gap-2 transition-colors ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'
+                            }`}
                     >
                         <FaArrowLeft />
                         Back to Admin Dashboard
                     </button>
-                    <span className="text-gray-600">|</span>
+                    <span className={isDarkMode ? 'text-gray-600' : 'text-gray-300'}>|</span>
                     <button
                         onClick={handleViewProduct}
-                        className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                        className={`inline-flex items-center gap-2 transition-colors ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'
+                            }`}
                     >
                         <FaEye />
                         View Product Details
