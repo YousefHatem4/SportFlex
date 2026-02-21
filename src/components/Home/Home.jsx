@@ -101,39 +101,24 @@ export default function Home() {
         try {
             setLoading(true);
 
-            const { data: viewData, error: viewError } = await supabase
-                .from('products_with_feedback')
-                .select('*')
-                .gt('stock', 0)
-                .order('created_at', { ascending: false })
-                .limit(8);
-
-            if (!viewError && viewData) {
-                console.log('Products with feedback fetched from view:', viewData?.length);
-                return viewData.map(product => ({
-                    ...product,
-                    ratingsAverage: parseFloat(product.actual_rating) || 4.5,
-                    feedbackCount: product.feedback_count || 0,
-                    ratingsCount: product.feedback_count || 0
-                }));
-            }
-
-            console.log('View not found, using original query:', viewError);
+            // DIRECT QUERY WITHOUT VIEWS
+            // Just query the products table directly
             const { data, error } = await supabase
                 .from('products')
                 .select(`
-                    *,
-                    categories (
-                        name,
-                        image_url
-                    )
-                `)
+                *,
+                categories (
+                    name,
+                    image_url
+                )
+            `)
                 .gt('stock', 0)
                 .order('created_at', { ascending: false })
                 .limit(8);
 
             if (error) throw error;
 
+            // Fetch feedback counts separately
             const productIds = data?.map(p => p.id) || [];
             let feedbackCounts = {};
 
@@ -157,7 +142,8 @@ export default function Home() {
                 }
             }
 
-            return (data || []).map(product => {
+            // Map the data with feedback counts
+            const productsWithFeedback = (data || []).map(product => {
                 const feedback = feedbackCounts[product.id] || { count: 0, totalRating: 0 };
                 const avgRating = feedback.count > 0
                     ? feedback.totalRating / feedback.count
@@ -171,6 +157,8 @@ export default function Home() {
                 };
             });
 
+            return productsWithFeedback;
+
         } catch (error) {
             console.error('Error fetching products:', error);
             toast.error('Failed to load products');
@@ -179,7 +167,6 @@ export default function Home() {
             setLoading(false);
         }
     };
-
     const fetchCategories = async () => {
         try {
             const { data, error } = await supabase
@@ -191,7 +178,6 @@ export default function Home() {
 
             if (error) throw error;
 
-            console.log('Categories fetched:', data?.length);
             return data || [];
         } catch (error) {
             console.error('Error fetching categories:', error);

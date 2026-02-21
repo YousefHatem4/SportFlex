@@ -1,5 +1,5 @@
 // src/Context/userContext.jsx
-import React, { createContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 
 export let userContext = createContext();
@@ -12,14 +12,15 @@ export default function UserContextProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const [sessionExpiry, setSessionExpiry] = useState(null);
     const [lastActivity, setLastActivity] = useState(Date.now());
-    const [loginAttempts, setLoginAttempts] = useState(0);
+
+    // Use refs to prevent multiple calls
+    const adminCheckInProgress = useRef(false);
+    const lastAdminCheck = useRef(0);
+    const authInitialized = useRef(false);
 
     // Security: Handle logout with reason
     const handleLogout = useCallback(async (reason = 'User logout') => {
         try {
-            // Log security event
-            console.log('Logout initiated:', reason, 'User:', user?.email, 'Time:', new Date().toISOString());
-
             await supabase.auth.signOut();
 
             // Clear all storage
@@ -47,21 +48,35 @@ export default function UserContextProvider({ children }) {
         } catch (error) {
             console.error('Logout error:', error);
         }
-    }, [user]);
+    }, []);
 
     // Update last activity timestamp
     const updateLastActivity = useCallback(() => {
         setLastActivity(Date.now());
     }, []);
 
-    // Check admin status with Supabase
-    const checkAdminStatus = useCallback(async (userId) => {
+    // Check admin status with Supabase - with debouncing to prevent multiple calls
+    const checkAdminStatus = useCallback(async (userId, force = false) => {
         try {
             if (!userId) {
                 setIsAdmin(false);
                 setAdminData(null);
                 return false;
             }
+
+            // Prevent multiple simultaneous calls
+            if (adminCheckInProgress.current) {
+                return isAdmin; // Return current state
+            }
+
+            // Throttle: Don't check more than once every 5 seconds unless forced
+            const now = Date.now();
+            if (!force && now - lastAdminCheck.current < 5000) {
+                return isAdmin; // Return cached state
+            }
+
+            adminCheckInProgress.current = true;
+            lastAdminCheck.current = now;
 
             const { data, error } = await supabase
                 .rpc('get_admin_status');
@@ -77,23 +92,25 @@ export default function UserContextProvider({ children }) {
             setIsAdmin(isUserAdmin);
             setAdminData(data);
 
+            // Store in sessionStorage as cache (remove console.log)
             if (isUserAdmin) {
                 sessionStorage.setItem('isAdmin', 'true');
                 sessionStorage.setItem('adminEmail', data?.email);
-                console.log('Admin access granted:', data?.email);
             } else {
                 sessionStorage.removeItem('isAdmin');
                 sessionStorage.removeItem('adminEmail');
             }
 
-            return isUserAdmin; // Return the admin status
+            return isUserAdmin;
         } catch (error) {
             console.error('Admin check error:', error);
             setIsAdmin(false);
             setAdminData(null);
             return false;
+        } finally {
+            adminCheckInProgress.current = false;
         }
-    }, []);
+    }, [isAdmin]); // Add isAdmin to dependencies
 
     // Validate session
     const validateSession = useCallback(() => {
@@ -127,8 +144,12 @@ export default function UserContextProvider({ children }) {
                 const expiresAt = new Date(data.session.expires_at * 1000);
                 setSessionExpiry(expiresAt);
 
-                // Re-check admin status
-                await checkAdminStatus(data.session.user.id);
+                // Re-check admin status only if needed
+                const cachedAdmin = sessionStorage.getItem('isAdmin') === 'true';
+                if (cachedAdmin) {
+                    // If cached as admin, verify but don't force
+                    await checkAdminStatus(data.session.user.id);
+                }
 
                 return true;
             }
@@ -140,6 +161,9 @@ export default function UserContextProvider({ children }) {
     }, [handleLogout, checkAdminStatus]);
 
     useEffect(() => {
+        // Prevent double initialization
+        if (authInitialized.current) return;
+
         // Set up activity monitoring
         const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
         activityEvents.forEach(event => {
@@ -161,8 +185,19 @@ export default function UserContextProvider({ children }) {
                         setUserToken(session.access_token);
                         setUser(session.user);
 
-                        // Check admin status from Supabase
-                        await checkAdminStatus(session.user.id);
+                        // Check admin status from cache first, then from Supabase
+                        const cachedAdmin = sessionStorage.getItem('isAdmin') === 'true';
+                        if (cachedAdmin) {
+                            setIsAdmin(true);
+                        }
+
+                        // Still verify but don't wait for it
+                        checkAdminStatus(session.user.id).then(adminStatus => {
+                            // Update if different from cached
+                            if (adminStatus !== cachedAdmin) {
+                                setIsAdmin(adminStatus);
+                            }
+                        });
 
                         // Securely store with encryption (basic encoding for demo)
                         const encryptedToken = btoa(session.access_token);
@@ -206,73 +241,76 @@ export default function UserContextProvider({ children }) {
                 sessionStorage.clear();
             } finally {
                 setLoading(false);
+                authInitialized.current = true;
             }
         };
 
         initializeAuth();
 
-        // Listen for auth changes with enhanced security
+        // Listen for auth changes with debouncing
+        let authTimeout;
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('Auth state change:', event, 'Time:', new Date().toISOString());
+            // Debounce auth state changes
+            clearTimeout(authTimeout);
+            authTimeout = setTimeout(async () => {
+                switch (event) {
+                    case 'SIGNED_IN':
+                        if (session) {
+                            setUserToken(session.access_token);
+                            setUser(session.user);
 
-            switch (event) {
-                case 'SIGNED_IN':
-                    if (session) {
-                        setUserToken(session.access_token);
-                        setUser(session.user);
+                            // Check admin status (throttled automatically)
+                            checkAdminStatus(session.user.id, true); // Force first check
 
-                        // Check admin status from Supabase
-                        await checkAdminStatus(session.user.id);
+                            // Secure storage
+                            localStorage.setItem('userToken', session.access_token);
+                            localStorage.setItem('userEmail', session.user.email);
+                            localStorage.setItem('loginTime', Date.now().toString());
 
-                        // Secure storage
-                        localStorage.setItem('userToken', session.access_token);
-                        localStorage.setItem('userEmail', session.user.email);
-                        localStorage.setItem('loginTime', Date.now().toString());
+                            // Set session expiry
+                            const expiresAt = new Date(session.expires_at * 1000);
+                            setSessionExpiry(expiresAt);
 
-                        // Set session expiry
-                        const expiresAt = new Date(session.expires_at * 1000);
-                        setSessionExpiry(expiresAt);
+                            // Set session timeout (30 minutes)
+                            const timeoutId = setTimeout(() => {
+                                handleLogout('Session timeout');
+                            }, 30 * 60 * 1000);
 
-                        // Set session timeout (30 minutes)
-                        const timeoutId = setTimeout(() => {
-                            handleLogout('Session timeout');
-                        }, 30 * 60 * 1000);
+                            sessionStorage.setItem('sessionTimeout', timeoutId.toString());
+                        }
+                        break;
 
-                        sessionStorage.setItem('sessionTimeout', timeoutId.toString());
+                    case 'SIGNED_OUT':
+                        handleLogout('User signed out');
+                        break;
 
-                        // Log successful login
-                        console.log('User signed in:', session.user.email);
-                    }
-                    break;
+                    case 'TOKEN_REFRESHED':
+                        if (session) {
+                            setUserToken(session.access_token);
+                            localStorage.setItem('userToken', session.access_token);
+                            // Only re-check admin if necessary
+                            const cachedAdmin = sessionStorage.getItem('isAdmin') === 'true';
+                            if (cachedAdmin) {
+                                checkAdminStatus(session.user.id);
+                            }
+                        }
+                        break;
 
-                case 'SIGNED_OUT':
-                    handleLogout('User signed out');
-                    break;
+                    case 'USER_UPDATED':
+                        if (session) {
+                            setUser(session.user);
+                            // Only re-check admin if email changed
+                            const oldEmail = localStorage.getItem('userEmail');
+                            if (oldEmail !== session.user.email) {
+                                checkAdminStatus(session.user.id);
+                            }
+                        }
+                        break;
 
-                case 'TOKEN_REFRESHED':
-                    console.log('Token refreshed for user:', session?.user?.email);
-                    if (session) {
-                        setUserToken(session.access_token);
-                        localStorage.setItem('userToken', session.access_token);
-                        // Re-check admin status on token refresh
-                        await checkAdminStatus(session.user.id);
-                    }
-                    break;
-
-                case 'USER_UPDATED':
-                    if (session) {
-                        setUser(session.user);
-                        await checkAdminStatus(session.user.id);
-                    }
-                    break;
-
-                case 'PASSWORD_RECOVERY':
-                    console.log('Password recovery initiated');
-                    break;
-
-                default:
-                    break;
-            }
+                    default:
+                        break;
+                }
+            }, 300); // 300ms debounce
         });
 
         // Handle visibility change (tab switch)
@@ -295,20 +333,13 @@ export default function UserContextProvider({ children }) {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Handle before unload
-        const handleBeforeUnload = () => {
-            // You can implement logic here
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
         return () => {
+            clearTimeout(authTimeout);
             subscription.unsubscribe();
             activityEvents.forEach(event => {
                 document.removeEventListener(event, updateLastActivity);
             });
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('beforeunload', handleBeforeUnload);
 
             // Clear session timeout
             const timeoutId = sessionStorage.getItem('sessionTimeout');

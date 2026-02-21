@@ -224,37 +224,57 @@ export default function ProductDetails() {
         }
     };
 
-    // Fetch feedback statistics
+    // Fetch feedback statistics - FIXED
     const fetchFeedbackStats = async () => {
         try {
-            const { data, error } = await supabase
-                .from('product_feedback_stats')
-                .select('*')
-                .eq('product_id', id)
-                .single();
+            // Direct query to product_feedback table instead of the view
+            const { data: feedbacks, error } = await supabase
+                .from('product_feedback')
+                .select('rating')
+                .eq('product_id', id);
 
-            if (error) {
-                await calculateFeedbackStats();
-                return;
-            }
+            if (error) throw error;
 
-            if (data) {
-                setFeedbackStats({
-                    total_reviews: data.total_reviews || 0,
-                    average_rating: parseFloat(data.average_rating) || 0,
-                    five_star_count: data.five_star_count || 0,
-                    four_star_count: data.four_star_count || 0,
-                    three_star_count: data.three_star_count || 0,
-                    two_star_count: data.two_star_count || 0,
-                    one_star_count: data.one_star_count || 0
-                });
-            }
+            // Calculate stats manually
+            const total = feedbacks?.length || 0;
+            const sum = feedbacks?.reduce((acc, curr) => acc + curr.rating, 0) || 0;
+            const avg = total > 0 ? sum / total : 0;
+
+            // Count ratings by star
+            const counts = {
+                5: 0, 4: 0, 3: 0, 2: 0, 1: 0
+            };
+
+            feedbacks?.forEach(fb => {
+                if (counts[fb.rating] !== undefined) {
+                    counts[fb.rating]++;
+                }
+            });
+
+            setFeedbackStats({
+                total_reviews: total,
+                average_rating: avg,
+                five_star_count: counts[5],
+                four_star_count: counts[4],
+                three_star_count: counts[3],
+                two_star_count: counts[2],
+                one_star_count: counts[1]
+            });
+
         } catch (error) {
             console.error('Error fetching feedback stats:', error);
-            await calculateFeedbackStats();
+            // Set default values on error
+            setFeedbackStats({
+                total_reviews: 0,
+                average_rating: 0,
+                five_star_count: 0,
+                four_star_count: 0,
+                three_star_count: 0,
+                two_star_count: 0,
+                one_star_count: 0
+            });
         }
     };
-
     // Calculate feedback stats manually
     const calculateFeedbackStats = async () => {
         try {

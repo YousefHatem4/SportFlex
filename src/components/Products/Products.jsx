@@ -120,57 +120,24 @@ export default function Products() {
         try {
             setLoading(true);
 
-            const { data: viewData, error: viewError } = await supabase
-                .from('products_with_feedback')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (!viewError && viewData) {
-                let filteredData = viewData;
-
-                if (categoryId !== 'all' && categoryId !== '') {
-                    filteredData = filteredData.filter(product =>
-                        product.category_id === categoryId
-                    );
-                }
-
-                if (search) {
-                    const searchLower = search.toLowerCase();
-                    filteredData = filteredData.filter(product =>
-                        product.title?.toLowerCase().includes(searchLower) ||
-                        product.description?.toLowerCase().includes(searchLower)
-                    );
-                }
-
-                const transformedData = filteredData.map(product => ({
-                    ...product,
-                    ratingsAverage: parseFloat(product.actual_rating) || 4.5,
-                    feedbackCount: product.feedback_count || 0,
-                    categories: product.category_id ? {
-                        id: product.category_id,
-                        name: product.category_name
-                    } : null
-                }));
-
-                setProducts(transformedData);
-                return;
-            }
-
+            // DIRECT QUERY WITHOUT VIEWS
             let query = supabase
                 .from('products')
                 .select(`
-                    *,
-                    categories (
-                        id,
-                        name
-                    )
-                `)
+                *,
+                categories (
+                    id,
+                    name
+                )
+            `)
                 .order('created_at', { ascending: false });
 
+            // Apply category filter
             if (categoryId !== 'all' && categoryId !== '') {
                 query = query.eq('category_id', categoryId);
             }
 
+            // Apply search filter
             if (search) {
                 query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
             }
@@ -179,6 +146,7 @@ export default function Products() {
 
             if (error) throw error;
 
+            // Fetch feedback counts separately
             const productIds = data?.map(p => p.id) || [];
             let feedbackCounts = {};
 
@@ -202,6 +170,7 @@ export default function Products() {
                 }
             }
 
+            // Transform the data with feedback counts
             const transformedProducts = (data || []).map(product => {
                 const feedback = feedbackCounts[product.id] || { count: 0, totalRating: 0 };
                 const avgRating = feedback.count > 0
