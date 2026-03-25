@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -13,11 +13,11 @@ import {
     FaCheck,
     FaHeart,
     FaRegHeart,
-    FaShoppingCart,
     FaSearch
 } from 'react-icons/fa';
+import useThemeMode from '../../hooks/useThemeMode';
 
-export default function Products() {
+function Products() {
     const navigate = useNavigate();
     const location = useLocation();
     const [products, setProducts] = useState([]);
@@ -28,74 +28,31 @@ export default function Products() {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : true;
-    });
+    const isDarkMode = useThemeMode();
 
-    // Listen for theme changes
-    useEffect(() => {
-        const checkTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
-        };
-
-        window.addEventListener('storage', checkTheme);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setIsDarkMode(isDark);
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        return () => {
-            window.removeEventListener('storage', checkTheme);
-            observer.disconnect();
-        };
-    }, []);
-
-    const getUrlParams = () => {
+    const getUrlParams = useCallback(() => {
         const searchParams = new URLSearchParams(location.search);
         return {
             category: searchParams.get('category') || 'all',
             search: searchParams.get('search') || ''
         };
-    };
+    }, [location.search]);
 
-    useEffect(() => {
-        checkUser();
-        fetchCategories();
+    const cartItemSet = useMemo(() => new Set(addedItems), [addedItems]);
+    const wishlistItemSet = useMemo(() => new Set(wishItems), [wishItems]);
 
-        const params = getUrlParams();
-
-        if (params.category !== 'all') {
-            setSelectedCategory(params.category);
-        }
-
-        if (params.search) {
-            setSearchQuery(params.search);
-        }
-
-        fetchProducts(params.category, params.search);
-
-        document.title = 'Products - SportFlex Store';
-        window.scrollTo(0, 0);
-    }, [location]);
-
-    const checkUser = async () => {
+    const checkUser = useCallback(async () => {
         const { data: { session } } = await supabase.auth.getSession();
         setUser(session?.user || null);
 
         if (session?.user) {
             fetchUserCart(session.user.id);
             fetchUserWishlist(session.user.id);
+        } else {
+            setAddedItems([]);
+            setWishItems([]);
         }
-    };
+    }, []);
 
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
@@ -116,11 +73,10 @@ export default function Products() {
         );
     };
 
-    const fetchProducts = async (categoryId = 'all', search = '') => {
+    const fetchProducts = useCallback(async (categoryId = 'all', search = '') => {
         try {
             setLoading(true);
 
-            // DIRECT QUERY WITHOUT VIEWS
             let query = supabase
                 .from('products')
                 .select(`
@@ -146,7 +102,6 @@ export default function Products() {
 
             if (error) throw error;
 
-            // Fetch feedback counts separately
             const productIds = data?.map(p => p.id) || [];
             let feedbackCounts = {};
 
@@ -170,7 +125,6 @@ export default function Products() {
                 }
             }
 
-            // Transform the data with feedback counts
             const transformedProducts = (data || []).map(product => {
                 const feedback = feedbackCounts[product.id] || { count: 0, totalRating: 0 };
                 const avgRating = feedback.count > 0
@@ -193,9 +147,9 @@ export default function Products() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('categories')
@@ -212,9 +166,9 @@ export default function Products() {
             toast.error('Failed to load categories');
             setCategories([]);
         }
-    };
+    }, []);
 
-    const fetchUserCart = async (userId) => {
+    const fetchUserCart = useCallback(async (userId) => {
         try {
             const { data, error } = await supabase
                 .from('cart_items')
@@ -228,9 +182,9 @@ export default function Products() {
         } catch (error) {
             console.error('Error fetching cart:', error);
         }
-    };
+    }, []);
 
-    const fetchUserWishlist = async (userId) => {
+    const fetchUserWishlist = useCallback(async (userId) => {
         try {
             const { data, error } = await supabase
                 .from('wishlist_items')
@@ -244,7 +198,37 @@ export default function Products() {
         } catch (error) {
             console.error('Error fetching wishlist:', error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        checkUser();
+        fetchCategories();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+            setUser(session?.user || null);
+
+            if (session?.user) {
+                fetchUserCart(session.user.id);
+                fetchUserWishlist(session.user.id);
+            } else {
+                setAddedItems([]);
+                setWishItems([]);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [checkUser, fetchCategories, fetchUserCart, fetchUserWishlist]);
+
+    useEffect(() => {
+        const params = getUrlParams();
+
+        setSelectedCategory(params.category);
+        setSearchQuery(params.search);
+        fetchProducts(params.category, params.search);
+
+        document.title = 'Products - SportFlex Store';
+        window.scrollTo(0, 0);
+    }, [fetchProducts, getUrlParams]);
 
     const handleAddToCart = async (productId) => {
         try {
@@ -286,7 +270,9 @@ export default function Products() {
                 toast.success("Product added to cart!");
             }
 
-            setAddedItems((prev) => [...prev, productId]);
+            setAddedItems((prev) => (
+                prev.includes(productId) ? prev : [...prev, productId]
+            ));
             fetchUserCart(user.id);
 
         } catch (error) {
@@ -322,7 +308,7 @@ export default function Products() {
 
                 if (deleteError) throw deleteError;
 
-                setWishItems(wishItems.filter(id => id !== productId));
+                setWishItems((prev) => prev.filter((id) => id !== productId));
                 toast.success("Product removed from wishlist!");
             } else {
                 const { error: insertError } = await supabase
@@ -334,7 +320,9 @@ export default function Products() {
 
                 if (insertError) throw insertError;
 
-                setWishItems([...wishItems, productId]);
+                setWishItems((prev) => (
+                    prev.includes(productId) ? prev : [...prev, productId]
+                ));
                 toast.success("Product added to wishlist!");
             }
 
@@ -362,7 +350,6 @@ export default function Products() {
         }
 
         navigate(`/products?${params.toString()}`);
-        fetchProducts(categoryId, searchQuery);
     };
 
     const handleSearch = (e) => {
@@ -381,7 +368,6 @@ export default function Products() {
         }
 
         navigate(`/products?${params.toString()}`);
-        fetchProducts(selectedCategory, searchQuery);
     };
 
     const handleClearFilters = () => {
@@ -389,16 +375,16 @@ export default function Products() {
         setSearchQuery('');
 
         navigate('/products');
-        fetchProducts('all', '');
     };
 
-    const isInWishlist = (productId) => {
-        return wishItems.includes(productId);
-    };
+    const selectedCategoryName = useMemo(
+        () => categories.find((category) => category.id === selectedCategory)?.name || 'Selected',
+        [categories, selectedCategory]
+    );
 
-    const isInCart = (productId) => {
-        return addedItems.includes(productId);
-    };
+    const isInWishlist = useCallback((productId) => wishlistItemSet.has(productId), [wishlistItemSet]);
+
+    const isInCart = useCallback((productId) => cartItemSet.has(productId), [cartItemSet]);
 
     if (loading) {
         return (
@@ -413,9 +399,12 @@ export default function Products() {
         );
     }
 
-    return <>
-        <section className={`py-10 px-4 sm:px-6 lg:px-30 transition-colors duration-300
-            ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
+    return (
+        <main
+            id="main-content"
+            className={`py-10 px-4 sm:px-6 lg:px-30 transition-colors duration-300
+                ${isDarkMode ? 'bg-black' : 'bg-white'}`}
+        >
 
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -423,6 +412,7 @@ export default function Products() {
                 transition={{ duration: 0.6 }}
                 className='px-2 mb-10 sm:px-0'
             >
+                <h1 className="sr-only">SportFlex products</h1>
                 <div className='flex items-center justify-between flex-wrap gap-4 mb-6'>
                     <div className='flex items-center gap-5'>
                         <div className={`w-[20px] h-[40px] rounded-lg transition-colors duration-300
@@ -430,12 +420,12 @@ export default function Products() {
                                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                                 : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                         </div>
-                        <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                        <p className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
                             ${isDarkMode
                                 ? 'from-cyan-400 to-cyan-300'
                                 : 'from-cyan-700 to-cyan-600'}`}>
                             Our Products
-                        </h1>
+                        </p>
                         <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full transition-colors duration-300
                             ${isDarkMode
                                 ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
@@ -445,12 +435,13 @@ export default function Products() {
                     </div>
 
                     <div className="flex flex-wrap gap-3">
-                        <form onSubmit={handleSearch} className="flex gap-2">
+                        <form onSubmit={handleSearch} className="flex gap-2" role="search" aria-label="Search products">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search products..."
+                                aria-label="Search products"
                                 className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors duration-300
                                     ${isDarkMode
                                         ? 'border-gray-700 focus:ring-cyan-500 bg-gray-900 text-white placeholder-gray-400'
@@ -471,6 +462,7 @@ export default function Products() {
                         <select
                             value={selectedCategory}
                             onChange={(e) => handleCategoryChange(e.target.value)}
+                            aria-label="Filter products by category"
                             className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors duration-300
                                 ${isDarkMode
                                     ? 'border-gray-700 focus:ring-cyan-500 bg-gray-900 text-white'
@@ -484,6 +476,7 @@ export default function Products() {
 
                         {(selectedCategory !== 'all' || searchQuery) && (
                             <button
+                                type="button"
                                 onClick={handleClearFilters}
                                 className={`px-4 py-2 text-white rounded-lg transition-all duration-300 text-sm
                                     ${isDarkMode
@@ -511,11 +504,13 @@ export default function Products() {
                                 ${isDarkMode
                                     ? 'bg-cyan-900/50 text-cyan-400'
                                     : 'bg-cyan-100 text-cyan-700'}`}>
-                                Category: {categories.find(c => c.id === selectedCategory)?.name || 'Selected'}
+                                Category: {selectedCategoryName}
                                 <button
+                                    type="button"
                                     onClick={() => handleCategoryChange('all')}
                                     className={`ml-2 transition-colors duration-300
                                         ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'}`}
+                                    aria-label="Clear category filter"
                                 >
                                     ×
                                 </button>
@@ -528,12 +523,19 @@ export default function Products() {
                                     : 'bg-cyan-100 text-cyan-700'}`}>
                                 Search: "{searchQuery}"
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         setSearchQuery('');
-                                        handleSearch({ preventDefault: () => { } });
+                                        const params = new URLSearchParams(location.search);
+                                        params.delete('search');
+                                        if (selectedCategory !== 'all') {
+                                            params.set('category', selectedCategory);
+                                        }
+                                        navigate(params.toString() ? `/products?${params.toString()}` : '/products');
                                     }}
                                     className={`ml-2 transition-colors duration-300
                                         ${isDarkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-700 hover:text-cyan-800'}`}
+                                    aria-label="Clear search filter"
                                 >
                                     ×
                                 </button>
@@ -567,6 +569,7 @@ export default function Products() {
                         }
                     </p>
                     <button
+                        type="button"
                         onClick={handleClearFilters}
                         className={`inline-flex items-center px-6 py-3 text-white font-medium rounded-lg transition-colors duration-300
                             ${isDarkMode
@@ -605,6 +608,8 @@ export default function Products() {
                                                 src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
                                                 alt={product.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                loading="lazy"
+                                                decoding="async"
                                                 onError={(e) => {
                                                     e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
                                                 }}
@@ -636,6 +641,7 @@ export default function Products() {
                                         </div>
 
                                         <button
+                                            type="button"
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
@@ -645,6 +651,7 @@ export default function Products() {
                                                 ${isDarkMode
                                                     ? 'bg-gray-900/90 border-gray-700'
                                                     : 'bg-white/90 border-gray-200'}`}
+                                            aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                         >
                                             {isInWishlist(product.id) ? (
                                                 <FaHeart className={`text-sm ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
@@ -732,6 +739,7 @@ export default function Products() {
                                 <div className="px-3 pb-3 sm:px-4 sm:pb-4 pt-0">
                                     <div className="flex items-center gap-2">
                                         <motion.button
+                                            type="button"
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleAddToCart(product.id)}
                                             disabled={isInCart(product.id) || product.stock <= 0}
@@ -747,6 +755,7 @@ export default function Products() {
                                                         : isDarkMode
                                                             ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"
                                                             : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 hover:shadow-lg active:scale-95"}`}
+                                            aria-label={isInCart(product.id) ? 'Product already in cart' : `Add ${product.title} to cart`}
                                         >
                                             <div className="flex items-center justify-center gap-2">
                                                 {isInCart(product.id) ? (
@@ -772,6 +781,7 @@ export default function Products() {
                                         </motion.button>
 
                                         <motion.button
+                                            type="button"
                                             whileTap={{ scale: 0.85 }}
                                             onClick={() => handleWishlistAction(product.id)}
                                             className={`hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1
@@ -805,6 +815,8 @@ export default function Products() {
                     ))}
                 </motion.div>
             )}
-        </section>
-    </>
+        </main>
+    )
 }
+
+export default memo(Products);

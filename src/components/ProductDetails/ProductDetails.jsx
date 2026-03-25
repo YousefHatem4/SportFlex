@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -27,41 +27,12 @@ import {
     FaCommentAlt,
     FaChevronDown
 } from 'react-icons/fa';
+import useThemeMode from '../../hooks/useThemeMode';
 
-export default function ProductDetails() {
+function ProductDetails() {
     let { id } = useParams();
     const navigate = useNavigate();
-
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : true;
-    });
-
-    // Listen for theme changes
-    useEffect(() => {
-        const checkTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
-        };
-
-        window.addEventListener('storage', checkTheme);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setIsDarkMode(isDark);
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        return () => {
-            window.removeEventListener('storage', checkTheme);
-            observer.disconnect();
-        };
-    }, []);
+    const isDarkMode = useThemeMode();
 
     const [product, setProduct] = useState(null);
     const [mainImage, setMainImage] = useState('');
@@ -73,7 +44,6 @@ export default function ProductDetails() {
     const [user, setUser] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // Feedback States
     const [feedbackStats, setFeedbackStats] = useState({
         total_reviews: 0,
         average_rating: 0,
@@ -93,8 +63,9 @@ export default function ProductDetails() {
     const [sortBy, setSortBy] = useState('most_recent');
     const [deletingFeedback, setDeletingFeedback] = useState(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const cartItemSet = useMemo(() => new Set(addedItems), [addedItems]);
+    const wishlistItemSet = useMemo(() => new Set(wishItems), [wishItems]);
 
-    // Check user session and admin status
     useEffect(() => {
         checkUser();
     }, []);
@@ -110,7 +81,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Check if user is admin
     const checkAdminStatus = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -130,7 +100,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Fetch product details from database
     const fetchProductDetails = async () => {
         try {
             setLoading(true);
@@ -155,7 +124,6 @@ export default function ProductDetails() {
                 return;
             }
 
-            // Get product images
             const { data: imagesData, error: imagesError } = await supabase
                 .from('product_images')
                 .select('*')
@@ -164,10 +132,8 @@ export default function ProductDetails() {
 
             if (imagesError) throw imagesError;
 
-            // Combine images
             const imagesArray = [];
 
-            // Always include main image from products table
             if (productData.image_url) {
                 imagesArray.push({
                     id: 'main',
@@ -176,7 +142,6 @@ export default function ProductDetails() {
                 });
             }
 
-            // Add additional images
             if (imagesData && imagesData.length > 0) {
                 imagesData.forEach(img => {
                     imagesArray.push({
@@ -187,12 +152,10 @@ export default function ProductDetails() {
                 });
             }
 
-            // Remove duplicates
             const uniqueImages = imagesArray.filter((img, index, self) =>
                 index === self.findIndex((t) => t.image_url === img.image_url)
             );
 
-            // Sort by display order
             uniqueImages.sort((a, b) => a.display_order - b.display_order);
 
             setProduct({
@@ -224,10 +187,8 @@ export default function ProductDetails() {
         }
     };
 
-    // Fetch feedback statistics - FIXED
     const fetchFeedbackStats = async () => {
         try {
-            // Direct query to product_feedback table instead of the view
             const { data: feedbacks, error } = await supabase
                 .from('product_feedback')
                 .select('rating')
@@ -235,12 +196,10 @@ export default function ProductDetails() {
 
             if (error) throw error;
 
-            // Calculate stats manually
             const total = feedbacks?.length || 0;
             const sum = feedbacks?.reduce((acc, curr) => acc + curr.rating, 0) || 0;
             const avg = total > 0 ? sum / total : 0;
 
-            // Count ratings by star
             const counts = {
                 5: 0, 4: 0, 3: 0, 2: 0, 1: 0
             };
@@ -263,7 +222,6 @@ export default function ProductDetails() {
 
         } catch (error) {
             console.error('Error fetching feedback stats:', error);
-            // Set default values on error
             setFeedbackStats({
                 total_reviews: 0,
                 average_rating: 0,
@@ -275,45 +233,6 @@ export default function ProductDetails() {
             });
         }
     };
-    // Calculate feedback stats manually
-    const calculateFeedbackStats = async () => {
-        try {
-            const { data: feedbacks, error } = await supabase
-                .from('product_feedback')
-                .select('rating')
-                .eq('product_id', id);
-
-            if (error) throw error;
-
-            const total = feedbacks?.length || 0;
-            const sum = feedbacks?.reduce((acc, curr) => acc + curr.rating, 0) || 0;
-            const avg = total > 0 ? sum / total : 0;
-
-            const counts = {
-                5: 0, 4: 0, 3: 0, 2: 0, 1: 0
-            };
-
-            feedbacks?.forEach(fb => {
-                if (counts[fb.rating] !== undefined) {
-                    counts[fb.rating]++;
-                }
-            });
-
-            setFeedbackStats({
-                total_reviews: total,
-                average_rating: avg,
-                five_star_count: counts[5],
-                four_star_count: counts[4],
-                three_star_count: counts[3],
-                two_star_count: counts[2],
-                one_star_count: counts[1]
-            });
-        } catch (error) {
-            console.error('Error calculating feedback stats:', error);
-        }
-    };
-
-    // Fetch all feedbacks for this product
     const fetchAllFeedbacks = async () => {
         try {
             setLoadingFeedback(true);
@@ -365,7 +284,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Sort feedbacks based on selected option
     const sortFeedbacks = (feedbacks, sortOption) => {
         const sorted = [...feedbacks];
 
@@ -381,7 +299,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Handle sort change
     const handleSortChange = (e) => {
         const newSortBy = e.target.value;
         setSortBy(newSortBy);
@@ -389,7 +306,6 @@ export default function ProductDetails() {
         setAllFeedbacks(sortedFeedbacks);
     };
 
-    // Helper function to calculate time ago
     const getTimeAgo = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -403,7 +319,6 @@ export default function ProductDetails() {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
-    // Fetch user's feedback for this product
     const fetchUserFeedback = async () => {
         if (!user) {
             setUserFeedback(null);
@@ -434,7 +349,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Handle feedback submission
     const handleSubmitFeedback = async () => {
         if (!user) {
             toast.error('Please sign in to submit feedback');
@@ -494,7 +408,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Delete feedback (admin only)
     const handleDeleteFeedback = async (feedbackId) => {
         if (!isAdmin) {
             toast.error('You do not have permission to delete feedback');
@@ -530,7 +443,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Fetch user's cart items
     const fetchUserCart = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -547,7 +459,6 @@ export default function ProductDetails() {
         }
     };
 
-    // Fetch user's wishlist items
     const fetchUserWishlist = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -604,7 +515,9 @@ export default function ProductDetails() {
                 toast.success("Product added to cart!");
             }
 
-            setAddedItems((prev) => [...prev, productId]);
+            setAddedItems((prev) => (
+                prev.includes(productId) ? prev : [...prev, productId]
+            ));
             fetchUserCart(user.id);
 
         } catch (error) {
@@ -640,7 +553,7 @@ export default function ProductDetails() {
 
                 if (deleteError) throw deleteError;
 
-                setWishItems(wishItems.filter(id => id !== productId));
+                setWishItems((prev) => prev.filter((id) => id !== productId));
                 toast.success("Product removed from wishlist!");
             } else {
                 const { error: insertError } = await supabase
@@ -652,7 +565,9 @@ export default function ProductDetails() {
 
                 if (insertError) throw insertError;
 
-                setWishItems([...wishItems, productId]);
+                setWishItems((prev) => (
+                    prev.includes(productId) ? prev : [...prev, productId]
+                ));
                 toast.success("Product added to wishlist!");
             }
 
@@ -683,7 +598,7 @@ export default function ProductDetails() {
         document.title = product?.title ? `${product.title} - SportFlex Store` : 'Product Details';
     }, [product]);
 
-    const sliderSettings = {
+    const sliderSettings = useMemo(() => ({
         dots: false,
         infinite: allImages.length > 1,
         speed: 600,
@@ -694,10 +609,11 @@ export default function ProductDetails() {
         fade: true,
         arrows: false,
         adaptiveHeight: true,
-        beforeChange: (current, next) => setActiveImageIndex(next)
-    };
+        beforeChange: (_, next) => setActiveImageIndex(next)
+    }), [allImages.length]);
 
-    // Render star rating with React Icons
+    const visibleFeedbacks = useMemo(() => allFeedbacks.slice(0, 5), [allFeedbacks]);
+
     const renderStars = (rating, size = 'text-base') => {
         return (
             <div className="flex items-center">
@@ -714,7 +630,6 @@ export default function ProductDetails() {
         );
     };
 
-    // Calculate rating percentages
     const calculateRatingPercentage = (count) => {
         if (feedbackStats.total_reviews === 0) return 0;
         return Math.round((count / feedbackStats.total_reviews) * 100);
@@ -765,7 +680,7 @@ export default function ProductDetails() {
     }
 
     return (
-        <>
+        <main id="main-content">
             <section className={`py-4 md:py-8 lg:py-16 px-4 sm:px-6 md:px-8 lg:px-30 lg:ps-35 transition-colors duration-300
                 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
 
@@ -923,10 +838,11 @@ export default function ProductDetails() {
                         {/* Action Buttons */}
                         <div className='flex gap-3'>
                             <button
+                                type="button"
                                 onClick={() => handleAddToCart(product._id)}
-                                disabled={addedItems.includes(product._id) || product.stock <= 0}
+                                disabled={cartItemSet.has(product._id) || product.stock <= 0}
                                 className={`flex-1 py-3.5 rounded-xl transition-all duration-300 text-base font-semibold flex items-center justify-center gap-2
-                                    ${addedItems.includes(product._id)
+                                    ${cartItemSet.has(product._id)
                                         ? isDarkMode
                                             ? "bg-gray-800 text-gray-400 cursor-not-allowed"
                                             : "bg-gray-200 text-gray-600 cursor-not-allowed"
@@ -938,7 +854,7 @@ export default function ProductDetails() {
                                                 ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 active:scale-[0.98]"
                                                 : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 active:scale-[0.98]"}`}
                             >
-                                {addedItems.includes(product._id) ? (
+                                {cartItemSet.has(product._id) ? (
                                     <>
                                         <FaCheck />
                                         Added
@@ -957,17 +873,19 @@ export default function ProductDetails() {
                             </button>
 
                             <button
+                                type="button"
                                 onClick={() => handleWishlistAction(product._id)}
                                 className={`w-14 flex items-center justify-center rounded-xl border-2 transition-all duration-300 active:scale-95
-                                    ${wishItems.includes(product._id)
+                                    ${wishlistItemSet.has(product._id)
                                         ? isDarkMode
                                             ? "bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border-cyan-500 text-cyan-400"
                                             : "bg-gradient-to-r from-cyan-100 to-cyan-50 border-cyan-600 text-cyan-700"
                                         : isDarkMode
                                             ? "border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500 hover:bg-gradient-to-r hover:from-cyan-900/30 hover:to-cyan-800/30"
                                             : "border-gray-300 text-gray-600 hover:text-cyan-700 hover:border-cyan-600 hover:bg-gradient-to-r hover:from-cyan-100/50 hover:to-cyan-50/50"}`}
+                                aria-label={wishlistItemSet.has(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
                             >
-                                {wishItems.includes(product._id) ? (
+                                {wishlistItemSet.has(product._id) ? (
                                     <FaHeart className="text-lg" />
                                 ) : (
                                     <FaRegHeart className="text-lg" />
@@ -1120,10 +1038,11 @@ export default function ProductDetails() {
                         {/* Action Buttons */}
                         <div className='flex items-center gap-4 mb-6'>
                             <button
+                                type="button"
                                 onClick={() => handleAddToCart(product._id)}
-                                disabled={addedItems.includes(product._id) || product.stock <= 0}
+                                disabled={cartItemSet.has(product._id) || product.stock <= 0}
                                 className={`flex-1 py-4 rounded-xl transition-all duration-300 text-lg font-semibold flex items-center justify-center gap-3
-                                    ${addedItems.includes(product._id)
+                                    ${cartItemSet.has(product._id)
                                         ? isDarkMode
                                             ? "bg-gray-800 text-gray-400 cursor-not-allowed"
                                             : "bg-gray-200 text-gray-600 cursor-not-allowed"
@@ -1135,7 +1054,7 @@ export default function ProductDetails() {
                                                 ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-[0.98]"
                                                 : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 hover:shadow-lg active:scale-[0.98]"}`}
                             >
-                                {addedItems.includes(product._id)
+                                {cartItemSet.has(product._id)
                                     ? (
                                         <>
                                             <FaCheck />
@@ -1158,17 +1077,19 @@ export default function ProductDetails() {
                             </button>
 
                             <button
+                                type="button"
                                 onClick={() => handleWishlistAction(product._id)}
                                 className={`w-16 h-16 flex items-center justify-center rounded-xl border-2 transition-all duration-300 hover:scale-110 active:scale-95
-                                    ${wishItems.includes(product._id)
+                                    ${wishlistItemSet.has(product._id)
                                         ? isDarkMode
                                             ? "bg-gradient-to-r from-cyan-900/30 to-cyan-800/30 border-cyan-500 text-cyan-400"
                                             : "bg-gradient-to-r from-cyan-100 to-cyan-50 border-cyan-600 text-cyan-700"
                                         : isDarkMode
                                             ? "border-gray-700 text-gray-400 hover:text-cyan-400 hover:border-cyan-500 hover:bg-gradient-to-r hover:from-cyan-900/30 hover:to-cyan-800/30"
                                             : "border-gray-300 text-gray-600 hover:text-cyan-700 hover:border-cyan-600 hover:bg-gradient-to-r hover:from-cyan-100/50 hover:to-cyan-50/50"}`}
+                                aria-label={wishlistItemSet.has(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
                             >
-                                {wishItems.includes(product._id) ? (
+                                {wishlistItemSet.has(product._id) ? (
                                     <FaHeart className="text-xl" />
                                 ) : (
                                     <FaRegHeart className="text-xl" />
@@ -1553,7 +1474,7 @@ export default function ProductDetails() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {allFeedbacks.slice(0, 5).map((feedback) => (
+                                    {visibleFeedbacks.map((feedback) => (
                                         <div key={feedback.feedback_id || feedback.id}
                                             className={`rounded-xl border p-4 lg:p-5 hover:border-cyan-400 transition-all duration-300
                                                 ${isDarkMode
@@ -1642,6 +1563,8 @@ export default function ProductDetails() {
                     </div>
                 </div>
             </section>
-        </>
+        </main>
     );
 }
+
+export default memo(ProductDetails)

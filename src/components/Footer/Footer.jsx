@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -7,38 +7,10 @@ import {
     faInstagram,
 } from '@fortawesome/free-brands-svg-icons';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import useThemeMode from '../../hooks/useThemeMode';
 
-export default function Footer() {
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : true;
-    });
-
-    // Listen for theme changes
-    useEffect(() => {
-        const checkTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
-        };
-
-        window.addEventListener('storage', checkTheme);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setIsDarkMode(isDark);
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        return () => {
-            window.removeEventListener('storage', checkTheme);
-            observer.disconnect();
-        };
-    }, []);
+function Footer() {
+    const isDarkMode = useThemeMode();
 
     return (
         <footer className={`px-6 py-12 md:px-12 lg:px-24 border-t transition-colors duration-300
@@ -67,7 +39,9 @@ export default function Footer() {
                             Get 10% off your first order
                         </p>
                         <form className="relative">
+                            <label htmlFor="footer-email" className="sr-only">Email address</label>
                             <input
+                                id="footer-email"
                                 type="email"
                                 className={`w-full text-sm rounded-md focus:ring-2 focus:border-transparent px-4 py-3 pr-10 transition-colors duration-300
                                     ${isDarkMode
@@ -81,6 +55,7 @@ export default function Footer() {
                                     ${isDarkMode
                                         ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700'
                                         : 'bg-gradient-to-r from-cyan-700 to-cyan-800 hover:from-cyan-800 hover:to-cyan-900'}`}
+                                aria-label="Submit email subscription"
                             >
                                 <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
                             </button>
@@ -194,6 +169,7 @@ export default function Footer() {
 
                     <div className="flex space-x-6">
                         <a href="#"
+                            aria-label="Visit our Facebook page"
                             className={`transition-colors duration-300
                                ${isDarkMode
                                     ? 'text-gray-400 hover:text-cyan-400'
@@ -201,6 +177,7 @@ export default function Footer() {
                             <FontAwesomeIcon icon={faFacebookF} className="w-5 h-5" />
                         </a>
                         <a href="#"
+                            aria-label="Visit our Twitter page"
                             className={`transition-colors duration-300
                                ${isDarkMode
                                     ? 'text-gray-400 hover:text-cyan-400'
@@ -208,6 +185,7 @@ export default function Footer() {
                             <FontAwesomeIcon icon={faTwitter} className="w-5 h-5" />
                         </a>
                         <a href="#"
+                            aria-label="Visit our Instagram page"
                             className={`transition-colors duration-300
                                ${isDarkMode
                                     ? 'text-gray-400 hover:text-cyan-400'
@@ -220,3 +198,5 @@ export default function Footer() {
         </footer>
     );
 }
+
+export default memo(Footer);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import {
     FaHeart,
     FaRegHeart,
-    FaShoppingCart,
     FaCartPlus,
     FaCheck,
     FaTimes,
@@ -17,7 +16,6 @@ import {
     FaLayerGroup,
     FaRunning,
     FaMedal,
-    FaFutbol,
     FaFire,
     FaShippingFast,
     FaShieldAlt,
@@ -29,49 +27,22 @@ import {
     FaChevronRight,
     FaHandPointer
 } from 'react-icons/fa';
+import useThemeMode from '../../hooks/useThemeMode';
 
-export default function Home() {
+function Home() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [cartItems, setCartItems] = useState([]);
     const [wishlistItems, setWishlistItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState(null);
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : true;
-    });
+    const isDarkMode = useThemeMode();
     const navigate = useNavigate();
-
-    // Listen for theme changes
-    useEffect(() => {
-        const checkTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
-        };
-
-        window.addEventListener('storage', checkTheme);
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setIsDarkMode(isDark);
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        return () => {
-            window.removeEventListener('storage', checkTheme);
-            observer.disconnect();
-        };
-    }, []);
+    const cartItemSet = useMemo(() => new Set(cartItems), [cartItems]);
+    const wishlistItemSet = useMemo(() => new Set(wishlistItems), [wishlistItems]);
 
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user || null);
 
             if (session?.user) {
                 fetchUserCart(session.user.id);
@@ -83,7 +54,6 @@ export default function Home() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                setUser(session?.user || null);
                 if (session?.user) {
                     fetchUserCart(session.user.id);
                     fetchUserWishlist(session.user.id);
@@ -101,8 +71,6 @@ export default function Home() {
         try {
             setLoading(true);
 
-            // DIRECT QUERY WITHOUT VIEWS
-            // Just query the products table directly
             const { data, error } = await supabase
                 .from('products')
                 .select(`
@@ -118,7 +86,6 @@ export default function Home() {
 
             if (error) throw error;
 
-            // Fetch feedback counts separately
             const productIds = data?.map(p => p.id) || [];
             let feedbackCounts = {};
 
@@ -142,7 +109,6 @@ export default function Home() {
                 }
             }
 
-            // Map the data with feedback counts
             const productsWithFeedback = (data || []).map(product => {
                 const feedback = feedbackCounts[product.id] || { count: 0, totalRating: 0 };
                 const avgRating = feedback.count > 0
@@ -178,7 +144,10 @@ export default function Home() {
 
             if (error) throw error;
 
-            return data || [];
+            return (data || []).map((category) => ({
+                ...category,
+                previewCount: Math.floor(Math.random() * 50) + 10
+            }));
         } catch (error) {
             console.error('Error fetching categories:', error);
             toast.error('Failed to load categories');
@@ -299,7 +268,9 @@ export default function Home() {
                 toast.success("Product added to cart!");
             }
 
-            setCartItems((prev) => [...prev, productId]);
+            setCartItems((prev) => (
+                prev.includes(productId) ? prev : [...prev, productId]
+            ));
             fetchUserCart(session.user.id);
 
         } catch (error) {
@@ -337,7 +308,7 @@ export default function Home() {
 
                 if (deleteError) throw deleteError;
 
-                setWishlistItems(wishlistItems.filter(id => id !== productId));
+                setWishlistItems((prev) => prev.filter((id) => id !== productId));
                 toast.success("Product removed from wishlist!");
             } else {
                 const { error: insertError } = await supabase
@@ -349,7 +320,9 @@ export default function Home() {
 
                 if (insertError) throw insertError;
 
-                setWishlistItems([...wishlistItems, productId]);
+                setWishlistItems((prev) => (
+                    prev.includes(productId) ? prev : [...prev, productId]
+                ));
                 toast.success("Product added to wishlist!");
             }
 
@@ -361,19 +334,13 @@ export default function Home() {
         }
     };
 
-    const isInWishlist = (productId) => {
-        return wishlistItems.includes(productId);
-    };
+    const isInWishlist = useCallback((productId) => wishlistItemSet.has(productId), [wishlistItemSet]);
 
-    const isInCart = (productId) => {
-        return cartItems.includes(productId);
-    };
+    const isInCart = useCallback((productId) => cartItemSet.has(productId), [cartItemSet]);
 
-    const handleCategoryClick = (categoryId) => {
+    const handleCategoryClick = useCallback((categoryId) => {
         navigate(`/products?category=${categoryId}`);
-    };
-
-    const cartItemsCount = cartItems.length;
+    }, [navigate]);
 
     if (loading) {
         return (
@@ -389,8 +356,7 @@ export default function Home() {
     }
 
     return (
-        <>
-            {/* Header Section */}
+        <main id="main-content">
             <section className={`relative overflow-hidden transition-colors duration-300
                 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
 
@@ -459,9 +425,11 @@ export default function Home() {
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-10">
                                 <motion.button
+                                    type="button"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/products')}
+                                    aria-label="Shop the full product catalog"
                                     className={`group relative overflow-hidden text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
                                         ${isDarkMode
                                             ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
@@ -480,9 +448,11 @@ export default function Home() {
                                 </motion.button>
 
                                 <motion.button
+                                    type="button"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => navigate('/category')}
+                                    aria-label="Browse product categories"
                                     className={`group font-semibold py-4 px-8 rounded-xl border-2 shadow-sm hover:shadow-lg transition-all duration-300
                                         ${isDarkMode
                                             ? 'bg-gray-900 text-white border-gray-800 hover:border-cyan-500'
@@ -726,17 +696,17 @@ export default function Home() {
                                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                                 : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                         </div>
-                        <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                        <p className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
                             ${isDarkMode
                                 ? 'from-cyan-400 to-cyan-300'
                                 : 'from-cyan-700 to-cyan-600'}`}>
                             Our Products
-                        </h1>
+                        </p>
                     </div>
-                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 transition-colors duration-300
+                    <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mt-5 sm:mt-7 mb-6 sm:mb-10 transition-colors duration-300
                         ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         Explore Our SportFlex
-                    </h1>
+                    </h2>
                 </motion.div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
@@ -761,6 +731,8 @@ export default function Home() {
                                                     src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop'}
                                                     alt={product.title}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     onError={(e) => {
                                                         e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop';
                                                     }}
@@ -792,6 +764,7 @@ export default function Home() {
                                             </div>
 
                                             <button
+                                                type="button"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -801,6 +774,7 @@ export default function Home() {
                                                     ${isDarkMode
                                                         ? 'bg-gray-900/90 border-gray-700'
                                                         : 'bg-white/90 border-gray-200'}`}
+                                                aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                             >
                                                 {isInWishlist(product.id) ? (
                                                     <FaHeart className={`text-sm ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`} />
@@ -888,6 +862,7 @@ export default function Home() {
                                     <div className="px-3 pb-3 sm:px-4 sm:pb-4 pt-0">
                                         <div className="flex items-center gap-2">
                                             <button
+                                                type="button"
                                                 onClick={() => handleAddToCart(product.id)}
                                                 disabled={isInCart(product.id) || product.stock <= 0}
                                                 className={`cursor-pointer flex-1 py-3 sm:py-2.5 rounded-lg lg:rounded-xl transition-all duration-300 text-sm font-medium 
@@ -902,6 +877,7 @@ export default function Home() {
                                                             : isDarkMode
                                                                 ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg active:scale-95"
                                                                 : "bg-gradient-to-r from-cyan-700 to-cyan-800 text-white hover:from-cyan-800 hover:to-cyan-900 hover:shadow-lg active:scale-95"}`}
+                                                aria-label={isInCart(product.id) ? 'Product already in cart' : `Add ${product.title} to cart`}
                                             >
                                                 <div className="flex items-center justify-center gap-2">
                                                     {isInCart(product.id) ? (
@@ -927,6 +903,7 @@ export default function Home() {
                                             </button>
 
                                             <button
+                                                type="button"
                                                 onClick={() => handleWishlistAction(product.id)}
                                                 className={`hidden lg:flex cursor-pointer p-2.5 rounded-full border transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1
                                                     ${isDarkMode
@@ -1017,17 +994,17 @@ export default function Home() {
                                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                                 : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                         </div>
-                        <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                        <p className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
                             ${isDarkMode
                                 ? 'from-cyan-400 to-cyan-300'
                                 : 'from-cyan-700 to-cyan-600'}`}>
                             Categories
-                        </h1>
+                        </p>
                     </div>
-                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 transition-colors duration-300
+                    <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 transition-colors duration-300
                         ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         Browse SportFlex Categories
-                    </h1>
+                    </h2>
                     <p className={`text-base lg:text-lg max-w-xl transition-colors duration-300
                         ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Discover our premium SportFlex collections
@@ -1037,7 +1014,8 @@ export default function Home() {
                 <div className='grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-8'>
                     {categories.length > 0 ? (
                         categories.map((category, index) => (
-                            <motion.div
+                            <motion.button
+                                type="button"
                                 key={category.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -1045,6 +1023,7 @@ export default function Home() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => handleCategoryClick(category.id)}
+                                aria-label={`Browse ${category.name} products`}
                                 className={`group relative overflow-hidden rounded-xl lg:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 lg:hover:-translate-y-2 cursor-pointer border active:scale-95 lg:active:scale-100
                                     ${isDarkMode
                                         ? 'bg-gray-900 border-gray-800'
@@ -1067,6 +1046,8 @@ export default function Home() {
                                                 src={category.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
                                                 className='w-full h-full object-cover object-center group-hover:scale-110 transition-all duration-300'
                                                 alt={category.name}
+                                                loading="lazy"
+                                                decoding="async"
                                                 onError={(e) => {
                                                     e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop';
                                                 }}
@@ -1089,7 +1070,7 @@ export default function Home() {
                                                 ${isDarkMode
                                                     ? 'bg-gradient-to-r from-cyan-500 to-cyan-600'
                                                     : 'bg-gradient-to-r from-cyan-700 to-cyan-800'}`}>
-                                                {Math.floor(Math.random() * 50) + 10}+
+                                                {category.previewCount}+
                                             </div>
                                         </div>
                                     </div>
@@ -1139,7 +1120,7 @@ export default function Home() {
                                         ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                                         : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                                 </div>
-                            </motion.div>
+                            </motion.button>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-12">
@@ -1201,17 +1182,17 @@ export default function Home() {
                                 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                                 : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                         </div>
-                        <h2 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                        <p className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
                             ${isDarkMode
                                 ? 'from-cyan-400 to-cyan-300'
                                 : 'from-cyan-700 to-cyan-600'}`}>
                             Why Choose Us
-                        </h2>
+                        </p>
                     </div>
-                    <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 transition-colors duration-300
+                    <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 transition-colors duration-300
                         ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         Premium SportFlex Experience
-                    </h1>
+                    </h2>
                     <p className={`text-base lg:text-lg max-w-2xl mx-auto transition-colors duration-300
                         ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         We're committed to providing exceptional service and support at every step of your fitness journey
@@ -1260,6 +1241,8 @@ export default function Home() {
                     </div>
                 </motion.div>
             </section>
-        </>
+        </main>
     );
 }
+
+export default memo(Home);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { memo } from 'react';
 import { CircleLoader } from "react-spinners";
 
 const override = {
@@ -7,21 +7,19 @@ const override = {
     borderColor: "blue",
 };
 
-export default function Loading() {
-
-
-    return <>
-        <div className="sweet-loading py-60 ">
-
+function Loading() {
+    return (
+        <div className="sweet-loading py-60">
             <CircleLoader
-
-                color={'#3B82F6'}
-                loading={Loading}
+                color="#3B82F6"
+                loading
                 cssOverride={override}
                 size={100}
                 aria-label="Loading Spinner"
                 data-testid="loader"
             />
         </div>
-    </>
+    );
 }
+
+export default memo(Loading);

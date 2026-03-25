@@ -1,30 +1,33 @@
-import React from 'react'
-import style from './Layout.module.css'
-import Navbar from '../Navbar/Navbar'
+import { memo } from 'react'
 import { Outlet } from 'react-router-dom'
-import Footer from '../Footer/Footer'
 import { Toaster } from "react-hot-toast";
+import Navbar from '../Navbar/Navbar'
+import Footer from '../Footer/Footer'
 import ScrollToTop from '../ScrollToTop/ScrollToTop'
 
+const TOASTER_OPTIONS = {
+    success: {
+        style: { background: "green", color: "white" },
+    },
+    error: {
+        style: { background: "red", color: "white" },
+    },
+};
 
-export default function Layout() {
-    return <>
-        <ScrollToTop />
-        <Navbar />
-        <Outlet></Outlet>
-        {/* Toast container (must be included once in your app) */}
-        <Toaster
-            position="top-right"
-            reverseOrder={false}
-            toastOptions={{
-                success: {
-                    style: { background: "green", color: "white" },
-                },
-                error: {
-                    style: { background: "red", color: "white" },
-                },
-            }}
-        />
-        <Footer />
-    </>
+function Layout() {
+    return (
+        <>
+            <ScrollToTop />
+            <Navbar />
+            <Outlet />
+            <Toaster
+                position="top-right"
+                reverseOrder={false}
+                toastOptions={TOASTER_OPTIONS}
+            />
+            <Footer />
+        </>
+    );
 }
+
+export default memo(Layout);

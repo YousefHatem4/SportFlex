@@ -1,55 +1,51 @@
-import React, { useContext, useState, useEffect, useCallback } from 'react'
+import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { userContext } from '../../Context/userContext'
 import { supabase } from '../../supabaseClient'
 import { FaHeart, FaRegHeart, FaShoppingCart, FaChevronLeft, FaChevronRight, FaMoon, FaSun } from 'react-icons/fa'
+import useThemeMode from '../../hooks/useThemeMode'
 
-export default function Navbar() {
+const DEFAULT_SPECIAL_OFFERS = [
+    'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
+    'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!',
+    'Free Shipping on Orders Over EGP 500!',
+    'New Collection Launch - Up to 40% Off!'
+];
+
+const FALLBACK_SPECIAL_OFFERS = [
+    'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
+    'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!'
+];
+
+function Navbar() {
     const location = useLocation();
-    const currentPath = location.pathname;
-    const [menuOpen, setMenuOpen] = useState(false);
     const navigate = useNavigate();
-
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : false;
-    });
-
-    useEffect(() => {
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
-    }, [isDarkMode]);
-
-    const toggleTheme = () => {
-        setIsDarkMode(!isDarkMode);
-    };
-
     const { userToken, user, isAdmin, setUserToken, setUser } = useContext(userContext);
 
+    const currentPath = location.pathname;
+    const isDarkMode = useThemeMode(false);
+    const isUserLoggedIn = userToken !== null;
+
+    const [menuOpen, setMenuOpen] = useState(false);
     const [cartItemsCount, setCartItemsCount] = useState(0);
     const [isLoadingCart, setIsLoadingCart] = useState(false);
     const [specialOffers, setSpecialOffers] = useState([]);
     const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const isUserLoggedIn = userToken !== null;
+    const animationTimeoutRef = useRef(null);
+    const cartUpdateTimeoutRef = useRef(null);
 
-    useEffect(() => {
-        fetchSpecialOffers();
+    const applyTheme = useCallback((nextIsDarkMode) => {
+        document.documentElement.classList.toggle('dark', nextIsDarkMode);
+        localStorage.setItem('theme', nextIsDarkMode ? 'dark' : 'light');
+    }, []);
 
-        const interval = setInterval(() => {
-            nextOffer();
-        }, 5000);
+    const toggleTheme = useCallback(() => {
+        applyTheme(!isDarkMode);
+    }, [applyTheme, isDarkMode]);
 
-        return () => clearInterval(interval);
-    }, [specialOffers.length, currentOfferIndex]);
-
-    const fetchSpecialOffers = async () => {
+    const fetchSpecialOffers = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('special_offers')
@@ -60,57 +56,51 @@ export default function Navbar() {
             if (error) throw error;
 
             if (data && data.length > 0) {
-                setSpecialOffers(data.map(item => item.banner_text));
+                setSpecialOffers(data.map((item) => item.banner_text));
             } else {
-                setSpecialOffers([
-                    'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
-                    'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!',
-                    'Free Shipping on Orders Over EGP 500!',
-                    'New Collection Launch - Up to 40% Off!'
-                ]);
+                setSpecialOffers(DEFAULT_SPECIAL_OFFERS);
             }
         } catch (error) {
             console.error('Error fetching special offers:', error);
-            setSpecialOffers([
-                'Summer Sale For All SportFlex And Free Express Delivery - OFF 50%!',
-                'Limited Time Offer: Buy 2 Get 1 Free on Selected Items!'
-            ]);
+            setSpecialOffers(FALLBACK_SPECIAL_OFFERS);
         }
-    };
+    }, []);
 
-    const nextOffer = () => {
+    const queueOfferTransition = useCallback((updater) => {
         if (specialOffers.length <= 1) return;
 
+        window.clearTimeout(animationTimeoutRef.current);
         setIsAnimating(true);
-        setTimeout(() => {
-            setCurrentOfferIndex((prevIndex) =>
-                prevIndex === specialOffers.length - 1 ? 0 : prevIndex + 1
-            );
+
+        animationTimeoutRef.current = window.setTimeout(() => {
+            setCurrentOfferIndex(updater);
             setIsAnimating(false);
         }, 300);
-    };
+    }, [specialOffers.length]);
 
-    const prevOffer = () => {
-        if (specialOffers.length <= 1) return;
+    const nextOffer = useCallback(() => {
+        queueOfferTransition((prevIndex) => (
+            prevIndex === specialOffers.length - 1 ? 0 : prevIndex + 1
+        ));
+    }, [queueOfferTransition, specialOffers.length]);
 
-        setIsAnimating(true);
-        setTimeout(() => {
-            setCurrentOfferIndex((prevIndex) =>
-                prevIndex === 0 ? specialOffers.length - 1 : prevIndex - 1
-            );
-            setIsAnimating(false);
-        }, 300);
-    };
+    const prevOffer = useCallback(() => {
+        queueOfferTransition((prevIndex) => (
+            prevIndex === 0 ? specialOffers.length - 1 : prevIndex - 1
+        ));
+    }, [queueOfferTransition, specialOffers.length]);
 
-    const goToOffer = (index) => {
+    const goToOffer = useCallback((index) => {
         if (index === currentOfferIndex || specialOffers.length <= 1) return;
 
+        window.clearTimeout(animationTimeoutRef.current);
         setIsAnimating(true);
-        setTimeout(() => {
+
+        animationTimeoutRef.current = window.setTimeout(() => {
             setCurrentOfferIndex(index);
             setIsAnimating(false);
         }, 300);
-    };
+    }, [currentOfferIndex, specialOffers.length]);
 
     const fetchCartCount = useCallback(async (userId) => {
         if (!userId) {
@@ -136,27 +126,72 @@ export default function Navbar() {
         }
     }, []);
 
+    const refreshCartCount = useCallback(() => {
+        if (isUserLoggedIn && user?.id) {
+            fetchCartCount(user.id);
+        }
+    }, [fetchCartCount, isUserLoggedIn, user?.id]);
+
+    const handleCartUpdate = useCallback(() => {
+        if (isUserLoggedIn && user?.id) {
+            fetchCartCount(user.id);
+        }
+    }, [fetchCartCount, isUserLoggedIn, user?.id]);
+
+    const closeMenu = useCallback(() => {
+        setMenuOpen(false);
+    }, []);
+
+    const toggleMenu = useCallback(() => {
+        setMenuOpen((prevMenuOpen) => !prevMenuOpen);
+    }, []);
+
+    const navItems = useMemo(() => ([
+        { path: '', label: 'HOME' },
+        { path: 'products', label: 'PRODUCTS' },
+        { path: 'category', label: 'CATEGORIES' },
+        { path: 'about', label: 'ABOUT' },
+        { path: 'contact', label: 'CONTACT' },
+        ...(isAdmin ? [{ path: 'admin', label: 'ADMIN PANEL' }] : [])
+    ]), [isAdmin]);
+
+    useEffect(() => {
+        fetchSpecialOffers();
+    }, [fetchSpecialOffers]);
+
+    useEffect(() => {
+        if (specialOffers.length <= 1) {
+            return undefined;
+        }
+
+        const interval = window.setInterval(nextOffer, 5000);
+
+        return () => window.clearInterval(interval);
+    }, [nextOffer, specialOffers.length]);
+
+    useEffect(() => {
+        if (currentOfferIndex >= specialOffers.length && specialOffers.length > 0) {
+            setCurrentOfferIndex(0);
+        }
+    }, [currentOfferIndex, specialOffers.length]);
+
     useEffect(() => {
         if (isUserLoggedIn && user?.id) {
             fetchCartCount(user.id);
         } else {
             setCartItemsCount(0);
         }
-    }, [isUserLoggedIn, user?.id, fetchCartCount]);
+    }, [fetchCartCount, isUserLoggedIn, user?.id]);
 
     useEffect(() => {
-        const handleCartUpdate = () => {
-            if (isUserLoggedIn && user?.id) {
-                fetchCartCount(user.id);
+        const handleStorage = (event) => {
+            if (event.key === 'cart_updated') {
+                handleCartUpdate();
             }
         };
 
         window.addEventListener('cartUpdated', handleCartUpdate);
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'cart_updated') {
-                handleCartUpdate();
-            }
-        });
+        window.addEventListener('storage', handleStorage);
 
         let subscription;
         if (isUserLoggedIn && user?.id) {
@@ -170,9 +205,9 @@ export default function Navbar() {
                         table: 'cart_items',
                         filter: `user_id=eq.${user.id}`
                     },
-                    (payload) => {
-                        clearTimeout(window.cartUpdateTimeout);
-                        window.cartUpdateTimeout = setTimeout(() => {
+                    () => {
+                        window.clearTimeout(cartUpdateTimeoutRef.current);
+                        cartUpdateTimeoutRef.current = window.setTimeout(() => {
                             fetchCartCount(user.id);
                         }, 300);
                     }
@@ -182,20 +217,14 @@ export default function Navbar() {
 
         return () => {
             window.removeEventListener('cartUpdated', handleCartUpdate);
-            window.removeEventListener('storage', handleCartUpdate);
-            clearTimeout(window.cartUpdateTimeout);
+            window.removeEventListener('storage', handleStorage);
+            window.clearTimeout(cartUpdateTimeoutRef.current);
 
             if (subscription) {
                 supabase.removeChannel(subscription);
             }
         };
-    }, [isUserLoggedIn, user?.id, fetchCartCount]);
-
-    const refreshCartCount = useCallback(() => {
-        if (isUserLoggedIn && user?.id) {
-            fetchCartCount(user.id);
-        }
-    }, [isUserLoggedIn, user?.id, fetchCartCount]);
+    }, [fetchCartCount, handleCartUpdate, isUserLoggedIn, user?.id]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -211,28 +240,34 @@ export default function Navbar() {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', refreshCartCount);
         };
-    }, [isUserLoggedIn, user?.id, refreshCartCount]);
+    }, [isUserLoggedIn, refreshCartCount, user?.id]);
 
     useEffect(() => {
         refreshCartCount();
     }, [location.pathname, refreshCartCount]);
 
-    async function logOut() {
+    useEffect(() => () => {
+        window.clearTimeout(animationTimeoutRef.current);
+        window.clearTimeout(cartUpdateTimeoutRef.current);
+    }, []);
+
+    const logOut = useCallback(async () => {
         try {
             await supabase.auth.signOut();
 
             setUserToken(null);
             setUser(null);
             localStorage.removeItem('userToken');
-
             setCartItemsCount(0);
 
             navigate('/');
-            setMenuOpen(false);
+            closeMenu();
         } catch (error) {
             console.error('Logout error:', error);
         }
-    }
+    }, [closeMenu, navigate, setUser, setUserToken]);
+
+    const currentOffer = specialOffers[currentOfferIndex] || '';
 
     return <>
         {specialOffers.length > 0 && (
@@ -244,6 +279,7 @@ export default function Navbar() {
                 {specialOffers.length > 1 && (
                     <>
                         <button
+                            type="button"
                             onClick={prevOffer}
                             className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-10 
                                 ${isDarkMode
@@ -251,10 +287,12 @@ export default function Navbar() {
                                     : 'text-cyan-700 hover:text-cyan-600 bg-white/80'} 
                                 rounded-full p-1 transition-colors duration-200 shadow-md`}
                             disabled={isAnimating}
+                            aria-label="Show previous special offer"
                         >
                             <FaChevronLeft />
                         </button>
                         <button
+                            type="button"
                             onClick={nextOffer}
                             className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-10 
                                 ${isDarkMode
@@ -262,6 +300,7 @@ export default function Navbar() {
                                     : 'text-cyan-700 hover:text-cyan-600 bg-white/80'} 
                                 rounded-full p-1 transition-colors duration-200 shadow-md`}
                             disabled={isAnimating}
+                            aria-label="Show next special offer"
                         >
                             <FaChevronRight />
                         </button>
@@ -269,9 +308,12 @@ export default function Navbar() {
                 )}
 
                 <div className="relative max-w-4xl mx-auto px-8">
-                    <div className={`transition-all duration-500 ease-in-out ${isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+                    <div
+                        className={`transition-all duration-500 ease-in-out ${isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}
+                        aria-live="polite"
+                    >
                         <p className={`font-bold text-sm md:text-base ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                            {specialOffers[currentOfferIndex]}
+                            {currentOffer}
                             <Link
                                 to={'products'}
                                 className={`ms-2 font-extrabold transition-colors duration-200 inline-flex items-center gap-1
@@ -279,7 +321,7 @@ export default function Navbar() {
                                         ? 'text-cyan-400 hover:text-cyan-300'
                                         : 'text-cyan-700 hover:text-cyan-800'}`}
                             >
-                                SHOP NOW <span className="text-lg">→</span>
+                                SHOP NOW <span className="text-lg" aria-hidden="true">&rarr;</span>
                             </Link>
                         </p>
                     </div>
@@ -289,6 +331,7 @@ export default function Navbar() {
                             {specialOffers.map((_, index) => (
                                 <button
                                     key={index}
+                                    type="button"
                                     onClick={() => goToOffer(index)}
                                     className={`w-2 h-2 rounded-full transition-all duration-300 
                                         ${index === currentOfferIndex
@@ -300,6 +343,7 @@ export default function Navbar() {
                                                 : 'bg-gray-300 hover:bg-gray-400'
                                         }`}
                                     disabled={isAnimating}
+                                    aria-label={`Show special offer ${index + 1}`}
                                 />
                             ))}
                         </div>
@@ -328,10 +372,13 @@ export default function Navbar() {
             </div>
         )}
 
-        <nav className={`sticky w-full z-30 top-0 start-0 border-b-2 shadow-xl transition-colors duration-300
-            ${isDarkMode
-                ? 'bg-black border-gray-800'
-                : 'bg-white border-gray-200'}`}>
+        <nav
+            className={`sticky w-full z-30 top-0 start-0 border-b-2 shadow-xl transition-colors duration-300
+                ${isDarkMode
+                    ? 'bg-black border-gray-800'
+                    : 'bg-white border-gray-200'}`}
+            aria-label="Primary"
+        >
 
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to={''} className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -345,18 +392,24 @@ export default function Navbar() {
 
                 <div className="flex items-center md:order-2 space-x-4 md:space-x-3 rtl:space-x-reverse">
                     <button
+                        type="button"
                         onClick={toggleTheme}
                         className={`p-2 rounded-full transition-all duration-300 transform hover:scale-110
                             ${isDarkMode
                                 ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
                                 : 'bg-gray-100 text-cyan-700 hover:bg-gray-200'}`}
                         aria-label="Toggle theme"
+                        aria-pressed={isDarkMode}
                     >
                         {isDarkMode ? <FaSun className="text-xl" /> : <FaMoon className="text-xl" />}
                     </button>
 
                     {isUserLoggedIn && <>
-                        <Link to={'wishlist'} className="relative group">
+                        <Link
+                            to={'wishlist'}
+                            className="relative group"
+                            aria-label="Open wishlist"
+                        >
                             <FaRegHeart className={`text-2xl cursor-pointer transition-all duration-300 
                                 ${isDarkMode
                                     ? 'text-white group-hover:opacity-0'
@@ -369,7 +422,11 @@ export default function Navbar() {
                             )}
                         </Link>
 
-                        <Link to={'cart'} className="relative group">
+                        <Link
+                            to={'cart'}
+                            className="relative group"
+                            aria-label={`Open cart${cartItemsCount > 0 ? ` with ${cartItemsCount} items` : ''}`}
+                        >
                             <FaShoppingCart className={`md:ms-2 text-2xl cursor-pointer transition-all duration-300
                                 ${isDarkMode
                                     ? 'text-white group-hover:opacity-0'
@@ -404,14 +461,18 @@ export default function Navbar() {
                         </Link>
                     </>}
 
-                    <button onClick={() => setMenuOpen(!menuOpen)}
+                    <button
+                        onClick={toggleMenu}
                         type="button"
                         className={`inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg md:hidden 
                             focus:outline-none focus:ring-2 transition-colors duration-200 ring-1
                             ${isDarkMode
                                 ? 'text-white hover:bg-gray-900 focus:ring-cyan-500 focus:ring-offset-black ring-gray-800'
-                                : 'text-gray-700 hover:bg-gray-100 focus:ring-cyan-600 focus:ring-offset-white ring-gray-200'}`}>
-                        <span className="sr-only">Open main menu</span>
+                                : 'text-gray-700 hover:bg-gray-100 focus:ring-cyan-600 focus:ring-offset-white ring-gray-200'}`}
+                        aria-expanded={menuOpen}
+                        aria-controls="navbar-sticky"
+                    >
+                        <span className="sr-only">{menuOpen ? 'Close main menu' : 'Open main menu'}</span>
                         {menuOpen ? (
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
@@ -428,56 +489,57 @@ export default function Navbar() {
                     <ul className={`flex flex-col md:gap-5 p-4 md:p-0 mt-4 font-bold rounded-lg md:space-x-6 rtl:space-x-reverse md:flex-row md:mt-0 text-center md:text-left
                         ${isDarkMode ? 'bg-black md:bg-transparent' : 'bg-white md:bg-transparent'}`}>
 
-                        {[
-                            { path: '', label: 'HOME' },
-                            { path: 'products', label: 'PRODUCTS' },
-                            { path: 'category', label: 'CATEGORIES' },
-                            { path: 'about', label: 'ABOUT' },
-                            { path: 'contact', label: 'CONTACT' },
-                            ...(isAdmin ? [{ path: 'admin', label: 'ADMIN PANEL' }] : [])
-                        ].map((item) => (
-                            <li key={item.path}>
-                                <Link
-                                    to={item.path}
-                                    onClick={() => setMenuOpen(false)}
-                                    className={`block py-2 px-3 rounded md:p-0 relative group transition-all duration-300
-                                        ${currentPath === `/${item.path}` || (item.path === '' && currentPath === '/')
-                                            ? isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
-                                            : isDarkMode ? 'text-white hover:text-cyan-400' : 'text-gray-700 hover:text-cyan-700'
-                                        }`}
-                                >
-                                    {item.label}
-                                    <span className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 transition-all duration-600 md:duration-300 group-hover:w-full
-                                        ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}></span>
-                                </Link>
-                            </li>
-                        ))}
+                        {navItems.map((item) => {
+                            const isActive = currentPath === `/${item.path}` || (item.path === '' && currentPath === '/');
+
+                            return (
+                                <li key={item.path}>
+                                    <Link
+                                        to={item.path}
+                                        onClick={closeMenu}
+                                        className={`block py-2 px-3 rounded md:p-0 relative group transition-all duration-300
+                                            ${isActive
+                                                ? isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
+                                                : isDarkMode ? 'text-white hover:text-cyan-400' : 'text-gray-700 hover:text-cyan-700'
+                                            }`}
+                                        aria-current={isActive ? 'page' : undefined}
+                                    >
+                                        {item.label}
+                                        <span className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 transition-all duration-600 md:duration-300 group-hover:w-full
+                                            ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}></span>
+                                    </Link>
+                                </li>
+                            );
+                        })}
 
                         <li>
                             {!isUserLoggedIn ? (
                                 <Link
                                     to={'login'}
-                                    onClick={() => setMenuOpen(false)}
+                                    onClick={closeMenu}
                                     className={`block py-2 px-3 rounded md:p-0 relative group transition-all duration-300
                                         ${currentPath === '/login'
                                             ? isDarkMode ? 'text-cyan-400' : 'text-cyan-700'
                                             : isDarkMode ? 'text-white hover:text-cyan-400' : 'text-gray-700 hover:text-cyan-700'
                                         }`}
+                                    aria-current={currentPath === '/login' ? 'page' : undefined}
                                 >
                                     SIGN IN
                                     <span className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 transition-all duration-600 md:duration-300 group-hover:w-full
                                         ${isDarkMode ? 'bg-cyan-500' : 'bg-cyan-700'}`}></span>
                                 </Link>
                             ) : (
-                                <span
+                                <button
+                                    type="button"
                                     onClick={logOut}
                                     className={`cursor-pointer font-extrabold text-sm transition-all duration-300 uppercase
                                         ${isDarkMode
                                             ? 'text-white hover:text-cyan-400'
                                             : 'text-gray-700 hover:text-cyan-700'}`}
+                                    aria-label="Log out"
                                 >
                                     LOGOUT
-                                </span>
+                                </button>
                             )}
                         </li>
                     </ul>
@@ -486,3 +548,5 @@ export default function Navbar() {
         </nav>
     </>
 }
+
+export default memo(Navbar)

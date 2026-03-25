@@ -1,47 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
 import { FaTags, FaShoppingBag } from 'react-icons/fa';
+import useThemeMode from '../../hooks/useThemeMode';
 
-export default function Category() {
+function Category() {
     const [categories, setCategories] = useState([]);
     const [productsCount, setProductsCount] = useState({});
     const [loading, setLoading] = useState(true);
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme ? savedTheme === 'dark' : true;
-    });
+    const isDarkMode = useThemeMode();
     const navigate = useNavigate();
 
-    // Listen for theme changes
-    useEffect(() => {
-        const checkTheme = () => {
-            const savedTheme = localStorage.getItem('theme');
-            setIsDarkMode(savedTheme ? savedTheme === 'dark' : true);
-        };
-
-        window.addEventListener('storage', checkTheme);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setIsDarkMode(isDark);
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        return () => {
-            window.removeEventListener('storage', checkTheme);
-            observer.disconnect();
-        };
-    }, []);
-
-    // Fetch categories and product counts from database
     useEffect(() => {
         fetchCategories();
         document.title = 'Categories - SportFlex Store';
@@ -84,9 +55,9 @@ export default function Category() {
         }
     };
 
-    const handleCategoryClick = (categoryId) => {
+    const handleCategoryClick = useCallback((categoryId) => {
         navigate(`/products?category=${categoryId}`);
-    };
+    }, [navigate]);
 
     if (loading) {
         return (
@@ -101,11 +72,14 @@ export default function Category() {
         );
     }
 
-    return <>
-        <section className={`px-5 lg:px-30 py-16 transition-colors duration-300
-            ${isDarkMode
-                ? 'bg-gradient-to-b from-gray-900 via-black to-gray-900'
-                : 'bg-gradient-to-b from-gray-100 via-white to-gray-100'}`}>
+    return (
+        <main
+            id="main-content"
+            className={`px-5 lg:px-30 py-16 transition-colors duration-300
+                ${isDarkMode
+                    ? 'bg-gradient-to-b from-gray-900 via-black to-gray-900'
+                    : 'bg-gradient-to-b from-gray-100 via-white to-gray-100'}`}
+        >
 
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -118,12 +92,12 @@ export default function Category() {
                             ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
                             : 'bg-gradient-to-r from-cyan-700 to-cyan-600'}`}>
                     </div>
-                    <h1 className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
+                    <p className={`font-bold text-sm sm:text-base bg-gradient-to-r bg-clip-text text-transparent
                         ${isDarkMode
                             ? 'from-cyan-400 to-cyan-300'
                             : 'from-cyan-700 to-cyan-600'}`}>
                         SportFlex Categories
-                    </h1>
+                    </p>
                     <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full transition-colors duration-300
                         ${isDarkMode
                             ? 'bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 text-cyan-400'
@@ -172,13 +146,15 @@ export default function Category() {
             ) : (
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8'>
                     {categories.map((category, index) => (
-                        <motion.div
+                        <motion.button
+                            type="button"
                             key={category.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                             whileHover={{ scale: 1.02 }}
                             onClick={() => handleCategoryClick(category.id)}
+                            aria-label={`Browse ${category.name} products`}
                             className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 cursor-pointer border
                                 ${isDarkMode
                                     ? 'bg-gray-900 border-gray-800'
@@ -200,6 +176,8 @@ export default function Category() {
                                         src={category.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'}
                                         className='w-16 h-16 lg:w-20 lg:h-20 object-cover object-center mx-auto group-hover:scale-110 transition-all duration-300'
                                         alt={category.name}
+                                        loading="lazy"
+                                        decoding="async"
                                         onError={(e) => {
                                             e.target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop';
                                         }}
@@ -241,7 +219,7 @@ export default function Category() {
                                     ? 'bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500'
                                     : 'bg-gradient-to-r from-cyan-700 via-cyan-600 to-cyan-700'}`}>
                             </div>
-                        </motion.div>
+                        </motion.button>
                     ))}
                 </div>
             )}
@@ -265,6 +243,8 @@ export default function Category() {
                     </Link>
                 </motion.div>
             )}
-        </section>
-    </>
+        </main>
+    )
 }
+
+export default memo(Category);
