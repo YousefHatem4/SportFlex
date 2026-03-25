@@ -826,7 +826,7 @@ export default function Home() {
                                                 </div>
                                             </div>
 
-                                            <h3 className={`text-sm sm:text-base font-semibold leading-tight line-clamp-2 min-h-[2.5rem] group-hover:transition-colors duration-300
+                                            <h3 className={`text-sm sm:text-base font-semibold leading-tight break-words sm:line-clamp-2 sm:min-h-[2.5rem] group-hover:transition-colors duration-300
                                                 ${isDarkMode
                                                     ? 'text-white group-hover:text-cyan-400'
                                                     : 'text-gray-900 group-hover:text-cyan-700'}`}>
